@@ -41,6 +41,12 @@ Decompose `docs/specs/` into small, testable board issues. Issues are **proposed
 
    Body must contain every template section: Goal, Pre-requisites (`Depends on #N` one per line), Requirements, Human actions, Out of scope, References.
 
+   Then add each created issue to the board (works even if the project's auto-add workflow is off):
+
+   ```bash
+   gh project item-add 2 --owner rodrigoeduardo --url <issue-url>
+   ```
+
 6. Commit the draft file.
 
 ## Re-runs
