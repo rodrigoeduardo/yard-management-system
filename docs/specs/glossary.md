@@ -1,0 +1,20 @@
+# Glossary
+
+Domain vocabulary. Code, docs, issues, and labels are in English; these Brazilian terms remain part of the domain and appear in the UI (which is in Portuguese for end users).
+
+| Term | English | Meaning |
+|---|---|---|
+| Nota Fiscal (NF) | (kept as-is) | Brazilian legal invoice document. Identifies a load. Not unique forever, but unique among open loads in practice. |
+| Carga | Load | A shipment of material that arrives in the yard under one NF, split into individually tracked items. |
+| Item | Item | One physical unit of a load, with its own weight and QR code. |
+| Remoção | Removal | An action that takes items out of the yard: one exit date + one driver, N scanned items, possibly from different loads. |
+| Motorista | Driver | Person transporting removed items; recorded per removal action. |
+| Peso da Nota Fiscal | NF Weight | Total weight stated on the invoice. Reference only — need not equal the sum of item weights. |
+| Peso Restante | Remaining Weight | Sum of the weights of a load's items still in stock. |
+| Peso Total Removido | Total Removed Weight | Sum of the weights of all items removed in one removal action. |
+| Estoque | Inventory / Stock | Everything currently in the yard, viewed per load. |
+| Pátio | Yard | The physical storage area. |
+
+## UI language note
+
+End-user UI text is Portuguese (the yard operators' language). Everything else — code identifiers, comments, commits, issues, docs — is English.
