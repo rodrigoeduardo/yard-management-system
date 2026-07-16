@@ -8,11 +8,16 @@ function requireEnv(name: string): string {
   return value;
 }
 
+/**
+ * Uses the publishable (anon) key so all queries run through RLS.
+ * Do not swap in the service role key here — that bypasses RLS and
+ * belongs only in narrowly-scoped, non-request-path admin tooling.
+ */
 export function createSupabaseServerClient(): SupabaseClient {
   const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const publishableKey = requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
 
-  return createClient(url, serviceRoleKey, {
+  return createClient(url, publishableKey, {
     auth: { persistSession: false },
   });
 }
