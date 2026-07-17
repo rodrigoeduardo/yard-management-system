@@ -1,0 +1,27 @@
+"use client";
+
+import { useState } from "react";
+import { RemovalDetailModal } from "./removal-detail-modal";
+import { RemovalLogTable, type RemovalLogRow } from "./removal-log-table";
+
+export function RemovalSection({ rows }: { rows: RemovalLogRow[] }) {
+  const [selected, setSelected] = useState<RemovalLogRow | null>(null);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <RemovalLogTable
+        rows={rows}
+        onRowClick={(row) => {
+          setSelected(row);
+          setOpen(true);
+        }}
+      />
+      <RemovalDetailModal
+        removal={selected}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}

@@ -1,8 +1,6 @@
 import { desc } from "drizzle-orm";
-import {
-  RemovalLogTable,
-  type RemovalLogRow,
-} from "@/components/inventory/removal-log-table";
+import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
+import { RemovalSection } from "@/components/inventory/removal-section";
 import { StockSection } from "@/components/inventory/stock-section";
 import type { StockRow } from "@/components/inventory/stock-table";
 import { db } from "@/lib/db";
@@ -49,7 +47,7 @@ export default async function InventoryPage() {
       </div>
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Histórico de Remoções</h1>
-        <RemovalLogTable rows={removalRows} />
+        <RemovalSection rows={removalRows} />
       </div>
     </main>
   );

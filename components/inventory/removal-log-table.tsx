@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -30,7 +31,13 @@ const columns: ColumnDef<RemovalLogRow>[] = [
   { accessorKey: "notasFiscais", header: "Notas Fiscais" },
 ];
 
-export function RemovalLogTable({ rows }: { rows: RemovalLogRow[] }) {
+export function RemovalLogTable({
+  rows,
+  onRowClick,
+}: {
+  rows: RemovalLogRow[];
+  onRowClick?: (row: RemovalLogRow) => void;
+}) {
   const table = useReactTable({
     data: rows,
     columns,
@@ -55,7 +62,23 @@ export function RemovalLogTable({ rows }: { rows: RemovalLogRow[] }) {
       </TableHeader>
       <TableBody>
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
+          <TableRow
+            key={row.id}
+            role={onRowClick ? "button" : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+            onKeyDown={
+              onRowClick
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onRowClick(row.original);
+                    }
+                  }
+                : undefined
+            }
+            className={cn(onRowClick && "cursor-pointer")}
+          >
             {row.getVisibleCells().map((cell) => (
               <TableCell key={cell.id}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
