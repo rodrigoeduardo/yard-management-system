@@ -18,6 +18,7 @@ import {
   addScannedItem,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
+  notaFiscalOf,
 } from "@/lib/removals/scan-list";
 import { checkItemStatus } from "@/lib/actions/item-status";
 import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payload";
@@ -266,7 +267,10 @@ export default function NewRemovalPage() {
                 className="flex items-center justify-between gap-2"
               >
                 <span>
-                  {item.identifier} — {item.material} — {item.weight} kg
+                  <span className="font-medium">
+                    NF: {notaFiscalOf(item)}
+                  </span>{" "}
+                  — {item.identifier} — {item.material} — {item.weight} kg
                 </span>
                 <Button
                   type="button"

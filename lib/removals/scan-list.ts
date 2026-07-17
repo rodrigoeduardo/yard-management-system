@@ -34,6 +34,15 @@ function notaFiscalFromIdentifier(identifier: string): string {
   return identifier.replace(/^Item \d+ - /, "");
 }
 
+/**
+ * Resolves an item's Nota Fiscal: prefers the distinct `notaFiscal` field,
+ * falling back to parsing the identifier for QR codes printed before that
+ * field existed.
+ */
+export function notaFiscalOf(item: ItemQrPayload): string {
+  return item.notaFiscal ?? notaFiscalFromIdentifier(item.identifier);
+}
+
 /** Groups scanned items by their originating Nota Fiscal, preserving first-seen order. */
 export function groupScannedItemsByNotaFiscal(
   list: ItemQrPayload[],
@@ -41,7 +50,7 @@ export function groupScannedItemsByNotaFiscal(
   const groups: ScannedItemsByNotaFiscal[] = [];
 
   for (const item of list) {
-    const notaFiscal = notaFiscalFromIdentifier(item.identifier);
+    const notaFiscal = notaFiscalOf(item);
     const group = groups.find((g) => g.notaFiscal === notaFiscal);
     if (group) {
       group.items.push(item);
