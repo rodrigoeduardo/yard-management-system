@@ -66,4 +66,35 @@ describe("createLoad", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("attributes an invalid item weight to its own index, not a flattened bucket", async () => {
+    const result = await createLoad({
+      notaFiscal: `NF-INDEXED-${randomUUID()}`,
+      entryDate: "2026-01-01",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10, 0, 30],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.itemWeightErrors[1]).toBeDefined();
+    expect(result.error.itemWeightErrors[0]).toBeUndefined();
+    expect(result.error.itemWeightErrors[2]).toBeUndefined();
+  });
+
+  it("preserves top-level field errors alongside per-index item weight errors", async () => {
+    const result = await createLoad({
+      notaFiscal: "",
+      entryDate: "2026-01-01",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10, 0],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.fieldErrors.notaFiscal).toBeDefined();
+    expect(result.error.itemWeightErrors[1]).toBeDefined();
+  });
 });
