@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { createLoad } from "@/lib/actions/loads";
 import {
   type CreateLoadFieldMessages,
+  type CreateLoadItemWeightMessages,
   mapCreateLoadFieldErrors,
+  mapCreateLoadItemWeightErrors,
 } from "@/lib/forms/create-load-error-map";
 import { buildTrail } from "@/lib/nav/breadcrumbs";
 
@@ -24,6 +26,8 @@ export default function NewLoadPage() {
   const [itemCount, setItemCount] = useState(1);
   const [itemWeights, setItemWeights] = useState<string[]>([""]);
   const [fieldErrors, setFieldErrors] = useState<CreateLoadFieldMessages>({});
+  const [itemWeightErrors, setItemWeightErrors] =
+    useState<CreateLoadItemWeightMessages>({});
   const [formError, setFormError] = useState<string | undefined>();
 
   function handleItemCountChange(value: string) {
@@ -47,6 +51,7 @@ export default function NewLoadPage() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setFieldErrors({});
+    setItemWeightErrors({});
     setFormError(undefined);
 
     startTransition(async () => {
@@ -60,6 +65,9 @@ export default function NewLoadPage() {
 
       if (!result.success) {
         setFieldErrors(mapCreateLoadFieldErrors(result.error.fieldErrors));
+        setItemWeightErrors(
+          mapCreateLoadItemWeightErrors(result.error.itemWeightErrors),
+        );
         if (result.error.formErrors.length > 0) {
           setFormError("Verifique os campos e tente novamente.");
         }
@@ -175,22 +183,25 @@ export default function NewLoadPage() {
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">Peso de Cada Item</span>
           {itemWeights.map((weight, index) => (
-            <input
-              key={index}
-              type="number"
-              step="any"
-              aria-label={`Peso do item ${index + 1}`}
-              value={weight}
-              onChange={(e) => handleItemWeightChange(index, e.target.value)}
-              required
-              className={inputClassName}
-            />
+            <div key={index} className="flex flex-col gap-1.5">
+              <input
+                type="number"
+                step="any"
+                aria-label={`Peso do item ${index + 1}`}
+                value={weight}
+                onChange={(e) =>
+                  handleItemWeightChange(index, e.target.value)
+                }
+                required
+                className={inputClassName}
+              />
+              {itemWeightErrors[index] && (
+                <p role="alert" className="text-sm text-destructive">
+                  {itemWeightErrors[index]}
+                </p>
+              )}
+            </div>
           ))}
-          {fieldErrors.itemWeights && (
-            <p role="alert" className="text-sm text-destructive">
-              {fieldErrors.itemWeights}
-            </p>
-          )}
         </div>
 
         {formError && (
