@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildItemQrPayload, decodeItemQrPayload, encodeItemQrPayload } from "./payload";
+import {
+  buildItemQrPayload,
+  decodeItemQrPayload,
+  encodeItemQrPayload,
+  safeDecodeItemQrPayload,
+} from "./payload";
 
 describe("item QR payload", () => {
   it("round-trips identifier, material, and weight through encode/decode", () => {
@@ -19,5 +24,23 @@ describe("item QR payload", () => {
       material: "Aço",
       weight: "10.5",
     });
+  });
+
+  it("safely decodes a valid payload", () => {
+    const payload = buildItemQrPayload({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      itemIndex: 1,
+      notaFiscal: "NF-123",
+      material: "Aço",
+      weight: "10.5",
+    });
+
+    expect(safeDecodeItemQrPayload(encodeItemQrPayload(payload))).toEqual(
+      payload,
+    );
+  });
+
+  it("safely decoding non-QR-payload text returns null instead of throwing", () => {
+    expect(safeDecodeItemQrPayload("not a payload")).toBeNull();
   });
 });
