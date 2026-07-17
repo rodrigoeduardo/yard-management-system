@@ -8,6 +8,20 @@
       "when": 1784245612422,
       "tag": "0000_romantic_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784250552434,
+      "tag": "0001_audit_log_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784250556705,
+      "tag": "0002_audit_log_triggers",
+      "breakpoints": true
     }
   ]
 }

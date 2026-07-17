@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   check,
   integer,
+  jsonb,
   numeric,
   pgTable,
   primaryKey,
@@ -68,4 +69,26 @@ export const removalItems = pgTable(
       .references(() => items.id),
   },
   (table) => [primaryKey({ columns: [table.removalId, table.itemId] })],
+);
+
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tableName: text("table_name").notNull(),
+    recordId: uuid("record_id").notNull(),
+    action: text("action", { enum: ["INSERT", "UPDATE", "DELETE"] }).notNull(),
+    userId: uuid("user_id"),
+    oldData: jsonb("old_data"),
+    newData: jsonb("new_data"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "audit_log_action_check",
+      sql`${table.action} in ('INSERT', 'UPDATE', 'DELETE')`,
+    ),
+  ],
 );
