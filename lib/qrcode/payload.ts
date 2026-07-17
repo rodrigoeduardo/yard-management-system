@@ -31,3 +31,12 @@ export function encodeItemQrPayload(payload: ItemQrPayload): string {
 export function decodeItemQrPayload(text: string): ItemQrPayload {
   return itemQrPayloadSchema.parse(JSON.parse(text));
 }
+
+/** Like `decodeItemQrPayload`, but returns null instead of throwing on invalid input (e.g. a scanned code that isn't an item QR). */
+export function safeDecodeItemQrPayload(text: string): ItemQrPayload | null {
+  try {
+    return decodeItemQrPayload(text);
+  } catch {
+    return null;
+  }
+}
