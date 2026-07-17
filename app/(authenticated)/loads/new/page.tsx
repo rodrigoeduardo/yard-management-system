@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { createLoad } from "@/lib/actions/loads";
 import {
   type CreateLoadFieldMessages,
   mapCreateLoadFieldErrors,
 } from "@/lib/forms/create-load-error-map";
+import { buildTrail } from "@/lib/nav/breadcrumbs";
 
 const inputClassName =
   "h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -70,6 +72,11 @@ export default function NewLoadPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 p-8">
+      <div className="w-full max-w-sm">
+        <Breadcrumbs
+          items={buildTrail({ href: "/loads/new", label: "Nova Carga" })}
+        />
+      </div>
       <h1 className="text-2xl font-semibold">Nova Carga</h1>
       <form
         onSubmit={handleSubmit}

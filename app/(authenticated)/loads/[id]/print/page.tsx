@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { PrintButton } from "@/components/loads/print-button";
 import { isValidLoadId } from "@/lib/loads/print";
+import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { getLoadItemQrCodes } from "@/lib/qrcode/generate";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +25,14 @@ export default async function LoadPrintPage({
 
   return (
     <main className="flex min-h-screen flex-col gap-6 p-8">
+      <div className="print:hidden">
+        <Breadcrumbs
+          items={buildTrail(
+            { href: "/inventory", label: "Estoque" },
+            { href: `/loads/${id}/print`, label: "Imprimir QR Codes" },
+          )}
+        />
+      </div>
       <PrintButton />
       <div className="grid grid-cols-2 gap-6 print:grid-cols-3 print:gap-4">
         {qrCodes.map((qr) => (

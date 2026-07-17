@@ -2,12 +2,14 @@
 
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { useRef, useState, useTransition } from "react";
+import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { removeItems } from "@/lib/actions/removals";
 import {
   type RemoveItemsFieldMessages,
   mapRemoveItemsFieldErrors,
 } from "@/lib/forms/remove-items-error-map";
+import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { addScannedItem } from "@/lib/removals/scan-list";
 import { checkItemStatus } from "@/lib/actions/item-status";
 import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payload";
@@ -115,6 +117,11 @@ export default function NewRemovalPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 p-8">
+      <div className="w-full max-w-sm">
+        <Breadcrumbs
+          items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
+        />
+      </div>
       <h1 className="text-2xl font-semibold">Nova Remoção</h1>
 
       <div className="flex w-full max-w-sm flex-col gap-4">
