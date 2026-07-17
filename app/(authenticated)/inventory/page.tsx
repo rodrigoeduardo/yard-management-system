@@ -3,7 +3,8 @@ import {
   RemovalLogTable,
   type RemovalLogRow,
 } from "@/components/inventory/removal-log-table";
-import { StockTable, type StockRow } from "@/components/inventory/stock-table";
+import { StockSection } from "@/components/inventory/stock-section";
+import type { StockRow } from "@/components/inventory/stock-table";
 import { db } from "@/lib/db";
 import { listRemovalNfs, listRemovalsMostRecentFirst } from "@/lib/db/removal-log";
 import { loads } from "@/lib/db/schema";
@@ -44,7 +45,7 @@ export default async function InventoryPage() {
     <main className="flex min-h-screen flex-col gap-8 p-8">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Estoque Atual</h1>
-        <StockTable rows={stockRows} />
+        <StockSection rows={stockRows} />
       </div>
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold">Histórico de Remoções</h1>
