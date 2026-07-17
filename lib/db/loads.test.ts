@@ -40,6 +40,21 @@ describe("insertLoadWithItems", () => {
     expect(itemRows.every((i) => i.status === "in_stock")).toBe(true);
   });
 
+  it("derives remaining_weight from fractional weights without floating-point drift", async () => {
+    const notaFiscal = `NF-FRACTIONAL-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10.1", "20.2"],
+    });
+    createdLoadIds.push(load.id);
+
+    expect(load.remainingWeight).toBe("30.3");
+  });
+
   it("rolls back the load and all items when one item insert fails mid-transaction", async () => {
     const notaFiscal = `NF-ROLLBACK-${randomUUID()}`;
 

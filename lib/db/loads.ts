@@ -1,3 +1,4 @@
+import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { items, loads } from "./schema";
 
@@ -10,9 +11,7 @@ export type CreateLoadData = {
 };
 
 export async function insertLoadWithItems(data: CreateLoadData) {
-  const remainingWeight = data.itemWeights
-    .reduce((sum, weight) => sum + Number(weight), 0)
-    .toString();
+  const remainingWeight = sumDecimalStrings(data.itemWeights);
 
   return db.transaction(async (tx) => {
     const [load] = await tx
