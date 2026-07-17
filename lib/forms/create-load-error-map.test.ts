@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { mapCreateLoadFieldErrors } from "./create-load-error-map";
+import {
+  mapCreateLoadFieldErrors,
+  mapCreateLoadItemWeightErrors,
+} from "./create-load-error-map";
 
 describe("mapCreateLoadFieldErrors", () => {
   it("maps a field with errors to a Portuguese message", () => {
@@ -23,16 +26,46 @@ describe("mapCreateLoadFieldErrors", () => {
       entryDate: ["invalid"],
       nfWeight: ["invalid"],
       material: ["required"],
-      itemWeights: ["invalid"],
     });
 
     expect(messages.entryDate).toBe("Informe uma data de entrada válida.");
     expect(messages.nfWeight).toBe("Informe o peso da nota fiscal.");
     expect(messages.material).toBe("Informe o material.");
-    expect(messages.itemWeights).toBe("Informe um peso válido para cada item.");
   });
 
   it("returns an empty object when there are no field errors", () => {
     expect(mapCreateLoadFieldErrors({})).toEqual({});
+  });
+});
+
+describe("mapCreateLoadItemWeightErrors", () => {
+  it("maps an item-weight error to its own index", () => {
+    const messages = mapCreateLoadItemWeightErrors({
+      1: ["Number must be greater than 0"],
+    });
+
+    expect(messages[1]).toBe("Informe um peso válido para o item 2.");
+  });
+
+  it("omits indexes with no errors", () => {
+    const messages = mapCreateLoadItemWeightErrors({
+      1: ["invalid"],
+    });
+
+    expect(messages[0]).toBeUndefined();
+  });
+
+  it("maps multiple indexes independently", () => {
+    const messages = mapCreateLoadItemWeightErrors({
+      0: ["invalid"],
+      2: ["invalid"],
+    });
+
+    expect(messages[0]).toBe("Informe um peso válido para o item 1.");
+    expect(messages[2]).toBe("Informe um peso válido para o item 3.");
+  });
+
+  it("returns an empty object when there are no item-weight errors", () => {
+    expect(mapCreateLoadItemWeightErrors({})).toEqual({});
   });
 });
