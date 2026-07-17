@@ -1,17 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { addScannedItem, dropScannedItem, groupScannedItemsByNotaFiscal } from "./scan-list";
+import {
+  addScannedItem,
+  dropScannedItem,
+  groupScannedItemsByNotaFiscal,
+  notaFiscalOf,
+} from "./scan-list";
 import type { ItemQrPayload } from "../qrcode/payload";
 
 function makeItem(
   qrToken: string,
-  overrides: Partial<Pick<ItemQrPayload, "identifier" | "weight">> = {},
+  overrides: Partial<
+    Pick<ItemQrPayload, "identifier" | "notaFiscal" | "weight">
+  > = {},
 ): ItemQrPayload {
+  const identifier = overrides.identifier ?? `Item 1 - NF-${qrToken}`;
   return {
     qrToken,
-    identifier: overrides.identifier ?? `Item 1 - NF-${qrToken}`,
+    identifier,
+    notaFiscal: overrides.notaFiscal ?? notaFiscalFromTestIdentifier(identifier),
     material: "Aço",
     weight: overrides.weight ?? "10",
   };
+}
+
+function notaFiscalFromTestIdentifier(identifier: string): string {
+  return identifier.replace(/^Item \d+ - /, "");
 }
 
 describe("addScannedItem", () => {
@@ -50,6 +63,28 @@ describe("dropScannedItem", () => {
     const a = makeItem("a");
 
     expect(dropScannedItem([a], "a")).toEqual([]);
+  });
+});
+
+describe("notaFiscalOf", () => {
+  it("returns the distinct notaFiscal field when present", () => {
+    const item = makeItem("a", {
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+    });
+
+    expect(notaFiscalOf(item)).toBe("NF-100");
+  });
+
+  it("falls back to parsing the identifier for legacy QR codes without a notaFiscal field", () => {
+    const legacyItem: ItemQrPayload = {
+      qrToken: "a",
+      identifier: "Item 1 - NF-100",
+      material: "Aço",
+      weight: "10",
+    };
+
+    expect(notaFiscalOf(legacyItem)).toBe("NF-100");
   });
 });
 

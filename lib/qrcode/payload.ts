@@ -3,6 +3,9 @@ import { z } from "zod";
 const itemQrPayloadSchema = z.object({
   qrToken: z.uuid(),
   identifier: z.string(),
+  // Optional so decoding already-printed QR codes (issued before this field
+  // existed) keeps working. New codes always carry it via buildItemQrPayload.
+  notaFiscal: z.string().optional(),
   material: z.string(),
   weight: z.string(),
 });
@@ -19,6 +22,7 @@ export function buildItemQrPayload(params: {
   return {
     qrToken: params.qrToken,
     identifier: `Item ${params.itemIndex} - ${params.notaFiscal}`,
+    notaFiscal: params.notaFiscal,
     material: params.material,
     weight: params.weight,
   };
