@@ -17,3 +17,5 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
