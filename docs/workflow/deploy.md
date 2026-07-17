@@ -35,7 +35,7 @@ Hobby for dev/staging; **Pro required in production** due to commercial use (arc
 
 The production URL must serve `/login` (or redirect there via the auth middleware). After a deploy, hit the root URL and confirm the login page loads.
 
-Production URL: `<TODO: paste Vercel production URL>`
+Production URL: https://yard-management-system-eight.vercel.app/
 
 ## Known gap — database migrations
 
