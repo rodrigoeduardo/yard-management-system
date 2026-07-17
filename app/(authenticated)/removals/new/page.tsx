@@ -133,10 +133,12 @@ export default function NewRemovalPage() {
       scannedItemsRef.current = [];
       setScannedItems([]);
       setIsReviewOpen(false);
+      stopScanning();
     });
   }
 
   function handleNewRemoval() {
+    stopScanning();
     setExitDate("");
     setDriver("");
     setFieldErrors({});
