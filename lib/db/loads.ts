@@ -1,3 +1,4 @@
+import { asc, eq } from "drizzle-orm";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { items, loads } from "./schema";
@@ -35,4 +36,15 @@ export async function insertLoadWithItems(data: CreateLoadData) {
 
     return load;
   });
+}
+
+export async function getLoadWithItems(loadId: string) {
+  const [load] = await db.select().from(loads).where(eq(loads.id, loadId));
+  const loadItems = await db
+    .select()
+    .from(items)
+    .where(eq(items.loadId, loadId))
+    .orderBy(asc(items.createdAt));
+
+  return { load, items: loadItems };
 }
