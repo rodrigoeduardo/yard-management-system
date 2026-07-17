@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PrintButton } from "@/components/loads/print-button";
+import { isValidLoadId } from "@/lib/loads/print";
 import { getLoadItemQrCodes } from "@/lib/qrcode/generate";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,10 @@ export default async function LoadPrintPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  if (!isValidLoadId(id)) {
+    notFound();
+  }
+
   const qrCodes = await getLoadItemQrCodes(id);
 
   if (qrCodes.length === 0) {
