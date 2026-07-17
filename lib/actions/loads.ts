@@ -25,7 +25,11 @@ function toCreateLoadError(
   error: z.ZodError<z.input<typeof createLoadSchema>>,
 ): CreateLoadError {
   const { formErrors, fieldErrors } = error.flatten();
-  const { itemWeights: _itemWeights, ...restFieldErrors } = fieldErrors;
+  const restFieldErrors: CreateLoadError["fieldErrors"] = {};
+  for (const field of Object.keys(fieldErrors) as (keyof typeof fieldErrors)[]) {
+    if (field === "itemWeights") continue;
+    restFieldErrors[field] = fieldErrors[field];
+  }
 
   const itemWeightErrors: Record<number, string[]> = {};
   for (const issue of error.issues) {
