@@ -36,7 +36,13 @@ const columns: ColumnDef<StockRow>[] = [
   { accessorKey: "remainingWeight", header: "Peso Restante" },
 ];
 
-export function StockTable({ rows }: { rows: StockRow[] }) {
+export function StockTable({
+  rows,
+  onRowClick,
+}: {
+  rows: StockRow[];
+  onRowClick?: (row: StockRow) => void;
+}) {
   const table = useReactTable({
     data: rows,
     columns,
@@ -63,7 +69,21 @@ export function StockTable({ rows }: { rows: StockRow[] }) {
         {table.getRowModel().rows.map((row) => (
           <TableRow
             key={row.id}
+            role={onRowClick ? "button" : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+            onKeyDown={
+              onRowClick
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onRowClick(row.original);
+                    }
+                  }
+                : undefined
+            }
             className={cn(
+              onRowClick && "cursor-pointer",
               row.original.finished &&
                 "bg-green-100 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/30",
             )}
