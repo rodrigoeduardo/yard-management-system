@@ -41,6 +41,8 @@ Decompose `docs/specs/` into small, testable board issues. Issues are **proposed
 
    Body must contain every template section: Goal, Pre-requisites (`Depends on #N` one per line), Requirements, Human actions, Out of scope, References.
 
+   Add `--label "human-action-needed"` whenever the issue's "Human actions" section is anything other than "None" (see board-protocol.md). The human removes the label once those steps are done.
+
    Then add each created issue to the board (works even if the project's auto-add workflow is off):
 
    ```bash
@@ -57,5 +59,6 @@ Later runs propose **deltas only**: new/changed spec sections, PR-note follow-up
 
 - Creating issues without an approved draft
 - Issue without verifiable acceptance criteria
-- Labeling anything other than `status:proposed`
+- Labeling a status other than `status:proposed` (area + `human-action-needed` are fine)
+- Omitting `human-action-needed` on an issue with a non-empty "Human actions" section
 - Duplicating an existing open issue
