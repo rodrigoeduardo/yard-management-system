@@ -22,6 +22,14 @@ A **closed** issue is done (normally auto-closed by PR merge via `Closes #N`).
 
 `area:setup` · `area:database` · `area:auth` · `area:load-intake` · `area:load-removal` · `area:inventory-view` · `area:qrcode` · `area:audit` · `area:deploy`
 
+### Human action (on issues)
+
+| Label | Color | Meaning |
+|---|---|---|
+| `human-action-needed` | red | The issue's "Human actions" section is non-empty and not yet done — a human must complete those steps before the issue is claimable |
+
+Applied by the planner (or whoever files the issue) whenever the "Human actions" section is anything other than "None". The human removes it once every listed action is done; a builder must not claim an issue while this label is present (it maps to the claimability rule in Lifecycle step 3).
+
 ### AI review (on PRs)
 
 | Label | Meaning |
@@ -35,7 +43,7 @@ A **closed** issue is done (normally auto-closed by PR merge via `Closes #N`).
 
 1. **Propose** — planner creates issue with `status:proposed` + `area:*`, following the issue template.
 2. **Human task gate** — only the human relabels to `status:ready` (possibly after editing). Closing the issue rejects it.
-3. **Claim** — a builder takes the oldest claimable `status:ready` issue. Claimable = all `Depends on #N` issues closed AND the "Human actions" section is "None" or fully checked. Claiming = swap label to `status:in-progress` + comment: `Claimed by <session-id> at <ISO timestamp>`.
+3. **Claim** — a builder takes the oldest claimable `status:ready` issue. Claimable = all `Depends on #N` issues closed AND no `human-action-needed` label (i.e. the "Human actions" section is "None" or fully done). Claiming = swap label to `status:in-progress` + comment: `Claimed by <session-id> at <ISO timestamp>`.
 4. **Build** — branch `type/<issue#>-<slug>`, TDD, commits on the fly (git-conventions.md), draft PR after first push.
 5. **Deliver** — `/create-pr` finalizes: PR marked ready with `Closes #N`, issue relabeled `status:in-review`.
 6. **Human PR gate** — only the human merges. Merge auto-closes the issue (done).
