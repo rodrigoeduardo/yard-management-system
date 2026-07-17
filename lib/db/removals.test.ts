@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
+import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { removeScannedItems } from "./removals";
 import { items, loads, removalItems, removals } from "./schema";
@@ -14,9 +15,7 @@ async function insertLoadWithItems(itemWeights: string[]) {
       nfWeight: "1000",
       material: "Aço",
       itemCount: itemWeights.length,
-      remainingWeight: itemWeights
-        .reduce((sum, w) => sum + Number(w), 0)
-        .toString(),
+      remainingWeight: sumDecimalStrings(itemWeights),
     })
     .returning();
 
@@ -95,6 +94,30 @@ describe("removeScannedItems", () => {
       .from(removalItems)
       .where(eq(removalItems.removalId, removal.id));
     expect(junctionRows).toHaveLength(2);
+    },
+    15000,
+  );
+
+  it(
+    "removes fractional item weights without floating-point drift",
+    async () => {
+      const load = await insertLoadWithItems(["10.1", "20.2"]);
+      loadIds.push(load.load.id);
+
+      const removal = await removeScannedItems({
+        exitDate: new Date("2026-02-01"),
+        driver: "John Doe",
+        qrTokens: [load.items[0].qrToken],
+      });
+      removalIds.push(removal.id);
+
+      expect(removal.totalRemovedWeight).toBe("10.1");
+
+      const reloadedLoad = await db
+        .select()
+        .from(loads)
+        .where(eq(loads.id, load.load.id));
+      expect(reloadedLoad[0].remainingWeight).toBe("20.2");
     },
     15000,
   );

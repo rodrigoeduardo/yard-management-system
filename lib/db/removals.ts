@@ -1,4 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
+import { subtractDecimalStrings, sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { items, loads, removalItems, removals } from "./schema";
 
@@ -22,9 +23,9 @@ export async function removeScannedItems(data: CreateRemovalData) {
       throw new Error("One or more scanned items have already been removed");
     }
 
-    const totalRemovedWeight = scannedItems
-      .reduce((sum, item) => sum + Number(item.weight), 0)
-      .toString();
+    const totalRemovedWeight = sumDecimalStrings(
+      scannedItems.map((item) => item.weight),
+    );
 
     const [removal] = await tx
       .insert(removals)
@@ -52,18 +53,21 @@ export async function removeScannedItems(data: CreateRemovalData) {
         ),
       );
 
-    const removedByLoad = new Map<string, { count: number; weight: number }>();
+    const removedByLoad = new Map<
+      string,
+      { count: number; weights: string[] }
+    >();
     for (const item of scannedItems) {
       const entry = removedByLoad.get(item.loadId) ?? {
         count: 0,
-        weight: 0,
+        weights: [],
       };
       entry.count += 1;
-      entry.weight += Number(item.weight);
+      entry.weights.push(item.weight);
       removedByLoad.set(item.loadId, entry);
     }
 
-    for (const [loadId, { count, weight }] of removedByLoad) {
+    for (const [loadId, { count, weights }] of removedByLoad) {
       const [load] = await tx
         .select()
         .from(loads)
@@ -73,7 +77,10 @@ export async function removeScannedItems(data: CreateRemovalData) {
         .update(loads)
         .set({
           itemCount: load.itemCount - count,
-          remainingWeight: (Number(load.remainingWeight) - weight).toString(),
+          remainingWeight: subtractDecimalStrings(
+            load.remainingWeight,
+            sumDecimalStrings(weights),
+          ),
         })
         .where(eq(loads.id, loadId));
     }

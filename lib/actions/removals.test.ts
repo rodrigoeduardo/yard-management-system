@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
+import { sumDecimalStrings } from "@/lib/db/decimal";
 import { items, loads, removalItems, removals } from "@/lib/db/schema";
 import { removeItems } from "./removals";
 
@@ -14,9 +15,7 @@ async function insertLoadWithItems(itemWeights: string[]) {
       nfWeight: "1000",
       material: "Aço",
       itemCount: itemWeights.length,
-      remainingWeight: itemWeights
-        .reduce((sum, w) => sum + Number(w), 0)
-        .toString(),
+      remainingWeight: sumDecimalStrings(itemWeights),
     })
     .returning();
 
