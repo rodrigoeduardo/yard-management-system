@@ -21,6 +21,7 @@ function decodeQrDataUrl(dataUrl: string): string {
 describe("generateItemQrCode", () => {
   it("produces a QR code whose scanned payload decodes back to the correct identifier, material, and weight", async () => {
     const dataUrl = await generateItemQrCode({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
       identifier: "Item 1 - NF-999",
       material: "Aço",
       weight: "12.5",
@@ -29,6 +30,7 @@ describe("generateItemQrCode", () => {
     const decoded = decodeItemQrPayload(decodeQrDataUrl(dataUrl));
 
     expect(decoded).toEqual({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
       identifier: "Item 1 - NF-999",
       material: "Aço",
       weight: "12.5",
@@ -71,5 +73,8 @@ describe("getLoadItemQrCodes", () => {
     expect(decodedPayloads.every((p) => p.material === "Aço")).toBe(true);
     expect(decodedPayloads.map((p) => p.weight).sort()).toEqual(["10", "20"]);
     expect(new Set(qrCodes.map((qr) => qr.qrToken)).size).toBe(2);
+    expect(decodedPayloads.map((p) => p.qrToken).sort()).toEqual(
+      qrCodes.map((qr) => qr.qrToken).sort(),
+    );
   });
 });

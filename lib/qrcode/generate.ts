@@ -21,6 +21,7 @@ export async function getLoadItemQrCodes(
   return Promise.all(
     items.map(async (item, index) => {
       const payload = buildItemQrPayload({
+        qrToken: item.qrToken,
         itemIndex: index + 1,
         notaFiscal: load.notaFiscal,
         material: load.material,

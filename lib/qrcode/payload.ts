@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const itemQrPayloadSchema = z.object({
+  qrToken: z.uuid(),
   identifier: z.string(),
   material: z.string(),
   weight: z.string(),
@@ -9,12 +10,14 @@ const itemQrPayloadSchema = z.object({
 export type ItemQrPayload = z.infer<typeof itemQrPayloadSchema>;
 
 export function buildItemQrPayload(params: {
+  qrToken: string;
   itemIndex: number;
   notaFiscal: string;
   material: string;
   weight: string;
 }): ItemQrPayload {
   return {
+    qrToken: params.qrToken,
     identifier: `Item ${params.itemIndex} - ${params.notaFiscal}`,
     material: params.material,
     weight: params.weight,
