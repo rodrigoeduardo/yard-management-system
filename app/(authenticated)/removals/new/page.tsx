@@ -2,6 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
   mapRemoveItemsFieldErrors,
 } from "@/lib/forms/remove-items-error-map";
 import { buildTrail } from "@/lib/nav/breadcrumbs";
+import { buildRemovalReceipt, type RemovalReceipt } from "@/lib/removals/receipt";
 import {
   addScannedItem,
   dropScannedItem,
@@ -24,6 +26,7 @@ const inputClassName =
   "h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export default function NewRemovalPage() {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [exitDate, setExitDate] = useState("");
   const [driver, setDriver] = useState("");
@@ -32,10 +35,8 @@ export default function NewRemovalPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<RemoveItemsFieldMessages>({});
   const [formError, setFormError] = useState<string | undefined>();
-  const [totalRemovedWeight, setTotalRemovedWeight] = useState<
-    string | undefined
-  >();
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [receipt, setReceipt] = useState<RemovalReceipt | undefined>();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
@@ -123,11 +124,29 @@ export default function NewRemovalPage() {
         return;
       }
 
-      setTotalRemovedWeight(result.removal.totalRemovedWeight);
+      setReceipt(
+        buildRemovalReceipt(
+          scannedItemsRef.current,
+          result.removal.totalRemovedWeight,
+        ),
+      );
       scannedItemsRef.current = [];
       setScannedItems([]);
       setIsReviewOpen(false);
     });
+  }
+
+  function handleNewRemoval() {
+    setExitDate("");
+    setDriver("");
+    setFieldErrors({});
+    setFormError(undefined);
+    setScanError(undefined);
+    setReceipt(undefined);
+  }
+
+  function handleViewInventory() {
+    router.push("/inventory");
   }
 
   const scannedItemsByNotaFiscal = groupScannedItemsByNotaFiscal(scannedItems);
@@ -145,106 +164,141 @@ export default function NewRemovalPage() {
       </div>
       <h1 className="text-2xl font-semibold">Nova Remoção</h1>
 
-      <div className="flex w-full max-w-sm flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="exitDate" className="text-sm font-medium">
-            Data de Saída
-          </label>
-          <input
-            id="exitDate"
-            type="date"
-            value={exitDate}
-            onChange={(e) => setExitDate(e.target.value)}
-            required
-            className={inputClassName}
-          />
-          {fieldErrors.exitDate && (
-            <p role="alert" className="text-sm text-destructive">
-              {fieldErrors.exitDate}
-            </p>
-          )}
-        </div>
+      {receipt && (
+        <div className="flex w-full max-w-sm flex-col gap-4">
+          <h2 className="text-lg font-semibold">Remoção Concluída</h2>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="driver" className="text-sm font-medium">
-            Motorista
-          </label>
-          <input
-            id="driver"
-            value={driver}
-            onChange={(e) => setDriver(e.target.value)}
-            required
-            className={inputClassName}
-          />
-          {fieldErrors.driver && (
-            <p role="alert" className="text-sm text-destructive">
-              {fieldErrors.driver}
-            </p>
-          )}
-        </div>
-
-        <video ref={videoRef} className="w-full rounded-lg" muted />
-
-        <Button
-          type="button"
-          onClick={isScanning ? stopScanning : startScanning}
-        >
-          {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
-        </Button>
-
-        {scanError && (
-          <p role="alert" className="text-sm text-destructive">
-            {scanError}
+          <p className="text-sm">
+            <span className="font-medium">Itens Removidos:</span>{" "}
+            {receipt.itemCount}
           </p>
-        )}
 
-        <ul className="flex flex-col gap-1.5 text-sm">
-          {scannedItems.map((item) => (
-            <li
-              key={item.qrToken}
-              className="flex items-center justify-between gap-2"
-            >
-              <span>
-                {item.identifier} — {item.material} — {item.weight} kg
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => handleDropItem(item.qrToken)}
-                aria-label={`Remover ${item.identifier}`}
-              >
-                Remover
-              </Button>
-            </li>
-          ))}
-        </ul>
+          <div className="flex flex-col gap-2 text-sm">
+            {receipt.byNotaFiscal.map((group) => (
+              <div key={group.notaFiscal}>
+                <p className="font-medium">{group.notaFiscal}</p>
+                <ul className="flex flex-col gap-1 pl-3">
+                  {group.items.map((item) => (
+                    <li key={item.qrToken}>
+                      {item.identifier} — {item.material} — {item.weight} kg
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-        {fieldErrors.qrTokens && (
-          <p role="alert" className="text-sm text-destructive">
-            {fieldErrors.qrTokens}
-          </p>
-        )}
-
-        {formError && (
-          <p role="alert" className="text-sm text-destructive">
-            {formError}
-          </p>
-        )}
-
-        {totalRemovedWeight && (
           <p className="text-sm font-medium">
-            Peso Total Removido: {totalRemovedWeight} kg
+            Peso Total Removido: {receipt.totalRemovedWeight} kg
           </p>
-        )}
 
-        <Button
-          type="button"
-          onClick={() => setIsReviewOpen(true)}
-          disabled={isPending || scannedItems.length === 0}
-        >
-          Concluir Remoção
-        </Button>
-      </div>
+          <div className="flex flex-col gap-2">
+            <Button type="button" onClick={handleNewRemoval}>
+              Nova Remoção
+            </Button>
+            <Button type="button" variant="outline" onClick={handleViewInventory}>
+              Ver Estoque
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!receipt && (
+        <div className="flex w-full max-w-sm flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="exitDate" className="text-sm font-medium">
+              Data de Saída
+            </label>
+            <input
+              id="exitDate"
+              type="date"
+              value={exitDate}
+              onChange={(e) => setExitDate(e.target.value)}
+              required
+              className={inputClassName}
+            />
+            {fieldErrors.exitDate && (
+              <p role="alert" className="text-sm text-destructive">
+                {fieldErrors.exitDate}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="driver" className="text-sm font-medium">
+              Motorista
+            </label>
+            <input
+              id="driver"
+              value={driver}
+              onChange={(e) => setDriver(e.target.value)}
+              required
+              className={inputClassName}
+            />
+            {fieldErrors.driver && (
+              <p role="alert" className="text-sm text-destructive">
+                {fieldErrors.driver}
+              </p>
+            )}
+          </div>
+
+          <video ref={videoRef} className="w-full rounded-lg" muted />
+
+          <Button
+            type="button"
+            onClick={isScanning ? stopScanning : startScanning}
+          >
+            {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+          </Button>
+
+          {scanError && (
+            <p role="alert" className="text-sm text-destructive">
+              {scanError}
+            </p>
+          )}
+
+          <ul className="flex flex-col gap-1.5 text-sm">
+            {scannedItems.map((item) => (
+              <li
+                key={item.qrToken}
+                className="flex items-center justify-between gap-2"
+              >
+                <span>
+                  {item.identifier} — {item.material} — {item.weight} kg
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleDropItem(item.qrToken)}
+                  aria-label={`Remover ${item.identifier}`}
+                >
+                  Remover
+                </Button>
+              </li>
+            ))}
+          </ul>
+
+          {fieldErrors.qrTokens && (
+            <p role="alert" className="text-sm text-destructive">
+              {fieldErrors.qrTokens}
+            </p>
+          )}
+
+          {formError && (
+            <p role="alert" className="text-sm text-destructive">
+              {formError}
+            </p>
+          )}
+
+          <Button
+            type="button"
+            onClick={() => setIsReviewOpen(true)}
+            disabled={isPending || scannedItems.length === 0}
+          >
+            Concluir Remoção
+          </Button>
+        </div>
+      )}
 
       <Dialog.Root open={isReviewOpen} onOpenChange={setIsReviewOpen}>
         <Dialog.Portal>
