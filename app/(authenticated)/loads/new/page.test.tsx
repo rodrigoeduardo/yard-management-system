@@ -121,7 +121,7 @@ describe("NewLoadPage", () => {
     const cta = screen.getByRole("button", { name: "Continuar para pesos" });
     expect(cta.parentElement?.className).toMatch(/\bmd:hidden\b/);
 
-    fireEvent.click(cta);
+    fillDadosAndContinue();
 
     expect(screen.getByTestId("load-form-dados-panel").className).toMatch(
       /\bhidden\b/,
@@ -129,6 +129,66 @@ describe("NewLoadPage", () => {
     expect(screen.getByTestId("load-form-pesos-panel").className).not.toMatch(
       /\bhidden\b/,
     );
+  });
+
+  it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Data de Entrada, Peso da Nota Fiscal, and Material are all valid", () => {
+    render(<NewLoadPage />);
+
+    const cta = screen.getByRole("button", { name: "Continuar para pesos" });
+    expect(cta).toBeDisabled();
+    expect(cta.className).toMatch(/disabled:opacity-50/);
+
+    fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
+      target: { value: "NF-123" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
+      target: { value: "2026-01-01" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
+      target: { value: "100" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Material"), {
+      target: { value: "Aço" },
+    });
+    expect(cta).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
+      target: { value: "0" },
+    });
+    expect(cta).toBeDisabled();
+  });
+
+  it("gives etapa-1 and etapa-2 inputs Portuguese placeholders and a decimal numeric keyboard on weight fields", () => {
+    render(<NewLoadPage />);
+
+    expect(screen.getByLabelText("Nota Fiscal")).toHaveAttribute(
+      "placeholder",
+      "000.000",
+    );
+    expect(screen.getByLabelText("Peso da Nota Fiscal")).toHaveAttribute(
+      "placeholder",
+      "0",
+    );
+    expect(screen.getByLabelText("Peso da Nota Fiscal")).toHaveAttribute(
+      "inputMode",
+      "decimal",
+    );
+    expect(screen.getByLabelText("Material")).toHaveAttribute(
+      "placeholder",
+      "Ex: Sucata de Alumínio",
+    );
+
+    fillDadosAndContinue();
+
+    const item1 = screen.getByLabelText("Peso do item 1");
+    expect(item1).toHaveAttribute("placeholder", "0");
+    expect(item1).toHaveAttribute("inputMode", "decimal");
   });
 
   it("shows an item-weight error next to the specific invalid item's input", async () => {
@@ -209,7 +269,7 @@ describe("NewLoadPage", () => {
 
     const grid = screen.getByTestId("pesos-weights-grid");
     expect(grid.className).toMatch(/\bgrid-cols-2\b/);
-    expect(grid.className).toMatch(/\bmd:grid-cols-4\b/);
+    expect(grid.className).toMatch(/\bmd:grid-cols-3\b/);
     expect(screen.getByText("Item 1")).toBeInTheDocument();
     expect(screen.getByText("Item 4")).toBeInTheDocument();
 

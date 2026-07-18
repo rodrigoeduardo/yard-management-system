@@ -53,6 +53,14 @@ export default function NewLoadPage() {
     });
   }
 
+  const dadosValid =
+    notaFiscal.trim() !== "" &&
+    entryDate.trim() !== "" &&
+    nfWeight.trim() !== "" &&
+    Number.isFinite(Number(nfWeight)) &&
+    Number(nfWeight) > 0 &&
+    material.trim() !== "";
+
   const filledWeightCount = itemWeights.filter(
     (weight) => weight.trim() !== "",
   ).length;
@@ -123,6 +131,7 @@ export default function NewLoadPage() {
               <Input
                 id="notaFiscal"
                 mono
+                placeholder="000.000"
                 value={notaFiscal}
                 onChange={(e) => setNotaFiscal(e.target.value)}
                 required
@@ -167,8 +176,10 @@ export default function NewLoadPage() {
                 id="nfWeight"
                 type="number"
                 step="any"
+                inputMode="decimal"
                 mono
                 unit="kg"
+                placeholder="0"
                 value={nfWeight}
                 onChange={(e) => setNfWeight(e.target.value)}
                 required
@@ -189,6 +200,7 @@ export default function NewLoadPage() {
               </label>
               <Input
                 id="material"
+                placeholder="Ex: Sucata de Alumínio"
                 value={material}
                 onChange={(e) => setMaterial(e.target.value)}
                 required
@@ -258,7 +270,7 @@ export default function NewLoadPage() {
 
             <div
               data-testid="pesos-weights-grid"
-              className="grid grid-cols-2 gap-3 md:grid-cols-4"
+              className="grid grid-cols-2 gap-3 md:grid-cols-3"
             >
               {itemWeights.map((weight, index) => (
                 <div
@@ -272,8 +284,10 @@ export default function NewLoadPage() {
                   <Input
                     type="number"
                     step="any"
+                    inputMode="decimal"
                     mono
                     unit="kg"
+                    placeholder="0"
                     aria-label={`Peso do item ${index + 1}`}
                     value={weight}
                     onChange={(e) =>
@@ -358,6 +372,7 @@ export default function NewLoadPage() {
           <div className="fixed inset-x-0 bottom-16 border-t border-border bg-card p-4 md:hidden">
             <Button
               type="button"
+              disabled={!dadosValid}
               className="w-full"
               onClick={() => setStep("pesos")}
             >
