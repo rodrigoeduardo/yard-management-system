@@ -101,4 +101,23 @@ describe("LastMovementCard", () => {
     const rows = screen.getAllByRole("listitem");
     expect(rows[0]).toHaveTextContent("17/07/2026");
   });
+
+  it("renders the NF using the accent-foreground token, matching the design's mono NF color", () => {
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-16T12:00:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const nf = screen.getByText("NF 145.977");
+    expect(nf.className).toMatch(/\bfont-mono\b/);
+    expect(nf.className).toMatch(/\btext-accent-foreground\b/);
+  });
 });

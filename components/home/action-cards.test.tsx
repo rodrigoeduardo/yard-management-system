@@ -23,4 +23,10 @@ describe("ActionCards", () => {
       screen.getByText("Registrar a entrada de uma nova carga por Nota Fiscal."),
     ).toBeInTheDocument();
   });
+
+  it("renders the 'Ações' section label", () => {
+    render(<ActionCards />);
+
+    expect(screen.getByText("Ações")).toBeInTheDocument();
+  });
 });
