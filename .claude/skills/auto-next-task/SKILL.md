@@ -20,8 +20,12 @@ yourself.
 
 ## Run this on the right session
 
-- **Main (this) agent:** run in a **fable, high-effort** session (opus-high is the alt). A skill
-  cannot change its own session model; if you were launched on something else, note it and continue.
+- **Main (this) agent:** run in a **sonnet, high-effort** session. The orchestrator only does
+  bookkeeping (labels, dispatch, merge-gate checklist) — state is re-derived from GitHub, so a
+  stronger model buys nothing here. A skill cannot change its own session model; if you were
+  launched on something else, note it and continue. For long boards, prefer draining in chunks:
+  stop after a handful of merges and re-invoke in a fresh session (steps 2–3 re-adopt everything)
+  rather than letting one session's context grow unbounded.
 - **Workers:** dispatched as `auto-executor` (sonnet) and `auto-reviewer` (sonnet), each pinned to
   `effort: medium` in its agent definition (the `effort` frontmatter key overrides session effort
   while the sub-agent runs).
