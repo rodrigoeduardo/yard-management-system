@@ -25,23 +25,46 @@ export type RemovalLogRow = {
   itemCount: number;
 };
 
-function numericCell(value: string | number) {
-  return <span className="font-mono">{value}</span>;
-}
+const HEADER_CLASS =
+  "h-auto py-3 text-[11px] font-bold tracking-wide text-muted-foreground uppercase";
+
+const COLUMN_WIDTHS = ["w-[150px]", "", "w-[300px]", "w-[110px]", "w-[170px]"];
 
 const columns: ColumnDef<RemovalLogRow>[] = [
-  { accessorKey: "exitDate", header: "Data de Saída" },
-  { accessorKey: "driver", header: "Motorista" },
-  { accessorKey: "notasFiscais", header: "Notas Fiscais" },
+  {
+    accessorKey: "exitDate",
+    header: "Data de Saída",
+    cell: ({ row }) => (
+      <span className="font-mono font-bold">{row.original.exitDate}</span>
+    ),
+  },
+  {
+    accessorKey: "driver",
+    header: "Motorista",
+    cell: ({ row }) => <span className="font-semibold">{row.original.driver}</span>,
+  },
+  {
+    accessorKey: "notasFiscais",
+    header: "Notas Fiscais",
+    cell: ({ row }) => (
+      <span className="font-mono text-[12px] text-foreground">
+        {row.original.notasFiscais}
+      </span>
+    ),
+  },
   {
     accessorKey: "itemCount",
     header: "Itens",
-    cell: ({ row }) => numericCell(row.original.itemCount),
+    cell: ({ row }) => <span className="font-mono">{row.original.itemCount}</span>,
   },
   {
     accessorKey: "totalRemovedWeight",
     header: "Peso Total Removido",
-    cell: ({ row }) => numericCell(row.original.totalRemovedWeight),
+    cell: ({ row }) => (
+      <span className="font-mono font-bold text-accent-foreground">
+        {row.original.totalRemovedWeight}
+      </span>
+    ),
   },
 ];
 
@@ -59,12 +82,15 @@ export function RemovalLogTable({
   });
 
   return (
-    <Table>
+    <Table className="table-fixed">
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
+            {headerGroup.headers.map((header, index) => (
+              <TableHead
+                key={header.id}
+                className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
+              >
                 {flexRender(
                   header.column.columnDef.header,
                   header.getContext(),
@@ -94,7 +120,7 @@ export function RemovalLogTable({
             className={cn(onRowClick && "cursor-pointer")}
           >
             {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
+              <TableCell key={cell.id} className="text-[13.5px]">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}
