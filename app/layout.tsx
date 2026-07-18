@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
+import { TopLoader } from "@/components/ui/top-loader";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
@@ -27,7 +28,10 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${instrumentSans.variable} ${splineSansMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <TopLoader />
+        {children}
+      </body>
     </html>
   );
 }

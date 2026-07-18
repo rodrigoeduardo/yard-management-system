@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { logout } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
+import { LinkLoaderReporter } from "@/components/ui/top-loader";
 import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export function TopNav({ initials }: { initials: string }) {
                 )}
               >
                 {item.desktopLabel}
+                <LinkLoaderReporter />
               </Link>
             );
           })}
