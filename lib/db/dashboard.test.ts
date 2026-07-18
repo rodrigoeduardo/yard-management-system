@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
-import { getDashboardStats, getLastRemoval } from "./dashboard";
+import { getDashboardStats, getLastLoad, getLastRemoval } from "./dashboard";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoad(overrides: {
@@ -109,5 +109,43 @@ describe("getLastRemoval", () => {
     expect(lastRemoval!.itemCount).toBe(2);
     expect(lastRemoval!.totalRemovedWeight).toBe("20");
     expect(lastRemoval!.notasFiscais).toEqual([load.notaFiscal]);
+  });
+});
+
+describe("getLastLoad", () => {
+  const loadIds: string[] = [];
+
+  afterEach(async () => {
+    while (loadIds.length > 0) {
+      const id = loadIds.pop()!;
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it("returns the most recently created load with NF, material, entry date, and NF weight", async () => {
+    const older = await insertLoad({ itemCount: 1, remainingWeight: "10" });
+    loadIds.push(older.id);
+
+    const [newer] = await db
+      .insert(loads)
+      .values({
+        notaFiscal: `NF-DASH-${randomUUID()}`,
+        entryDate: new Date("2026-03-01"),
+        nfWeight: "500",
+        material: "Cobre",
+        itemCount: 5,
+        remainingWeight: "500",
+      })
+      .returning();
+    loadIds.push(newer.id);
+
+    const lastLoad = await getLastLoad();
+
+    expect(lastLoad).not.toBeNull();
+    expect(lastLoad!.id).toBe(newer.id);
+    expect(lastLoad!.notaFiscal).toBe(newer.notaFiscal);
+    expect(lastLoad!.material).toBe("Cobre");
+    expect(lastLoad!.entryDate).toEqual(newer.entryDate);
+    expect(lastLoad!.nfWeight).toBe("500");
   });
 });

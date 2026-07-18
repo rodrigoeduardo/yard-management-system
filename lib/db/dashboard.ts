@@ -72,3 +72,35 @@ export async function getLastRemoval(): Promise<LastRemoval | null> {
     notasFiscais,
   };
 }
+
+export type LastLoad = {
+  id: string;
+  notaFiscal: string;
+  material: string;
+  entryDate: Date;
+  nfWeight: string;
+};
+
+/**
+ * Most-recent load for the "última movimentação" card (intake side).
+ * Returns null when no load has been created yet.
+ */
+export async function getLastLoad(): Promise<LastLoad | null> {
+  const [load] = await db
+    .select()
+    .from(loads)
+    .orderBy(desc(loads.createdAt))
+    .limit(1);
+
+  if (!load) {
+    return null;
+  }
+
+  return {
+    id: load.id,
+    notaFiscal: load.notaFiscal,
+    material: load.material,
+    entryDate: load.entryDate,
+    nfWeight: load.nfWeight,
+  };
+}
