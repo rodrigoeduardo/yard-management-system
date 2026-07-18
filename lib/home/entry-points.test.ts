@@ -8,10 +8,16 @@ describe("HOME_ENTRY_POINTS", () => {
     );
   });
 
-  it("links to the removal creation page labeled Nova Remoção", () => {
+  it("links to the removal creation page labeled Remover Carga", () => {
     expect(HOME_ENTRY_POINTS).toContainEqual(
-      expect.objectContaining({ href: "/removals/new", label: "Nova Remoção" }),
+      expect.objectContaining({ href: "/removals/new", label: "Remover Carga" }),
     );
+  });
+
+  it("gives every entry point an icon", () => {
+    for (const entryPoint of HOME_ENTRY_POINTS) {
+      expect(entryPoint.icon).toBeDefined();
+    }
   });
 
   it("links to the inventory page labeled Ver Estoque", () => {
