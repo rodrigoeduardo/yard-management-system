@@ -37,6 +37,8 @@ The production URL must serve `/login` (or redirect there via the auth middlewar
 
 Production URL: https://yard-management-system-eight.vercel.app/
 
-## Known gap — database migrations
+## Database migrations
 
-Vercel's default build runs `next build` only; it does **not** run Drizzle migrations (`npm run db:migrate`). Schema changes must be applied to production Supabase separately. Automating this (a migration step in the deploy pipeline) is out of scope for the initial deploy — tracked as a follow-up.
+Vercel's default build runs `next build` only; it does **not** run Drizzle migrations. Instead, a separate GitHub Actions job — [`deploy-migrate.yml`](../../.github/workflows/deploy-migrate.yml) — applies pending migrations (`npm run db:migrate`) on every push to `main`, using the `SUPABASE_DB_URL` GitHub Actions secret (never committed). `drizzle-kit migrate` is idempotent (already-applied migrations are tracked and skipped), and the job fails loudly — stopping the workflow — if a migration fails.
+
+This is kept as a distinct job from the `test` job in `ci.yml` (which also runs `db:migrate`, but against the test database as part of the test suite) so that production migrations run only on pushes to `main`, not on every pull request.
