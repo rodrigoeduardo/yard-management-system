@@ -58,4 +58,11 @@ describe("BottomTabBar", () => {
     expect(screen.getByRole("navigation").className).toMatch(/\bfixed\b/);
     expect(screen.getByRole("navigation").className).toMatch(/\bmd:hidden\b/);
   });
+
+  it("is excluded from print output (issue #95)", () => {
+    usePathname.mockReturnValue("/");
+    render(<BottomTabBar />);
+
+    expect(screen.getByRole("navigation").className).toMatch(/\bprint:hidden\b/);
+  });
 });

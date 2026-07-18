@@ -176,3 +176,16 @@
     animation: none;
   }
 }
+
+/* QR label print output: minimal sheet margins, forced white background so
+   labels use the sheet efficiently and print without app chrome (issue #95). */
+@media print {
+  @page {
+    margin: 0.4in;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+}

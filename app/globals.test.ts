@@ -44,4 +44,12 @@ describe("design tokens (globals.css)", () => {
     const darkBlockCount = (css.match(/\.dark\s*\{/g) ?? []).length;
     expect(darkBlockCount).toBeLessThanOrEqual(1);
   });
+
+  it("defines @page margins and forces a white background for print (issue #95)", () => {
+    const printBlockMatch = css.match(/@media print\s*\{[\s\S]*?\n\}/);
+    expect(printBlockMatch).not.toBeNull();
+    const printBlock = printBlockMatch![0];
+    expect(printBlock).toMatch(/@page\s*\{[\s\S]*?margin:[\s\S]*?\}/);
+    expect(printBlock).toMatch(/background:\s*(#fff|white)/i);
+  });
 });

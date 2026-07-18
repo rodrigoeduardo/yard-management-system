@@ -19,7 +19,7 @@ export default async function AuthenticatedLayout({
   return (
     <>
       <Header initials={initials} />
-      <main className="pb-20 md:pb-0">{children}</main>
+      <main className="pb-20 md:pb-0 print:pb-0">{children}</main>
     </>
   );
 }

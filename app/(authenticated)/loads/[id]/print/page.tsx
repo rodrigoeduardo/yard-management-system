@@ -28,7 +28,7 @@ export default async function LoadPrintPage({
   const summary = formatLoadSummary(load);
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 p-8">
+    <main className="flex min-h-screen flex-col gap-6 p-8 print:min-h-0 print:p-0">
       <div className="print:hidden">
         <Breadcrumbs
           items={buildTrail(

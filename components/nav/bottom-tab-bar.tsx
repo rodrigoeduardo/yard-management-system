@@ -26,7 +26,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-border bg-card px-2 py-2 md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-border bg-card px-2 py-2 md:hidden print:hidden"
     >
       {APP_NAV_ITEMS.map((item) => {
         const Icon = ICONS[item.href];
