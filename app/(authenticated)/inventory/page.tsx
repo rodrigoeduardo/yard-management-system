@@ -29,6 +29,13 @@ export default async function InventoryPage() {
     listRemovalNfs(),
   ]);
   const nfsByRemoval = groupNfsByRemoval(nfRows);
+  const itemCountByRemoval = new Map<string, number>();
+  for (const { removalId } of nfRows) {
+    itemCountByRemoval.set(
+      removalId,
+      (itemCountByRemoval.get(removalId) ?? 0) + 1,
+    );
+  }
 
   const removalRows: RemovalLogRow[] = removalList.map((removal) => ({
     id: removal.id,
@@ -36,6 +43,7 @@ export default async function InventoryPage() {
     driver: removal.driver,
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais: (nfsByRemoval.get(removal.id) ?? []).join(", "),
+    itemCount: itemCountByRemoval.get(removal.id) ?? 0,
   }));
 
   return (
