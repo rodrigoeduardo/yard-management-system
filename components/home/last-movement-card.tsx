@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { SectionLabel } from "@/components/ui/section-label";
 import { formatEntryDateTime, formatYardDate } from "@/lib/format/datetime";
 
@@ -49,16 +48,18 @@ function loadToRow(load: LastLoadSummary): Row {
 
 function MovementRow({ row }: { row: Row }) {
   return (
-    <li className="flex items-center gap-3.5 rounded-card border border-border bg-card px-5 py-4">
+    <li className="flex items-center gap-3 rounded-card border border-border bg-card px-4 py-3.5 md:gap-3.5 md:px-5 md:py-4">
       <span className="size-2 shrink-0 rounded-full bg-primary" />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-[13.5px] font-semibold text-foreground md:text-sm">
           {row.title}
         </span>
-        <span className="text-xs text-muted-foreground">{row.meta}</span>
+        <span className="text-xs text-muted-foreground md:text-[12.5px]">
+          {row.meta}
+        </span>
       </span>
       {row.nf && (
-        <span className="shrink-0 font-mono text-sm text-primary">
+        <span className="shrink-0 font-mono text-xs text-accent-foreground md:text-[13px]">
           {row.nf}
         </span>
       )}
@@ -90,13 +91,13 @@ export function LastMovementCard({
     .sort((a, b) => b.sortDate.getTime() - a.sortDate.getTime());
 
   return (
-    <Card className="flex flex-col gap-3 p-5">
+    <div className="flex flex-col gap-3">
       <SectionLabel>Última Movimentação</SectionLabel>
       <ul className="flex flex-col gap-3">
         {rows.map((row) => (
           <MovementRow key={row.key} row={row} />
         ))}
       </ul>
-    </Card>
+    </div>
   );
 }
