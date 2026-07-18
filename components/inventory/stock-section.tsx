@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { LoadDetailModal } from "./load-detail-modal";
+import { StockCard } from "./stock-card";
 import { StockTable, type StockRow } from "./stock-table";
 
 export function StockSection({ rows }: { rows: StockRow[] }) {
@@ -21,15 +22,21 @@ export function StockSection({ rows }: { rows: StockRow[] }) {
     );
   }
 
+  const handleRowClick = (row: StockRow) => {
+    setSelected(row);
+    setOpen(true);
+  };
+
   return (
     <>
-      <StockTable
-        rows={rows}
-        onRowClick={(row) => {
-          setSelected(row);
-          setOpen(true);
-        }}
-      />
+      <div className="flex flex-col gap-3 md:hidden">
+        {rows.map((row) => (
+          <StockCard key={row.id} row={row} onClick={handleRowClick} />
+        ))}
+      </div>
+      <div className="hidden md:block">
+        <StockTable rows={rows} onRowClick={handleRowClick} />
+      </div>
       <LoadDetailModal load={selected} open={open} onOpenChange={setOpen} />
     </>
   );

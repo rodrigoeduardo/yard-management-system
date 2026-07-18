@@ -1,7 +1,6 @@
 import { desc } from "drizzle-orm";
+import { InventoryView } from "@/components/inventory/inventory-view";
 import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
-import { RemovalSection } from "@/components/inventory/removal-section";
-import { StockSection } from "@/components/inventory/stock-section";
 import type { StockRow } from "@/components/inventory/stock-table";
 import { db } from "@/lib/db";
 import { listRemovalNfs, listRemovalsMostRecentFirst } from "@/lib/db/removal-log";
@@ -40,15 +39,9 @@ export default async function InventoryPage() {
   }));
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 p-8">
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">Estoque Atual</h1>
-        <StockSection rows={stockRows} />
-      </div>
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">Histórico de Remoções</h1>
-        <RemovalSection rows={removalRows} />
-      </div>
+    <main className="flex min-h-screen flex-col gap-6 p-4 md:gap-8 md:p-8">
+      <h1 className="text-2xl font-semibold">Estoque</h1>
+      <InventoryView stockRows={stockRows} removalRows={removalRows} />
     </main>
   );
 }
