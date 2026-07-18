@@ -17,6 +17,9 @@ function fillDadosAndContinue() {
   fireEvent.change(screen.getByLabelText("Data de Entrada"), {
     target: { value: "2026-01-01" },
   });
+  fireEvent.change(screen.getByLabelText("Hora de Entrada"), {
+    target: { value: "09:15" },
+  });
   fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
     target: { value: "100" },
   });
@@ -36,6 +39,9 @@ describe("NewLoadPage", () => {
       /\bfont-mono\b/,
     );
     expect(screen.getByLabelText("Data de Entrada").className).toMatch(
+      /\bfont-mono\b/,
+    );
+    expect(screen.getByLabelText("Hora de Entrada").className).toMatch(
       /\bfont-mono\b/,
     );
     expect(screen.getByLabelText("Peso da Nota Fiscal").className).toMatch(
@@ -131,7 +137,22 @@ describe("NewLoadPage", () => {
     );
   });
 
-  it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Data de Entrada, Peso da Nota Fiscal, and Material are all valid", () => {
+  it("defaults Data de Entrada and Hora de Entrada to now on mount", () => {
+    const now = new Date(2026, 6, 17, 14, 5);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+
+    render(<NewLoadPage />);
+
+    expect(screen.getByLabelText("Data de Entrada")).toHaveValue(
+      "2026-07-17",
+    );
+    expect(screen.getByLabelText("Hora de Entrada")).toHaveValue("14:05");
+
+    vi.useRealTimers();
+  });
+
+  it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Peso da Nota Fiscal, and Material are all valid", () => {
     render(<NewLoadPage />);
 
     const cta = screen.getByRole("button", { name: "Continuar para pesos" });
@@ -140,11 +161,6 @@ describe("NewLoadPage", () => {
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-123" },
-    });
-    expect(cta).toBeDisabled();
-
-    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
-      target: { value: "2026-01-01" },
     });
     expect(cta).toBeDisabled();
 
@@ -160,6 +176,37 @@ describe("NewLoadPage", () => {
 
     fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
       target: { value: "0" },
+    });
+    expect(cta).toBeDisabled();
+  });
+
+  it("treats Data de Entrada and Hora de Entrada as required, even though they default to now", () => {
+    render(<NewLoadPage />);
+
+    fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
+      target: { value: "NF-123" },
+    });
+    fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
+      target: { value: "100" },
+    });
+    fireEvent.change(screen.getByLabelText("Material"), {
+      target: { value: "Aço" },
+    });
+    const cta = screen.getByRole("button", { name: "Continuar para pesos" });
+    expect(cta).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
+      target: { value: "" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
+      target: { value: "2026-01-01" },
+    });
+    expect(cta).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Hora de Entrada"), {
+      target: { value: "" },
     });
     expect(cta).toBeDisabled();
   });

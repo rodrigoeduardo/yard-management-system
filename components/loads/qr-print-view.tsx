@@ -34,6 +34,12 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
             ·
           </span>
           <span>{summary.material}</span>
+          <span aria-hidden="true" className="text-muted-foreground">
+            ·
+          </span>
+          <span className="font-mono text-muted-foreground">
+            Entrada {summary.entryDate}
+          </span>
         </Badge>
 
         <div className="flex flex-wrap items-center gap-2">

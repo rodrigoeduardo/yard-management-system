@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatEntryDateTime } from "@/lib/format/datetime";
 
 export function isValidLoadId(id: string): boolean {
   return z.uuid().safeParse(id).success;
@@ -20,7 +21,7 @@ export function formatLoadSummary(load: {
   return {
     notaFiscal: load.notaFiscal,
     material: load.material,
-    entryDate: load.entryDate.toLocaleDateString("pt-BR"),
+    entryDate: formatEntryDateTime(load.entryDate),
     itemCount: load.itemCount,
   };
 }
