@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import NewLoadPage from "./page";
 
@@ -9,6 +9,24 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/actions/loads", () => ({
   createLoad: vi.fn(),
 }));
+
+function fillDadosAndContinue() {
+  fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
+    target: { value: "NF-123" },
+  });
+  fireEvent.change(screen.getByLabelText("Data de Entrada"), {
+    target: { value: "2026-01-01" },
+  });
+  fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
+    target: { value: "100" },
+  });
+  fireEvent.change(screen.getByLabelText("Material"), {
+    target: { value: "Aço" },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Continuar para pesos" }),
+  );
+}
 
 describe("NewLoadPage", () => {
   it("renders the NF-data fields with mono/unit treatment", () => {
@@ -23,7 +41,9 @@ describe("NewLoadPage", () => {
     expect(screen.getByLabelText("Peso da Nota Fiscal").className).toMatch(
       /\bfont-mono\b/,
     );
-    expect(screen.getByText("kg")).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("load-form-dados-panel")).getByText("kg"),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Material").className).not.toMatch(
       /\bfont-mono\b/,
     );
@@ -157,10 +177,104 @@ describe("NewLoadPage", () => {
     const error = await screen.findByText(
       "Informe um peso válido para o item 2.",
     );
-    const item2Group = screen.getByLabelText("Peso do item 2").parentElement;
-    const item1Group = screen.getByLabelText("Peso do item 1").parentElement;
+    const item2Group = screen
+      .getByLabelText("Peso do item 2")
+      .closest('[data-testid^="pesos-item-"]');
+    const item1Group = screen
+      .getByLabelText("Peso do item 1")
+      .closest('[data-testid^="pesos-item-"]');
 
     expect(item2Group?.contains(error)).toBe(true);
     expect(item1Group?.contains(error)).toBe(false);
+  });
+
+  it("shows an NF context chip with the NF number and material above the weights grid", () => {
+    render(<NewLoadPage />);
+    fillDadosAndContinue();
+
+    const chip = screen.getByTestId("pesos-nf-chip");
+    expect(chip).toHaveTextContent("NF-123");
+    expect(chip).toHaveTextContent("Aço");
+  });
+
+  it("renders the weight inputs in a grid sized to itemCount (2 cols mobile / 4 cols md) with an Item N label and kg suffix", () => {
+    render(<NewLoadPage />);
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+    fireEvent.click(increment);
+    fireEvent.click(increment);
+    fillDadosAndContinue();
+
+    const grid = screen.getByTestId("pesos-weights-grid");
+    expect(grid.className).toMatch(/\bgrid-cols-2\b/);
+    expect(grid.className).toMatch(/\bmd:grid-cols-4\b/);
+    expect(screen.getByText("Item 1")).toBeInTheDocument();
+    expect(screen.getByText("Item 4")).toBeInTheDocument();
+
+    const item1 = screen.getByLabelText("Peso do item 1");
+    expect(item1.className).toMatch(/\bfont-mono\b/);
+    expect(item1.closest("div")?.textContent).toMatch(/kg/);
+  });
+
+  it("shows a live Peso Restante vs Peso da NF summary with a fill-progress bar, recomputed on each keystroke", () => {
+    render(<NewLoadPage />);
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+    fillDadosAndContinue();
+
+    expect(screen.getByTestId("pesos-remaining-weight")).toHaveTextContent(
+      "0",
+    );
+    expect(screen.getByTestId("pesos-nf-weight")).toHaveTextContent("100");
+
+    const progressBar = screen.getByRole("progressbar");
+    expect(progressBar).toHaveAttribute("aria-valuenow", "0");
+
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "30" },
+    });
+
+    expect(screen.getByTestId("pesos-remaining-weight")).toHaveTextContent(
+      "30",
+    );
+    expect(progressBar).toHaveAttribute("aria-valuenow", "50");
+
+    fireEvent.change(screen.getByLabelText("Peso do item 2"), {
+      target: { value: "20" },
+    });
+
+    expect(screen.getByTestId("pesos-remaining-weight")).toHaveTextContent(
+      "50",
+    );
+    expect(progressBar).toHaveAttribute("aria-valuenow", "100");
+  });
+
+  it("disables the primary CTA until all weights are entered, and labels it with the item count", () => {
+    render(<NewLoadPage />);
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+    fillDadosAndContinue();
+
+    const submitCtas = screen.getAllByRole("button", {
+      name: "Criar carga e gerar 2 QR Codes",
+    });
+    expect(submitCtas.length).toBeGreaterThan(0);
+    for (const cta of submitCtas) expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "30" },
+    });
+    for (const cta of submitCtas) expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Peso do item 2"), {
+      target: { value: "20" },
+    });
+    for (const cta of submitCtas) expect(cta).toBeEnabled();
   });
 });
