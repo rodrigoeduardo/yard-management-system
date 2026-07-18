@@ -249,3 +249,14 @@ describe("NewRemovalPage review dialog", () => {
     expect(screen.queryByText("Revisar Remoção")).not.toBeInTheDocument();
   });
 });
+
+describe("NewRemovalPage form placeholders", () => {
+  it("shows a Portuguese placeholder on the Motorista field", () => {
+    render(<NewRemovalPage />);
+
+    expect(screen.getByLabelText("Motorista")).toHaveAttribute(
+      "placeholder",
+      "Nome do motorista",
+    );
+  });
+});

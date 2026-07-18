@@ -55,4 +55,14 @@ describe("Input", () => {
       /appearance-none/,
     );
   });
+
+  it("styles the placeholder with the design placeholder token, not muted-foreground", () => {
+    render(<Input aria-label="Nota Fiscal" placeholder="000.000" />);
+
+    const input = screen.getByLabelText("Nota Fiscal");
+    expect(input.className).toMatch(/\bplaceholder:text-placeholder\b/);
+    expect(input.className).not.toMatch(
+      /\bplaceholder:text-muted-foreground\b/,
+    );
+  });
 });
