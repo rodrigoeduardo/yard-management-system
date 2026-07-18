@@ -1,26 +1,15 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { logout } from "@/app/login/actions";
-import { NAV_ITEMS } from "@/lib/nav/nav-items";
+import { BottomTabBar } from "@/components/nav/bottom-tab-bar";
+import { TopNav } from "@/components/nav/top-nav";
 
-export function Header() {
+/**
+ * Responsive app chrome: a fixed bottom tab bar on mobile, a top-nav on
+ * desktop (`md:` and up). Both highlight the active section.
+ */
+export function Header({ initials }: { initials: string }) {
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-      <nav className="flex items-center gap-4">
-        <Link href="/" className="text-sm font-semibold">
-          Controle de Estoque de Pátio
-        </Link>
-        {NAV_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} className="text-sm text-muted-foreground hover:text-foreground">
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-      <form action={logout}>
-        <Button type="submit" variant="outline" size="sm">
-          Sair
-        </Button>
-      </form>
-    </header>
+    <>
+      <TopNav initials={initials} />
+      <BottomTabBar />
+    </>
   );
 }
