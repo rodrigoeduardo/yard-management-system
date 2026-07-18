@@ -14,7 +14,7 @@ export default async function AuthenticatedLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const initials = getUserInitials(user?.email);
+  const initials = getUserInitials(user);
 
   return (
     <>

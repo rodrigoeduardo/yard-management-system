@@ -24,7 +24,7 @@ export default async function Home() {
   ]);
 
   const greeting = getGreeting(new Date());
-  const displayName = getUserDisplayName(user?.email);
+  const displayName = getUserDisplayName(user);
 
   return (
     <main className="flex flex-col gap-6 px-4 py-6 pb-24 md:mx-auto md:w-full md:max-w-5xl md:gap-8 md:px-8 md:py-10 md:pb-10">
