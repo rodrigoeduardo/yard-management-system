@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { FormLoaderReporter } from "@/components/ui/top-loader";
 import { login } from "./actions";
 
@@ -24,26 +25,26 @@ export default async function LoginPage({
           <label htmlFor="email" className="text-sm font-medium">
             E-mail
           </label>
-          <input
+          <Input
             id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            placeholder="seu@email.com"
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="password" className="text-sm font-medium">
             Senha
           </label>
-          <input
+          <Input
             id="password"
             name="password"
             type="password"
             required
             autoComplete="current-password"
-            className="h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            placeholder="••••••••"
           />
         </div>
         {errorMessage && (

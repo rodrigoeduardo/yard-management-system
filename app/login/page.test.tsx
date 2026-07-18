@@ -1,0 +1,28 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import LoginPage from "./page";
+
+async function renderLoginPage(error?: string) {
+  const jsx = await LoginPage({
+    searchParams: Promise.resolve({ error }),
+  });
+  render(jsx);
+}
+
+describe("LoginPage", () => {
+  it("renders the email field as the shared Input with a Portuguese placeholder", async () => {
+    await renderLoginPage();
+
+    const email = screen.getByLabelText("E-mail");
+    expect(email).toHaveAttribute("placeholder", "seu@email.com");
+    expect(email.dataset.slot).toBe("input");
+  });
+
+  it("renders the password field as the shared Input with a masked placeholder", async () => {
+    await renderLoginPage();
+
+    const password = screen.getByLabelText("Senha");
+    expect(password).toHaveAttribute("placeholder", "••••••••");
+    expect(password.dataset.slot).toBe("input");
+  });
+});
