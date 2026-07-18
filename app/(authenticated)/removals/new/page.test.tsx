@@ -107,10 +107,11 @@ describe("NewRemovalPage sticky total bar", () => {
   it("disables the Concluir Remoção CTA while no items are scanned", () => {
     render(<NewRemovalPage />);
 
-    const cta = screen.getByRole("button", {
+    const ctas = screen.getAllByRole("button", {
       name: /Concluir Remoção \(0 itens\)/,
     });
-    expect(cta).toBeDisabled();
+    expect(ctas.length).toBeGreaterThan(0);
+    for (const cta of ctas) expect(cta).toBeDisabled();
   });
 
   it("shows the live total weight and enables the CTA once an item is scanned", async () => {
@@ -124,11 +125,13 @@ describe("NewRemovalPage sticky total bar", () => {
       weight: "10",
     });
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /Concluir Remoção \(1 item\)/ }),
-      ).not.toBeDisabled(),
-    );
+    await waitFor(() => {
+      const ctas = screen.getAllByRole("button", {
+        name: /Concluir Remoção \(1 item\)/,
+      });
+      expect(ctas.length).toBeGreaterThan(0);
+      for (const cta of ctas) expect(cta).not.toBeDisabled();
+    });
     expect(screen.getAllByText("10 kg").length).toBeGreaterThan(0);
   });
 
@@ -143,9 +146,10 @@ describe("NewRemovalPage sticky total bar", () => {
       weight: "10",
     });
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: /Concluir Remoção \(1 item\)/ }),
-    );
+    const [cta] = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(1 item\)/,
+    });
+    fireEvent.click(cta);
 
     expect(await screen.findByText("Revisar Remoção")).toBeInTheDocument();
   });
@@ -188,11 +192,10 @@ describe("NewRemovalPage review dialog", () => {
     });
     await screen.findByText("NF-200");
 
-    fireEvent.click(
-      await screen.findByRole("button", {
-        name: /Concluir Remoção \(2 itens\)/,
-      }),
-    );
+    const [cta] = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(2 itens\)/,
+    });
+    fireEvent.click(cta);
 
     return screen.findByRole("dialog", { name: "Revisar Remoção" });
   }
@@ -203,10 +206,14 @@ describe("NewRemovalPage review dialog", () => {
     expect(within(dialog).getByText("2026-07-18")).toBeInTheDocument();
     expect(within(dialog).getByText("João Silva")).toBeInTheDocument();
 
-    const nf100Group = within(dialog).getByText("NF-100").closest("div")!;
+    const nf100Group = within(dialog)
+      .getByText("NF-100 · Aço")
+      .closest("div")!;
     expect(within(nf100Group).getByText(/Item 1 - NF-100/)).toBeInTheDocument();
 
-    const nf200Group = within(dialog).getByText("NF-200").closest("div")!;
+    const nf200Group = within(dialog)
+      .getByText("NF-200 · Cobre")
+      .closest("div")!;
     expect(within(nf200Group).getByText(/Item 1 - NF-200/)).toBeInTheDocument();
 
     expect(within(dialog).getByText("Peso Total Removido")).toBeInTheDocument();
@@ -258,5 +265,49 @@ describe("NewRemovalPage form placeholders", () => {
       "placeholder",
       "Nome do motorista",
     );
+  });
+});
+
+describe("NewRemovalPage scanned items header", () => {
+  it("shows the scanned item count and distinct Nota Fiscal count", async () => {
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    expect(await screen.findByText("ITENS LIDOS (1)")).toBeInTheDocument();
+    expect(screen.getByText("1 nota fiscal")).toBeInTheDocument();
+  });
+});
+
+describe("NewRemovalPage clear list", () => {
+  it("clears all scanned items when Limpar lista is clicked", async () => {
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    expect(await screen.findByText("NF-100")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Limpar lista" }));
+
+    await waitFor(() =>
+      expect(screen.queryByText("NF-100")).not.toBeInTheDocument(),
+    );
+    for (const cta of screen.getAllByRole("button", {
+      name: /Concluir Remoção \(0 itens\)/,
+    })) {
+      expect(cta).toBeDisabled();
+    }
   });
 });
