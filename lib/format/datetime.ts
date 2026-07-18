@@ -3,7 +3,21 @@
  * time, regardless of the timezone the server/runner happens to be in
  * (e.g. CI runs UTC, some hosts run UTC in production).
  */
-const YARD_TIME_ZONE = "America/Sao_Paulo";
+export const YARD_TIME_ZONE = "America/Sao_Paulo";
+
+/**
+ * Fixed UTC offset (in minutes, ahead of UTC) for `YARD_TIME_ZONE`. Brazil
+ * abolished daylight saving time nationally in 2019, so `America/Sao_Paulo`
+ * has been a constant UTC-03:00 since then, making this fixed offset safe
+ * for converting a yard wall-clock reading into an absolute instant.
+ *
+ * This is the single source of truth for the yard's UTC offset. Both
+ * `combineEntryDateTime` (write path — `lib/loads/entry-datetime.ts`) and
+ * `formatEntryDateTime` (read path, below) must agree on it, so that a
+ * wall-clock entry round-trips through persistence unchanged regardless of
+ * the host process's own default timezone.
+ */
+export const YARD_UTC_OFFSET_MINUTES = 3 * 60;
 
 /**
  * Formats a `Date` as `dd/mm/aaaa · HH:mm` for display (mono UI treatment),

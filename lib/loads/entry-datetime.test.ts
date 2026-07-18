@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { formatEntryDateTime } from "@/lib/format/datetime";
 import {
   combineEntryDateTime,
   getCurrentEntryDateValue,
@@ -43,6 +44,34 @@ describe("combineEntryDateTime", () => {
     expect(combineEntryDateTime("2026-07-17", "25:00")).toBeNull();
     expect(combineEntryDateTime("2026-07-17", "10:61")).toBeNull();
   });
+});
+
+describe("combineEntryDateTime + formatEntryDateTime round-trip", () => {
+  // Regression guard for a prod-only bug: combineEntryDateTime (write path)
+  // and formatEntryDateTime (read path) must agree on the yard's timezone
+  // independent of the *host process's* default timezone, since nothing
+  // outside this test suite pins the production runtime's TZ. A wall-clock
+  // entry of "14:30 on 2026-07-17" must always redisplay as "14:30" no
+  // matter whether the server process defaults to UTC, America/Sao_Paulo,
+  // or something else entirely (e.g. Asia/Tokyo) — this test asserts that
+  // explicitly across a small TZ matrix rather than relying solely on the
+  // single TZ vitest.setup.ts pins for the whole suite.
+  const originalTz = process.env.TZ;
+
+  afterEach(() => {
+    process.env.TZ = originalTz;
+  });
+
+  it.each(["UTC", "America/Sao_Paulo", "Asia/Tokyo"])(
+    "round-trips a 14:30 Sao Paulo wall-clock entry under host TZ=%s",
+    (hostTz) => {
+      process.env.TZ = hostTz;
+
+      const combined = combineEntryDateTime("2026-07-17", "14:30");
+      expect(combined).not.toBeNull();
+      expect(formatEntryDateTime(combined!)).toBe("17/07/2026 · 14:30");
+    },
+  );
 });
 
 describe("getCurrentEntryDateValue", () => {
