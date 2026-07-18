@@ -26,7 +26,10 @@ export function RemovalSection({ rows }: { rows: RemovalLogRow[] }) {
 
   return (
     <>
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-[10px] md:hidden">
+        <span className="text-[11.5px] text-muted-foreground">
+          Ordenado por última modificação · somente visualização
+        </span>
         {rows.map((row) => (
           <RemovalCard key={row.id} row={row} onClick={handleRowClick} />
         ))}

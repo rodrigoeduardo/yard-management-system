@@ -25,33 +25,54 @@ const REMOVAL_ROW: RemovalLogRow = {
 };
 
 describe("InventoryView", () => {
-  it("shows the Estoque Atual view by default", () => {
+  it("shows the Estoque Atual section unhidden by default, with Remoções hidden below md:", () => {
     render(
       <InventoryView stockRows={[STOCK_ROW]} removalRows={[REMOVAL_ROW]} />,
     );
 
-    expect(screen.getAllByText("NF-001").length).toBeGreaterThan(0);
-    expect(screen.queryByText("João")).not.toBeInTheDocument();
+    const stockHeading = screen.getByRole("heading", { name: "Estoque Atual" });
+    const removalHeading = screen.getByRole("heading", {
+      name: "Histórico de Remoções",
+    });
+
+    expect(stockHeading.closest("div")?.parentElement?.className).not.toMatch(
+      /\bhidden\b/,
+    );
+    expect(removalHeading.closest("div")?.parentElement?.className).toMatch(
+      /\bhidden md:flex\b/,
+    );
   });
 
-  it("switches to the Remoções view when that segment is selected", () => {
+  it("switches which section is unhidden on mobile when a segment is selected, keeping both mounted", () => {
     render(
       <InventoryView stockRows={[STOCK_ROW]} removalRows={[REMOVAL_ROW]} />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Remoções" }));
 
-    expect(screen.getAllByText("João").length).toBeGreaterThan(0);
+    const stockHeading = screen.getByRole("heading", { name: "Estoque Atual" });
+    const removalHeading = screen.getByRole("heading", {
+      name: "Histórico de Remoções",
+    });
+
+    expect(stockHeading.closest("div")?.parentElement?.className).toMatch(
+      /\bhidden md:flex\b/,
+    );
+    expect(removalHeading.closest("div")?.parentElement?.className).not.toMatch(
+      /\bhidden\b/,
+    );
   });
 
-  it("renders a segmented control with both segments", () => {
+  it("renders a segmented control with both segments, hidden at md:", () => {
     render(<InventoryView stockRows={[]} removalRows={[]} />);
 
-    expect(
-      screen.getByRole("button", { name: "Estoque Atual" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Remoções" }),
-    ).toBeInTheDocument();
+    const current = screen.getByRole("button", { name: "Estoque Atual" });
+    const removals = screen.getByRole("button", { name: "Remoções" });
+
+    expect(current).toBeInTheDocument();
+    expect(removals).toBeInTheDocument();
+    expect(current.closest('[data-slot="segmented-control"]')?.className).toMatch(
+      /\bmd:hidden\b/,
+    );
   });
 });
