@@ -20,4 +20,10 @@ describe("authenticated layout nav shell", () => {
     expect(mainBlock).toMatch(/\bpb-(?:16|20|24)\b/);
     expect(mainBlock).toMatch(/\bmd:pb-0\b/);
   });
+
+  it("removes the mobile tab-bar padding reservation in print (issue #95)", () => {
+    const mainBlockMatch = source.match(/<main[\s\S]*?>/);
+    expect(mainBlockMatch).not.toBeNull();
+    expect(mainBlockMatch![0]).toMatch(/\bprint:pb-0\b/);
+  });
 });

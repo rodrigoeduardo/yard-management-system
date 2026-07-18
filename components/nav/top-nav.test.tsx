@@ -64,4 +64,11 @@ describe("TopNav", () => {
     expect(screen.getByRole("banner").className).toMatch(/\bhidden\b/);
     expect(screen.getByRole("banner").className).toMatch(/\bmd:flex\b/);
   });
+
+  it("is excluded from print output (issue #95)", () => {
+    usePathname.mockReturnValue("/");
+    render(<TopNav initials="RS" />);
+
+    expect(screen.getByRole("banner").className).toMatch(/\bprint:hidden\b/);
+  });
 });

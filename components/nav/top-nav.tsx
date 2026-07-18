@@ -17,7 +17,7 @@ export function TopNav({ initials }: { initials: string }) {
   const pathname = usePathname();
 
   return (
-    <header className="hidden items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 md:flex">
+    <header className="hidden items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 md:flex print:hidden">
       <div className="flex items-center gap-6">
         <span className="text-sm font-semibold">Controle de Estoque de Pátio</span>
         <nav className="flex items-center gap-1">
