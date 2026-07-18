@@ -2,10 +2,15 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { SectionLabel } from "@/components/ui/section-label";
 import { removeItems } from "@/lib/actions/removals";
 import { sumDecimalStrings } from "@/lib/db/decimal";
 import {
@@ -23,8 +28,9 @@ import {
 import { checkItemStatus } from "@/lib/actions/item-status";
 import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payload";
 
-const inputClassName =
-  "h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+function itemsLabel(count: number): string {
+  return count === 1 ? "item" : "itens";
+}
 
 export default function NewRemovalPage() {
   const router = useRouter();
@@ -153,19 +159,17 @@ export default function NewRemovalPage() {
   }
 
   const scannedItemsByNotaFiscal = groupScannedItemsByNotaFiscal(scannedItems);
-  const reviewTotalWeight =
+  const totalRemovedWeight =
     scannedItems.length > 0
       ? sumDecimalStrings(scannedItems.map((item) => item.weight))
       : "0";
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-6 p-8">
-      <div className="w-full max-w-sm">
-        <Breadcrumbs
-          items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
-        />
-      </div>
-      <h1 className="text-2xl font-semibold">Nova Remoção</h1>
+    <div className="flex flex-col gap-6 px-4 py-6 pb-44 md:mx-auto md:w-full md:max-w-4xl md:px-8 md:pb-28">
+      <Breadcrumbs
+        items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
+      />
+      <h1 className="text-2xl font-semibold text-foreground">Nova Remoção</h1>
 
       {receipt && (
         <div className="flex w-full max-w-sm flex-col gap-4">
@@ -207,102 +211,165 @@ export default function NewRemovalPage() {
       )}
 
       {!receipt && (
-        <div className="flex w-full max-w-sm flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="exitDate" className="text-sm font-medium">
-              Data de Saída
-            </label>
-            <input
-              id="exitDate"
-              type="date"
-              value={exitDate}
-              onChange={(e) => setExitDate(e.target.value)}
-              required
-              className={inputClassName}
-            />
-            {fieldErrors.exitDate && (
-              <p role="alert" className="text-sm text-destructive">
-                {fieldErrors.exitDate}
-              </p>
-            )}
-          </div>
+        <div className="flex flex-col gap-6">
+          <Card className="flex flex-col gap-5 p-5">
+            <SectionLabel>Dados da Remoção</SectionLabel>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="driver" className="text-sm font-medium">
-              Motorista
-            </label>
-            <input
-              id="driver"
-              value={driver}
-              onChange={(e) => setDriver(e.target.value)}
-              required
-              className={inputClassName}
-            />
-            {fieldErrors.driver && (
-              <p role="alert" className="text-sm text-destructive">
-                {fieldErrors.driver}
-              </p>
-            )}
-          </div>
-
-          <video ref={videoRef} className="w-full rounded-lg" muted />
-
-          <Button
-            type="button"
-            onClick={isScanning ? stopScanning : startScanning}
-          >
-            {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
-          </Button>
-
-          {scanError && (
-            <p role="alert" className="text-sm text-destructive">
-              {scanError}
-            </p>
-          )}
-
-          <ul className="flex flex-col gap-1.5 text-sm">
-            {scannedItems.map((item) => (
-              <li
-                key={item.qrToken}
-                className="flex items-center justify-between gap-2"
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="exitDate"
+                className="text-sm font-medium text-foreground"
               >
-                <span>
-                  <span className="font-medium">
-                    NF: {notaFiscalOf(item)}
-                  </span>{" "}
-                  — {item.identifier} — {item.material} — {item.weight} kg
+                Data de Saída
+              </label>
+              <Input
+                id="exitDate"
+                type="date"
+                mono
+                value={exitDate}
+                onChange={(e) => setExitDate(e.target.value)}
+                required
+              />
+              {fieldErrors.exitDate && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.exitDate}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="driver"
+                className="text-sm font-medium text-foreground"
+              >
+                Motorista
+              </label>
+              <Input
+                id="driver"
+                value={driver}
+                onChange={(e) => setDriver(e.target.value)}
+                required
+              />
+              {fieldErrors.driver && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.driver}
+                </p>
+              )}
+            </div>
+          </Card>
+
+          <Card className="flex flex-col gap-4 p-5">
+            <SectionLabel>Escanear Itens</SectionLabel>
+
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-input bg-foreground">
+              <video
+                ref={videoRef}
+                className="h-full w-full object-cover"
+                muted
+              />
+              <div className="pointer-events-none absolute inset-4">
+                <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-2 border-l-2 border-primary-foreground/80" />
+                <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-2 border-r-2 border-primary-foreground/80" />
+                <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-2 border-l-2 border-primary-foreground/80" />
+                <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-2 border-b-2 border-primary-foreground/80" />
+                {isScanning && (
+                  <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary-foreground/80" />
+                )}
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              onClick={isScanning ? stopScanning : startScanning}
+            >
+              {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+            </Button>
+
+            {scanError && (
+              <p role="alert" className="text-sm text-destructive">
+                {scanError}
+              </p>
+            )}
+          </Card>
+
+          <div className="flex flex-col gap-3">
+            <SectionLabel>
+              Itens Escaneados ({scannedItems.length})
+            </SectionLabel>
+
+            {scannedItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum item escaneado ainda.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {scannedItems.map((item, index) => (
+                  <li key={item.qrToken}>
+                    <Card className="flex items-center justify-between gap-3 p-3">
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">
+                            Item {index + 1}
+                          </span>
+                          <Badge>{notaFiscalOf(item)}</Badge>
+                        </div>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {item.material}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-mono text-sm font-medium text-foreground">
+                          {item.weight} kg
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Remover ${item.identifier}`}
+                          onClick={() => handleDropItem(item.qrToken)}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {fieldErrors.qrTokens && (
+              <p role="alert" className="text-sm text-destructive">
+                {fieldErrors.qrTokens}
+              </p>
+            )}
+
+            {formError && (
+              <p role="alert" className="text-sm text-destructive">
+                {formError}
+              </p>
+            )}
+          </div>
+
+          <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-card p-4 md:bottom-0">
+            <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 md:px-4">
+              <div className="flex flex-col">
+                <SectionLabel>Peso Total Removido</SectionLabel>
+                <span className="font-mono text-lg font-semibold text-foreground">
+                  {totalRemovedWeight} kg
                 </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => handleDropItem(item.qrToken)}
-                  aria-label={`Remover ${item.identifier}`}
-                >
-                  Remover
-                </Button>
-              </li>
-            ))}
-          </ul>
-
-          {fieldErrors.qrTokens && (
-            <p role="alert" className="text-sm text-destructive">
-              {fieldErrors.qrTokens}
-            </p>
-          )}
-
-          {formError && (
-            <p role="alert" className="text-sm text-destructive">
-              {formError}
-            </p>
-          )}
-
-          <Button
-            type="button"
-            onClick={() => setIsReviewOpen(true)}
-            disabled={isPending || scannedItems.length === 0}
-          >
-            Concluir Remoção
-          </Button>
+              </div>
+              <Button
+                type="button"
+                onClick={() => setIsReviewOpen(true)}
+                disabled={isPending || scannedItems.length === 0}
+                className="shrink-0"
+              >
+                Concluir Remoção ({scannedItems.length}{" "}
+                {itemsLabel(scannedItems.length)})
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -340,7 +407,7 @@ export default function NewRemovalPage() {
               </div>
 
               <p className="font-medium">
-                Peso Total: {reviewTotalWeight} kg
+                Peso Total: {totalRemovedWeight} kg
               </p>
             </div>
 
@@ -360,6 +427,6 @@ export default function NewRemovalPage() {
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
-    </main>
+    </div>
   );
 }
