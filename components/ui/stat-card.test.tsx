@@ -8,7 +8,7 @@ describe("StatCard", () => {
 
     const value = screen.getByText("12");
     expect(value.className).toMatch(/\bfont-mono\b/);
-    expect(value.className).toMatch(/text-(2xl|3xl|4xl)/);
+    expect(value.className).toMatch(/font-bold/);
 
     const label = screen.getByText("Cargas Ativas");
     expect(label.className).toMatch(/\btext-muted-foreground\b/);
