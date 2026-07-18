@@ -375,30 +375,48 @@ export default function NewRemovalPage() {
 
       <Dialog.Root open={isReviewOpen} onOpenChange={setIsReviewOpen}>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 bg-black/50" />
-          <Dialog.Popup className="fixed top-1/2 left-1/2 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-6 shadow-lg">
-            <Dialog.Title className="text-lg font-semibold">
+          <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/50 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          <Dialog.Popup
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-4 rounded-t-card border border-border bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-lg outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom md:top-1/2 md:bottom-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:pb-5 md:data-open:zoom-in-95 md:data-open:slide-in-from-bottom-0 md:data-closed:zoom-out-95"
+          >
+            <div className="mx-auto h-1 w-10 shrink-0 rounded-pill bg-border md:hidden" />
+
+            <Dialog.Title className="text-lg font-semibold text-foreground">
               Revisar Remoção
             </Dialog.Title>
 
-            <div className="mt-4 flex flex-col gap-3 text-sm">
-              <p>
-                <span className="font-medium">Data de Saída:</span>{" "}
-                {exitDate}
-              </p>
-              <p>
-                <span className="font-medium">Motorista:</span> {driver}
-              </p>
+            <div className="flex flex-col gap-4 overflow-y-auto text-sm">
+              <dl className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Data de Saída
+                  </dt>
+                  <dd className="font-medium text-foreground">{exitDate}</dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Motorista
+                  </dt>
+                  <dd className="font-medium text-foreground">{driver}</dd>
+                </div>
+              </dl>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {scannedItemsByNotaFiscal.map((group) => (
-                  <div key={group.notaFiscal}>
-                    <p className="font-medium">{group.notaFiscal}</p>
-                    <ul className="flex flex-col gap-1 pl-3">
+                  <div key={group.notaFiscal} className="flex flex-col gap-2">
+                    <Badge>{group.notaFiscal}</Badge>
+                    <ul className="flex flex-col gap-1.5">
                       {group.items.map((item) => (
-                        <li key={item.qrToken}>
-                          {item.identifier} — {item.material} —{" "}
-                          {item.weight} kg
+                        <li
+                          key={item.qrToken}
+                          className="flex items-center justify-between gap-2 text-foreground"
+                        >
+                          <span className="truncate">
+                            {item.identifier} — {item.material}
+                          </span>
+                          <span className="shrink-0 font-mono text-muted-foreground">
+                            {item.weight} kg
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -406,21 +424,32 @@ export default function NewRemovalPage() {
                 ))}
               </div>
 
-              <p className="font-medium">
-                Peso Total: {totalRemovedWeight} kg
-              </p>
+              <div className="flex items-center justify-between rounded-input bg-accent p-3">
+                <SectionLabel className="text-accent-foreground/80">
+                  Peso Total Removido
+                </SectionLabel>
+                <span className="font-mono text-lg font-semibold text-accent-foreground">
+                  {totalRemovedWeight} kg
+                </span>
+              </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsReviewOpen(false)}
                 disabled={isPending}
+                className="w-full md:w-auto"
               >
                 Cancelar
               </Button>
-              <Button type="button" onClick={handleConfirm} disabled={isPending}>
+              <Button
+                type="button"
+                onClick={handleConfirm}
+                disabled={isPending}
+                className="w-full md:w-auto"
+              >
                 Confirmar
               </Button>
             </div>
