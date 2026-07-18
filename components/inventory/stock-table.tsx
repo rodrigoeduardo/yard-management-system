@@ -28,10 +28,25 @@ export type StockRow = {
   finished: boolean;
 };
 
-function numericCell(value: string | number, finished: boolean) {
+const HEADER_CLASS =
+  "h-auto py-3 text-[11px] font-bold tracking-wide text-muted-foreground uppercase";
+
+const COLUMN_WIDTHS = [
+  "w-[120px]",
+  "w-[140px]",
+  "w-[150px]",
+  "",
+  "w-[130px]",
+  "w-[140px]",
+];
+
+function numericCell(value: string | number, highlight: boolean) {
   return (
     <span
-      className={cn("font-mono", finished && "text-success-foreground")}
+      className={cn(
+        "font-mono",
+        highlight && "font-bold text-success-foreground",
+      )}
     >
       {value}
     </span>
@@ -43,22 +58,34 @@ const columns: ColumnDef<StockRow>[] = [
     accessorKey: "notaFiscal",
     header: "NF",
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.notaFiscal}</span>
-        {row.original.finished && <Badge variant="success">Finalizada</Badge>}
-      </div>
+      <span className="font-mono font-bold">{row.original.notaFiscal}</span>
     ),
   },
-  { accessorKey: "entryDate", header: "Data de Entrada" },
+  {
+    accessorKey: "entryDate",
+    header: "Data de Entrada",
+    cell: ({ row }) => (
+      <span className="font-mono text-foreground">{row.original.entryDate}</span>
+    ),
+  },
   {
     accessorKey: "nfWeight",
-    header: "Peso da Nota Fiscal",
-    cell: ({ row }) => numericCell(row.original.nfWeight, row.original.finished),
+    header: "Peso da NF",
+    cell: ({ row }) => <span className="font-mono">{row.original.nfWeight}</span>,
   },
-  { accessorKey: "material", header: "Material" },
+  {
+    accessorKey: "material",
+    header: "Material",
+    cell: ({ row }) => (
+      <span className="flex items-center gap-2.5 font-semibold">
+        {row.original.material}
+        {row.original.finished && <Badge variant="success">Finalizada</Badge>}
+      </span>
+    ),
+  },
   {
     accessorKey: "itemCount",
-    header: "Quantidade de Itens",
+    header: "Qtd. de Itens",
     cell: ({ row }) => numericCell(row.original.itemCount, row.original.finished),
   },
   {
@@ -83,12 +110,15 @@ export function StockTable({
   });
 
   return (
-    <Table>
+    <Table className="table-fixed">
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableHead key={header.id}>
+            {headerGroup.headers.map((header, index) => (
+              <TableHead
+                key={header.id}
+                className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
+              >
                 {flexRender(
                   header.column.columnDef.header,
                   header.getContext(),
@@ -118,12 +148,11 @@ export function StockTable({
             }
             className={cn(
               onRowClick && "cursor-pointer",
-              row.original.finished &&
-                "bg-success/15 hover:bg-success/15",
+              row.original.finished && "bg-success/10 hover:bg-success/10",
             )}
           >
             {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id}>
+              <TableCell key={cell.id} className="text-[13.5px]">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}

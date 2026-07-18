@@ -4,15 +4,6 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RemovalLogRow } from "./removal-log-table";
 
-function Field({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="font-mono text-sm">{value}</dd>
-    </div>
-  );
-}
-
 export function RemovalCard({
   row,
   onClick,
@@ -35,21 +26,34 @@ export function RemovalCard({
             }
           : undefined
       }
-      className={cn("flex flex-col gap-3 p-4", onClick && "cursor-pointer")}
+      className={cn("flex flex-col gap-2.5 px-4 py-3.5", onClick && "cursor-pointer")}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-medium text-foreground">{row.exitDate}</span>
-        <span className="text-sm text-muted-foreground">{row.driver}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className="font-mono text-[14px] font-bold text-foreground">
+          {row.exitDate}
+        </span>
+        <span aria-hidden className="text-[13px] text-muted-foreground">
+          ·
+        </span>
+        <span className="text-[13px] text-muted-foreground">{row.driver}</span>
+        <span className="ml-auto font-mono text-[14px] font-bold text-accent-foreground">
+          {row.totalRemovedWeight}
+        </span>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3">
-        <div className="col-span-2 flex flex-col gap-0.5">
-          <dt className="text-xs text-muted-foreground">Notas Fiscais</dt>
-          <dd className="text-sm">{row.notasFiscais}</dd>
-        </div>
-        <Field label="Itens" value={row.itemCount} />
-        <Field label="Peso Total Removido" value={row.totalRemovedWeight} />
-      </dl>
+      <div className="flex flex-wrap items-center gap-[6px]">
+        <span className="text-[10.5px] text-muted-foreground">
+          Notas Fiscais:
+        </span>
+        <span className="rounded-md border border-border bg-muted px-[7px] py-[2px] font-mono text-[11px] font-semibold text-foreground">
+          {row.notasFiscais}
+        </span>
+      </div>
+
+      <div className="flex justify-between text-[11.5px] text-muted-foreground">
+        <span>{row.itemCount} itens removidos</span>
+        <span>Peso Total Removido</span>
+      </div>
     </Card>
   );
 }

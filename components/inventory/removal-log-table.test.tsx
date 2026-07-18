@@ -22,10 +22,22 @@ describe("RemovalLogTable", () => {
     expect(screen.getByText("100,00 kg")).toBeInTheDocument();
   });
 
-  it("renders numeric columns with the mono font", () => {
+  it("renders numeric columns with the mono font, the total weight in accent color", () => {
     render(<RemovalLogTable rows={[ROW]} />);
 
     expect(screen.getByText("3").className).toMatch(/\bfont-mono\b/);
-    expect(screen.getByText("100,00 kg").className).toMatch(/\bfont-mono\b/);
+
+    const weight = screen.getByText("100,00 kg");
+    expect(weight.className).toMatch(/\bfont-mono\b/);
+    expect(weight.className).toMatch(/\btext-accent-foreground\b/);
+  });
+
+  it("renders uppercase, letter-spaced column headers", () => {
+    render(<RemovalLogTable rows={[ROW]} />);
+
+    expect(screen.getByText("Motorista").className).toMatch(/\buppercase\b/);
+    expect(screen.getByText("Peso Total Removido").className).toMatch(
+      /\buppercase\b/,
+    );
   });
 });

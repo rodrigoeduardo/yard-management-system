@@ -26,7 +26,7 @@ function SegmentedControl<Value extends string>({
       data-slot="segmented-control"
       role="group"
       className={cn(
-        "inline-flex w-fit items-center gap-1 rounded-pill bg-muted p-1",
+        "inline-flex w-full items-center gap-1 rounded-xl bg-muted p-1",
         className,
       )}
       {...props}
@@ -40,7 +40,7 @@ function SegmentedControl<Value extends string>({
             aria-pressed={active}
             onClick={() => onChange(item.value)}
             className={cn(
-              "rounded-pill px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+              "flex h-9 flex-1 items-center justify-center rounded-[9px] px-4 text-[13.5px] font-semibold whitespace-nowrap transition-colors",
               active
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

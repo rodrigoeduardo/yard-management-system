@@ -5,7 +5,7 @@ import type { StockRow } from "./stock-table";
 
 const OPEN_ROW: StockRow = {
   id: "1",
-  notaFiscal: "NF-001",
+  notaFiscal: "145.812",
   entryDate: "01/01/2026",
   nfWeight: "1.000,00 kg",
   material: "Sucata",
@@ -17,7 +17,7 @@ const OPEN_ROW: StockRow = {
 const FINISHED_ROW: StockRow = {
   ...OPEN_ROW,
   id: "2",
-  notaFiscal: "NF-002",
+  notaFiscal: "145.813",
   itemCount: 0,
   remainingWeight: "0,00 kg",
   finished: true,
@@ -27,7 +27,7 @@ describe("StockCard", () => {
   it("renders the load's fields", () => {
     render(<StockCard row={OPEN_ROW} />);
 
-    expect(screen.getByText("NF-001")).toBeInTheDocument();
+    expect(screen.getByText("NF 145.812")).toBeInTheDocument();
     expect(screen.getByText("01/01/2026")).toBeInTheDocument();
     expect(screen.getByText("1.000,00 kg")).toBeInTheDocument();
     expect(screen.getByText("Sucata")).toBeInTheDocument();
@@ -44,13 +44,14 @@ describe("StockCard", () => {
     expect(onClick).toHaveBeenCalledWith(OPEN_ROW);
   });
 
-  it("does not show a Finalizada badge or tint for an open load", () => {
+  it("does not show a Finalizada badge, tint, or footer note for an open load", () => {
     render(<StockCard row={OPEN_ROW} />);
 
     expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
+    expect(screen.queryByText(/estoque desta carga finalizado/)).not.toBeInTheDocument();
   });
 
-  it("shows a Finalizada badge, tint, and green numerics for a finished load", () => {
+  it("shows a Finalizada badge, green border tint, and a footer note for a finished load", () => {
     render(<StockCard row={FINISHED_ROW} />);
 
     const badge = screen.getByText("Finalizada");
@@ -58,9 +59,21 @@ describe("StockCard", () => {
 
     const card = badge.closest('[data-slot="card"]');
     expect(card?.className).toMatch(/\bbg-success\/\d+\b/);
+    expect(card?.className).toMatch(/\bborder-success\b/);
+
+    expect(
+      screen.getByText("Material: Sucata · estoque desta carga finalizado"),
+    ).toBeInTheDocument();
+  });
+
+  it("highlights item count and remaining weight in green when finished, but not the NF weight", () => {
+    render(<StockCard row={FINISHED_ROW} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
     expect(screen.getByText("0,00 kg").className).toMatch(
+      /\btext-success-foreground\b/,
+    );
+    expect(screen.getByText("1.000,00 kg").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });

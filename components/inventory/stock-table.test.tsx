@@ -33,27 +33,38 @@ describe("StockTable", () => {
     expect(screen.getByText("250,00 kg").className).toMatch(/\bfont-mono\b/);
   });
 
+  it("renders uppercase, letter-spaced column headers", () => {
+    render(<StockTable rows={[OPEN_ROW]} />);
+
+    expect(screen.getByText("NF").className).toMatch(/\buppercase\b/);
+    expect(screen.getByText("Peso Restante").className).toMatch(/\buppercase\b/);
+  });
+
   it("does not show a Finalizada badge for an open row", () => {
     render(<StockTable rows={[OPEN_ROW]} />);
 
     expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
   });
 
-  it("shows a Finalizada badge and tints the row for a finished load", () => {
+  it("shows a Finalizada badge next to the material and tints the row for a finished load", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
     const badge = screen.getByText("Finalizada");
     expect(badge.closest('[data-slot="badge"]')).toBeInTheDocument();
+    expect(badge.closest("td")?.textContent).toContain("Papel");
 
     const row = badge.closest('[data-slot="table-row"]');
     expect(row?.className).toMatch(/\bbg-success\/\d+\b/);
   });
 
-  it("renders finished-row numeric values in the success color", () => {
+  it("renders finished-row item count and remaining weight in the success color, but not the NF weight", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
     expect(screen.getByText("0,00 kg").className).toMatch(
+      /\btext-success-foreground\b/,
+    );
+    expect(screen.getByText("500,00 kg").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });

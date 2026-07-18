@@ -29,7 +29,10 @@ export function StockSection({ rows }: { rows: StockRow[] }) {
 
   return (
     <>
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-[10px] md:hidden">
+        <span className="text-[11.5px] text-muted-foreground">
+          Ordenado por última modificação
+        </span>
         {rows.map((row) => (
           <StockCard key={row.id} row={row} onClick={handleRowClick} />
         ))}

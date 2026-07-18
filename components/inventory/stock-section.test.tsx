@@ -24,7 +24,9 @@ describe("StockSection", () => {
   it("renders a mobile card list hidden at md: and a desktop table hidden below md:", () => {
     render(<StockSection rows={[ROW]} />);
 
-    const occurrences = screen.getAllByText("NF-001");
+    // The card prepends a "NF " label (design frame: `NF {{ c.nf }}`), so match
+    // the NF number as a substring rather than requiring exact text equality.
+    const occurrences = screen.getAllByText("NF-001", { exact: false });
     expect(occurrences).toHaveLength(2);
 
     const cardList = occurrences[0].closest('[data-slot="card"]')?.parentElement;
