@@ -19,15 +19,18 @@ describe("RemovalCard", () => {
     expect(screen.getByText("02/01/2026")).toBeInTheDocument();
     expect(screen.getByText("João")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("100,00 kg")).toBeInTheDocument();
+    expect(screen.getByText(/3 itens removidos/)).toBeInTheDocument();
   });
 
-  it("renders numeric fields with the mono font", () => {
+  it("renders the exit date and the removed weight with the mono font, weight in accent color", () => {
     render(<RemovalCard row={ROW} />);
 
-    expect(screen.getByText("100,00 kg").className).toMatch(/\bfont-mono\b/);
-    expect(screen.getByText("3").className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("02/01/2026").className).toMatch(/\bfont-mono\b/);
+
+    const weight = screen.getByText("100,00 kg");
+    expect(weight.className).toMatch(/\bfont-mono\b/);
+    expect(weight.className).toMatch(/\btext-accent-foreground\b/);
   });
 
   it("calls onClick when the card is activated", () => {
