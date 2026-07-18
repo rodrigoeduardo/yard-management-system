@@ -316,7 +316,7 @@ describe("NewLoadPage", () => {
 
     const grid = screen.getByTestId("pesos-weights-grid");
     expect(grid.className).toMatch(/\bgrid-cols-2\b/);
-    expect(grid.className).toMatch(/\bmd:grid-cols-3\b/);
+    expect(grid.className).toMatch(/\bmd:grid-cols-4\b/);
     expect(screen.getByText("Item 1")).toBeInTheDocument();
     expect(screen.getByText("Item 4")).toBeInTheDocument();
 
