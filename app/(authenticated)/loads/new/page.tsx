@@ -15,6 +15,10 @@ import {
   mapCreateLoadFieldErrors,
   mapCreateLoadItemWeightErrors,
 } from "@/lib/forms/create-load-error-map";
+import {
+  getCurrentEntryDateValue,
+  getCurrentEntryTimeValue,
+} from "@/lib/loads/entry-datetime";
 import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +29,8 @@ export default function NewLoadPage() {
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<Step>("dados");
   const [notaFiscal, setNotaFiscal] = useState("");
-  const [entryDate, setEntryDate] = useState("");
+  const [entryDate, setEntryDate] = useState(() => getCurrentEntryDateValue());
+  const [entryTime, setEntryTime] = useState(() => getCurrentEntryTimeValue());
   const [nfWeight, setNfWeight] = useState("");
   const [material, setMaterial] = useState("");
   const [itemCount, setItemCount] = useState(1);
@@ -56,6 +61,7 @@ export default function NewLoadPage() {
   const dadosValid =
     notaFiscal.trim() !== "" &&
     entryDate.trim() !== "" &&
+    entryTime.trim() !== "" &&
     nfWeight.trim() !== "" &&
     Number.isFinite(Number(nfWeight)) &&
     Number(nfWeight) > 0 &&
@@ -83,6 +89,7 @@ export default function NewLoadPage() {
       const result = await createLoad({
         notaFiscal,
         entryDate,
+        entryTime,
         nfWeight: Number(nfWeight),
         material,
         itemWeights: itemWeights.map((weight) => Number(weight)),
@@ -143,26 +150,50 @@ export default function NewLoadPage() {
               )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="entryDate"
-                className="text-sm font-medium text-foreground"
-              >
-                Data de Entrada
-              </label>
-              <Input
-                id="entryDate"
-                type="date"
-                mono
-                value={entryDate}
-                onChange={(e) => setEntryDate(e.target.value)}
-                required
-              />
-              {fieldErrors.entryDate && (
-                <p role="alert" className="text-sm text-destructive">
-                  {fieldErrors.entryDate}
-                </p>
-              )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="entryDate"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Data de Entrada
+                </label>
+                <Input
+                  id="entryDate"
+                  type="date"
+                  mono
+                  value={entryDate}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                  required
+                />
+                {fieldErrors.entryDate && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {fieldErrors.entryDate}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="entryTime"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Hora de Entrada
+                </label>
+                <Input
+                  id="entryTime"
+                  type="time"
+                  mono
+                  value={entryTime}
+                  onChange={(e) => setEntryTime(e.target.value)}
+                  required
+                />
+                {fieldErrors.entryTime && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {fieldErrors.entryTime}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
