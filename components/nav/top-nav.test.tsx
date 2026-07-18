@@ -14,7 +14,7 @@ describe("TopNav", () => {
     usePathname.mockReturnValue("/");
     render(<TopNav initials="RS" />);
 
-    expect(screen.getByText("Controle de Estoque de Pátio")).toBeInTheDocument();
+    expect(screen.getByText("Pátio")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Nova Carga" })).toHaveAttribute(
       "href",

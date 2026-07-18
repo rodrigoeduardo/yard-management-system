@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { LinkLoaderReporter } from "@/components/ui/top-loader";
 import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
 
-const ICONS: Record<string, ComponentType<{ className?: string }>> = {
+const ICONS: Record<string, ComponentType<{ className?: string; strokeWidth?: number }>> = {
   "/": Home,
   "/loads/new": PackagePlus,
   "/removals/new": PackageMinus,
@@ -26,7 +26,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-border bg-card px-2 py-2 md:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card/[0.94] px-2.5 pt-2 pb-[22px] backdrop-blur md:hidden print:hidden"
     >
       {APP_NAV_ITEMS.map((item) => {
         const Icon = ICONS[item.href];
@@ -37,11 +37,15 @@ export function BottomTabBar() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-pill px-3 py-1 text-xs font-medium text-muted-foreground",
-              active && "bg-accent text-accent-foreground",
+              "flex flex-col items-center gap-[3px] text-[10.5px] font-semibold text-muted-foreground",
+              active && "text-accent-foreground",
             )}
           >
-            <Icon className="size-5" />
+            <span
+              className={cn("flex rounded-pill px-[15px] py-1", active && "bg-accent")}
+            >
+              <Icon className="size-[21px]" strokeWidth={1.9} />
+            </span>
             {item.mobileLabel}
             <LinkLoaderReporter />
           </Link>

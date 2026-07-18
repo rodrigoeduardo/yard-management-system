@@ -17,37 +17,47 @@ export function TopNav({ initials }: { initials: string }) {
   const pathname = usePathname();
 
   return (
-    <header className="hidden items-center justify-between gap-4 border-b border-border bg-card px-6 py-3 md:flex print:hidden">
-      <div className="flex items-center gap-6">
-        <span className="text-sm font-semibold">Controle de Estoque de Pátio</span>
-        <nav className="flex items-center gap-1">
-          {APP_NAV_ITEMS.map((item) => {
-            const active = isNavItemActive(pathname, item);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-pill px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground",
-                  active && "bg-accent text-accent-foreground hover:text-accent-foreground",
-                )}
-              >
-                {item.desktopLabel}
-                <LinkLoaderReporter />
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-      <div className="flex items-center gap-3">
+    <header className="hidden h-[60px] items-center gap-[26px] border-b border-border bg-card px-8 md:flex print:hidden">
+      <div className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="flex size-8 items-center justify-center rounded-pill bg-accent text-xs font-semibold text-accent-foreground"
+          className="flex size-7 items-center justify-center rounded-[8px] bg-primary"
+        >
+          <span className="size-2.5 rotate-45 rounded-[2px] bg-primary-foreground" />
+        </span>
+        <span className="text-[15.5px] font-bold">Pátio</span>
+      </div>
+      <nav className="flex items-center gap-1.5">
+        {APP_NAV_ITEMS.map((item) => {
+          const active = isNavItemActive(pathname, item);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "rounded-[8px] px-3 py-[7px] text-[13.5px] font-semibold text-muted-foreground hover:text-foreground",
+                active && "bg-accent text-accent-foreground hover:text-accent-foreground",
+              )}
+            >
+              {item.desktopLabel}
+              <LinkLoaderReporter />
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="ml-auto flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground"
         >
           {initials}
         </span>
         <form action={logout}>
-          <Button type="submit" variant="outline" size="sm">
+          <Button
+            type="submit"
+            variant="outline"
+            className="h-[34px] rounded-[10px] border-border bg-card px-3.5 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
+          >
             Sair
           </Button>
         </form>
