@@ -31,16 +31,17 @@ describe("BottomTabBar", () => {
     );
   });
 
-  it("highlights the active section with the accent-tint pill", () => {
+  it("highlights the active section with the accent-tint pill behind the icon", () => {
     usePathname.mockReturnValue("/inventory");
     render(<BottomTabBar />);
 
     const activeLink = screen.getByRole("link", { name: /Estoque/ });
-    expect(activeLink.className).toMatch(/\bbg-accent\b/);
     expect(activeLink.className).toMatch(/\btext-accent-foreground\b/);
+    expect(activeLink.querySelector("span")?.className).toMatch(/\bbg-accent\b/);
 
     const inactiveLink = screen.getByRole("link", { name: /Início/ });
-    expect(inactiveLink.className).not.toMatch(/\bbg-accent\b/);
+    expect(inactiveLink.className).not.toMatch(/\btext-accent-foreground\b/);
+    expect(inactiveLink.querySelector("span")?.className).not.toMatch(/\bbg-accent\b/);
   });
 
   it("marks Carga active for nested /loads routes", () => {
@@ -48,7 +49,7 @@ describe("BottomTabBar", () => {
     render(<BottomTabBar />);
 
     const activeLink = screen.getByRole("link", { name: /Carga/ });
-    expect(activeLink.className).toMatch(/\bbg-accent\b/);
+    expect(activeLink.querySelector("span")?.className).toMatch(/\bbg-accent\b/);
   });
 
   it("is fixed to the bottom of the viewport and hidden at md:", () => {
