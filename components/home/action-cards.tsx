@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
+import { LinkLoaderReporter } from "@/components/ui/top-loader";
 import { HOME_ENTRY_POINTS } from "@/lib/home/entry-points";
 
 /**
@@ -16,6 +17,7 @@ export function ActionCards() {
         const Icon = entryPoint.icon;
         return (
           <Link key={entryPoint.href} href={entryPoint.href}>
+            <LinkLoaderReporter />
             <Card className="flex flex-col gap-3 p-5 transition-colors hover:bg-accent">
               <span className="flex size-9 items-center justify-center rounded-full bg-accent text-accent-foreground">
                 <Icon className="size-5" />

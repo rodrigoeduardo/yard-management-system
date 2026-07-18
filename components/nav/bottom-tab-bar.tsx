@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
 
 import { cn } from "@/lib/utils";
+import { LinkLoaderReporter } from "@/components/ui/top-loader";
 import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -42,6 +43,7 @@ export function BottomTabBar() {
           >
             <Icon className="size-5" />
             {item.mobileLabel}
+            <LinkLoaderReporter />
           </Link>
         );
       })}

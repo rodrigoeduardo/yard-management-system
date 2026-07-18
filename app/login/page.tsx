@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { FormLoaderReporter } from "@/components/ui/top-loader";
 import { login } from "./actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -18,6 +19,7 @@ export default async function LoginPage({
     <main className="flex min-h-screen flex-col items-center justify-center gap-6">
       <h1 className="text-2xl font-semibold">Entrar</h1>
       <form action={login} className="flex w-full max-w-sm flex-col gap-4">
+        <FormLoaderReporter />
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email" className="text-sm font-medium">
             E-mail
