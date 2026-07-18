@@ -40,7 +40,7 @@ export default async function InventoryPage() {
 
   const removalRows: RemovalLogRow[] = removalList.map((removal) => ({
     id: removal.id,
-    exitDate: removal.exitDate.toLocaleDateString("pt-BR"),
+    exitDate: formatEntryDateTime(removal.exitDate),
     driver: removal.driver,
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais: (nfsByRemoval.get(removal.id) ?? []).join(", "),

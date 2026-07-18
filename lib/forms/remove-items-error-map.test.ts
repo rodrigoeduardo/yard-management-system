@@ -21,10 +21,12 @@ describe("mapRemoveItemsFieldErrors", () => {
   it("maps every known field independently", () => {
     const messages = mapRemoveItemsFieldErrors({
       exitDate: ["invalid"],
+      exitTime: ["invalid"],
       qrTokens: ["too small"],
     });
 
     expect(messages.exitDate).toBe("Informe uma data de saída válida.");
+    expect(messages.exitTime).toBe("Informe uma hora de saída válida.");
     expect(messages.qrTokens).toBe("Escaneie ao menos um item.");
   });
 
