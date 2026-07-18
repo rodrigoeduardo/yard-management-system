@@ -5,6 +5,7 @@ import type { StockRow } from "@/components/inventory/stock-table";
 import { db } from "@/lib/db";
 import { listRemovalNfs, listRemovalsMostRecentFirst } from "@/lib/db/removal-log";
 import { loads } from "@/lib/db/schema";
+import { formatEntryDateTime } from "@/lib/format/datetime";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { isLoadFinished } from "@/lib/inventory/stock";
 
@@ -16,7 +17,7 @@ export default async function InventoryPage() {
   const stockRows: StockRow[] = stock.map((load) => ({
     id: load.id,
     notaFiscal: load.notaFiscal,
-    entryDate: load.entryDate.toLocaleDateString("pt-BR"),
+    entryDate: formatEntryDateTime(load.entryDate),
     nfWeight: load.nfWeight,
     material: load.material,
     itemCount: load.itemCount,

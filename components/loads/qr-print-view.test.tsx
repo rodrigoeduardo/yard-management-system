@@ -7,7 +7,7 @@ import type { LoadSummary } from "@/lib/loads/print";
 const summary: LoadSummary = {
   notaFiscal: "NF-123456",
   material: "Aço",
-  entryDate: "01/01/2026",
+  entryDate: "01/01/2026 · 09:30",
   itemCount: 2,
 };
 
@@ -53,6 +53,14 @@ describe("QrPrintView", () => {
 
     expect(screen.getByText("NF-123456")).toBeInTheDocument();
     expect(screen.getAllByText("Aço").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("shows the entry date and time (dd/mm/aaaa · HH:mm) in the context chip", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    expect(
+      screen.getByText("Entrada 01/01/2026 · 09:30"),
+    ).toBeInTheDocument();
   });
 
   it("renders the print button with the item count in the label", () => {

@@ -23,7 +23,7 @@ describe("formatLoadSummary", () => {
     expect(summary).toEqual({
       notaFiscal: "NF-123",
       material: "Aço",
-      entryDate: "05/03/2026",
+      entryDate: "05/03/2026 · 09:00",
       itemCount: 7,
     });
   });
