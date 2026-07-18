@@ -33,4 +33,26 @@ describe("Input", () => {
     expect(screen.getByText("kg")).toBeInTheDocument();
     expect(screen.getByLabelText("Peso")).toBeInTheDocument();
   });
+
+  it("strips native spinner arrows from number inputs while keeping type=number", () => {
+    render(<Input aria-label="Peso" type="number" />);
+
+    const input = screen.getByLabelText("Peso");
+    expect(input).toHaveAttribute("type", "number");
+    expect(input.className).toMatch(/\[appearance:textfield\]/);
+    expect(input.className).toMatch(
+      /\[&::-webkit-outer-spin-button\]:appearance-none/,
+    );
+    expect(input.className).toMatch(
+      /\[&::-webkit-inner-spin-button\]:appearance-none/,
+    );
+  });
+
+  it("does not add spinner-removal classes to non-number inputs", () => {
+    render(<Input aria-label="Nota Fiscal" type="text" />);
+
+    expect(screen.getByLabelText("Nota Fiscal").className).not.toMatch(
+      /appearance-none/,
+    );
+  });
 });
