@@ -3,9 +3,9 @@ import { cookies } from "next/headers";
 import { ActionCards } from "@/components/home/action-cards";
 import { DashboardStats } from "@/components/home/dashboard-stats";
 import { GreetingHeader } from "@/components/home/greeting-header";
-import { LastRemovalCard } from "@/components/home/last-removal-card";
+import { LastMovementCard } from "@/components/home/last-movement-card";
 import { getUserDisplayName } from "@/lib/auth/user-display-name";
-import { getDashboardStats, getLastRemoval } from "@/lib/db/dashboard";
+import { getDashboardStats, getLastLoad, getLastRemoval } from "@/lib/db/dashboard";
 import { getGreeting } from "@/lib/home/greeting";
 import { createSupabaseSsrServerClient } from "@/lib/supabase/ssr-server";
 
@@ -18,9 +18,10 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [stats, lastRemoval] = await Promise.all([
+  const [stats, lastRemoval, lastLoad] = await Promise.all([
     getDashboardStats(),
     getLastRemoval(),
+    getLastLoad(),
   ]);
 
   const greeting = getGreeting(new Date());
@@ -38,14 +39,22 @@ export default async function Home() {
 
       <ActionCards />
 
-      <LastRemovalCard
+      <LastMovementCard
         removal={
           lastRemoval && {
             driver: lastRemoval.driver,
-            exitDate: lastRemoval.exitDate.toLocaleDateString("pt-BR"),
+            exitDate: lastRemoval.exitDate,
             itemCount: lastRemoval.itemCount,
             totalRemovedWeight: lastRemoval.totalRemovedWeight,
             notasFiscais: lastRemoval.notasFiscais,
+          }
+        }
+        load={
+          lastLoad && {
+            notaFiscal: lastLoad.notaFiscal,
+            material: lastLoad.material,
+            entryDate: lastLoad.entryDate,
+            nfWeight: lastLoad.nfWeight,
           }
         }
       />
