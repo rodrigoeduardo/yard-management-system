@@ -18,11 +18,6 @@ import {
 import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { cn } from "@/lib/utils";
 
-// The per-item weight grid itself is restyled in a follow-up issue (#74).
-// These fields keep the original, minimal styling here.
-const itemWeightInputClassName =
-  "h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
 type Step = "dados" | "pesos";
 
 export default function NewLoadPage() {
@@ -57,6 +52,18 @@ export default function NewLoadPage() {
       return next;
     });
   }
+
+  const filledWeightCount = itemWeights.filter(
+    (weight) => weight.trim() !== "",
+  ).length;
+  const allWeightsEntered =
+    itemCount > 0 && filledWeightCount === itemCount;
+  const remainingWeight = itemWeights.reduce((sum, weight) => {
+    const parsed = Number(weight);
+    return sum + (Number.isFinite(parsed) ? parsed : 0);
+  }, 0);
+  const weightFillPercent =
+    itemCount > 0 ? Math.round((filledWeightCount / itemCount) * 100) : 0;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -239,26 +246,89 @@ export default function NewLoadPage() {
             )}
           >
             <SectionLabel>Peso de Cada Item</SectionLabel>
-            {itemWeights.map((weight, index) => (
-              <div key={index} className="flex flex-col gap-1.5">
-                <input
-                  type="number"
-                  step="any"
-                  aria-label={`Peso do item ${index + 1}`}
-                  value={weight}
-                  onChange={(e) =>
-                    handleItemWeightChange(index, e.target.value)
-                  }
-                  required
-                  className={itemWeightInputClassName}
-                />
-                {itemWeightErrors[index] && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {itemWeightErrors[index]}
-                  </p>
-                )}
+
+            <div
+              data-testid="pesos-nf-chip"
+              className="flex w-fit items-center gap-2 rounded-pill border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground md:hidden"
+            >
+              <span className="font-mono font-medium">{notaFiscal}</span>
+              <span className="text-muted-foreground">•</span>
+              <span>{material}</span>
+            </div>
+
+            <div
+              data-testid="pesos-weights-grid"
+              className="grid grid-cols-2 gap-3 md:grid-cols-4"
+            >
+              {itemWeights.map((weight, index) => (
+                <div
+                  key={index}
+                  data-testid={`pesos-item-${index}`}
+                  className="flex flex-col gap-1.5"
+                >
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Item {index + 1}
+                  </span>
+                  <Input
+                    type="number"
+                    step="any"
+                    mono
+                    unit="kg"
+                    aria-label={`Peso do item ${index + 1}`}
+                    value={weight}
+                    onChange={(e) =>
+                      handleItemWeightChange(index, e.target.value)
+                    }
+                    required
+                  />
+                  {itemWeightErrors[index] && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {itemWeightErrors[index]}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Card className="flex flex-col gap-3 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Peso Restante
+                  </span>
+                  <span
+                    data-testid="pesos-remaining-weight"
+                    className="font-mono text-lg font-semibold text-foreground"
+                  >
+                    {remainingWeight} kg
+                  </span>
+                </div>
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Peso da NF
+                  </span>
+                  <span
+                    data-testid="pesos-nf-weight"
+                    className="font-mono text-lg font-semibold text-muted-foreground"
+                  >
+                    {nfWeight || 0} kg
+                  </span>
+                </div>
               </div>
-            ))}
+              <div
+                role="progressbar"
+                aria-label="Progresso do preenchimento dos pesos"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={weightFillPercent}
+                className="h-2 w-full overflow-hidden rounded-pill bg-muted"
+              >
+                <div
+                  className="h-full rounded-pill bg-primary transition-all"
+                  style={{ width: `${weightFillPercent}%` }}
+                />
+              </div>
+            </Card>
 
             {formError && (
               <p role="alert" className="text-sm text-destructive">
@@ -268,10 +338,10 @@ export default function NewLoadPage() {
 
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !allWeightsEntered}
               className="hidden self-start md:inline-flex"
             >
-              Criar Carga
+              Criar carga e gerar {itemCount} QR Codes
             </Button>
             <Button
               type="button"
@@ -297,8 +367,12 @@ export default function NewLoadPage() {
         )}
         {step === "pesos" && (
           <div className="fixed inset-x-0 bottom-16 border-t border-border bg-card p-4 md:hidden">
-            <Button type="submit" disabled={isPending} className="w-full">
-              Criar Carga
+            <Button
+              type="submit"
+              disabled={isPending || !allWeightsEntered}
+              className="w-full"
+            >
+              Criar carga e gerar {itemCount} QR Codes
             </Button>
           </div>
         )}
