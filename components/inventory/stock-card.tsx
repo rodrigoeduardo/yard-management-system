@@ -5,22 +5,22 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { StockRow } from "./stock-table";
 
-function Field({
+function MetricField({
   label,
   value,
-  finished,
+  highlight,
 }: {
   label: string;
   value: string | number;
-  finished: boolean;
+  highlight: boolean;
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="text-[10.5px] text-muted-foreground">{label}</dt>
       <dd
         className={cn(
-          "font-mono text-sm",
-          finished && "text-success-foreground",
+          "font-mono text-[13.5px] font-semibold text-foreground",
+          highlight && "font-bold text-success-foreground",
         )}
       >
         {value}
@@ -52,34 +52,46 @@ export function StockCard({
           : undefined
       }
       className={cn(
-        "flex flex-col gap-3 p-4",
+        "flex flex-col gap-[11px] px-4 py-3.5",
         onClick && "cursor-pointer",
-        row.finished && "bg-success/15",
+        row.finished && "border-success bg-success/15",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-medium text-foreground">{row.notaFiscal}</span>
-        {row.finished && <Badge variant="success">Finalizada</Badge>}
+      <div className="flex items-center gap-[10px]">
+        <span className="font-mono text-[15px] font-bold text-foreground">
+          NF {row.notaFiscal}
+        </span>
+        {row.finished ? (
+          <Badge variant="success">Finalizada</Badge>
+        ) : (
+          <span className="rounded-md bg-accent px-2 py-[3px] text-[11.5px] font-semibold text-accent-foreground">
+            {row.material}
+          </span>
+        )}
+        <span className="ml-auto text-[12px] text-muted-foreground">
+          {row.entryDate}
+        </span>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3">
-        <Field label="Data de Entrada" value={row.entryDate} finished={false} />
-        <div className="flex flex-col gap-0.5">
-          <dt className="text-xs text-muted-foreground">Material</dt>
-          <dd className="text-sm">{row.material}</dd>
-        </div>
-        <Field label="Peso da NF" value={row.nfWeight} finished={row.finished} />
-        <Field
+      <dl className="grid grid-cols-3 gap-2">
+        <MetricField label="Peso da NF" value={row.nfWeight} highlight={false} />
+        <MetricField
           label="Qtd. de Itens"
           value={row.itemCount}
-          finished={row.finished}
+          highlight={row.finished}
         />
-        <Field
+        <MetricField
           label="Peso Restante"
           value={row.remainingWeight}
-          finished={row.finished}
+          highlight={row.finished}
         />
       </dl>
+
+      {row.finished && (
+        <span className="text-[11px] text-success-foreground">
+          Material: {row.material} · estoque desta carga finalizado
+        </span>
+      )}
     </Card>
   );
 }
