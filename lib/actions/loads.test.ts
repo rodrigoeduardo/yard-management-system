@@ -22,6 +22,7 @@ describe("createLoad", () => {
     const result = await createLoad({
       notaFiscal,
       entryDate: "2026-01-01",
+      entryTime: "09:30",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 20, 30],
@@ -35,12 +36,71 @@ describe("createLoad", () => {
     expect(result.load.remainingWeight).toBe("60");
   });
 
+  it("persists the chosen hour and minute instead of forcing midnight", async () => {
+    const notaFiscal = `NF-TIME-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      entryDate: "2026-01-01",
+      entryTime: "14:35",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error("expected success");
+    createdLoadIds.push(result.load.id);
+
+    expect(result.load.entryDate.getHours()).toBe(14);
+    expect(result.load.entryDate.getMinutes()).toBe(35);
+  });
+
+  it("rejects a missing entry time without touching the database", async () => {
+    const notaFiscal = `NF-NOTIME-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      entryDate: "2026-01-01",
+      entryTime: "",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.fieldErrors.entryTime).toBeDefined();
+
+    const rows = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.notaFiscal, notaFiscal));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("rejects a calendar date that does not exist, even with a valid time", async () => {
+    const result = await createLoad({
+      notaFiscal: `NF-BADDATE-${randomUUID()}`,
+      entryDate: "2026-02-30",
+      entryTime: "10:00",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.fieldErrors.entryDate).toBeDefined();
+  });
+
   it("rejects an item count above the sane maximum without touching the database", async () => {
     const notaFiscal = `NF-TOOMANY-${randomUUID()}`;
 
     const result = await createLoad({
       notaFiscal,
       entryDate: "2026-01-01",
+      entryTime: "09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: Array.from({ length: 21 }, () => 10),
@@ -59,6 +119,7 @@ describe("createLoad", () => {
     const result = await createLoad({
       notaFiscal: `NF-BADWEIGHT-${randomUUID()}`,
       entryDate: "2026-01-01",
+      entryTime: "09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],
@@ -71,6 +132,7 @@ describe("createLoad", () => {
     const result = await createLoad({
       notaFiscal: `NF-INDEXED-${randomUUID()}`,
       entryDate: "2026-01-01",
+      entryTime: "09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0, 30],
@@ -87,6 +149,7 @@ describe("createLoad", () => {
     const result = await createLoad({
       notaFiscal: "",
       entryDate: "2026-01-01",
+      entryTime: "09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],
