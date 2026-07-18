@@ -17,6 +17,8 @@ function Input({ className, mono, unit, ...props }: InputProps) {
         "h-11 w-full rounded-input border border-input bg-card px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
         mono && "font-mono",
         unit && "pr-10",
+        props.type === "number" &&
+          "[appearance:textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none",
         className,
       )}
       {...props}
