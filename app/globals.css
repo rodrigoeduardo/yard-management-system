@@ -138,3 +138,18 @@
     @apply font-sans;
   }
 }
+
+/* Scanner viewport scan-line sweep (issue #76). */
+@keyframes scan-line {
+  0%,
+  100% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+}
+
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+}
