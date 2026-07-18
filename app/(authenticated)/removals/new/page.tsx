@@ -248,6 +248,7 @@ export default function NewRemovalPage() {
                 id="driver"
                 value={driver}
                 onChange={(e) => setDriver(e.target.value)}
+                placeholder="Nome do motorista"
                 required
               />
               {fieldErrors.driver && (
