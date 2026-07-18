@@ -1,22 +1,54 @@
-import Link from "next/link";
-import { HOME_ENTRY_POINTS } from "@/lib/home/entry-points";
+import { cookies } from "next/headers";
 
-export default function Home() {
+import { ActionCards } from "@/components/home/action-cards";
+import { DashboardStats } from "@/components/home/dashboard-stats";
+import { GreetingHeader } from "@/components/home/greeting-header";
+import { LastRemovalCard } from "@/components/home/last-removal-card";
+import { getUserDisplayName } from "@/lib/auth/user-display-name";
+import { getDashboardStats, getLastRemoval } from "@/lib/db/dashboard";
+import { getGreeting } from "@/lib/home/greeting";
+import { createSupabaseSsrServerClient } from "@/lib/supabase/ssr-server";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const cookieStore = await cookies();
+  const supabase = createSupabaseSsrServerClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [stats, lastRemoval] = await Promise.all([
+    getDashboardStats(),
+    getLastRemoval(),
+  ]);
+
+  const greeting = getGreeting(new Date());
+  const displayName = getUserDisplayName(user?.email);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
-      <h1 className="text-2xl font-semibold">Controle de Estoque de Pátio</h1>
-      <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
-        {HOME_ENTRY_POINTS.map((entryPoint) => (
-          <Link
-            key={entryPoint.href}
-            href={entryPoint.href}
-            className="flex flex-col gap-2 rounded-lg border border-border p-6 text-center transition-colors hover:bg-accent"
-          >
-            <span className="font-semibold">{entryPoint.label}</span>
-            <span className="text-sm text-muted-foreground">{entryPoint.description}</span>
-          </Link>
-        ))}
-      </div>
+    <main className="flex flex-col gap-6 px-4 py-6 pb-24 md:mx-auto md:w-full md:max-w-5xl md:gap-8 md:px-8 md:py-10 md:pb-10">
+      <GreetingHeader greeting={greeting} displayName={displayName} />
+
+      <DashboardStats
+        activeLoads={stats.activeLoads}
+        itemsInStock={stats.itemsInStock}
+        remainingWeight={stats.remainingWeight}
+      />
+
+      <ActionCards />
+
+      <LastRemovalCard
+        removal={
+          lastRemoval && {
+            driver: lastRemoval.driver,
+            exitDate: lastRemoval.exitDate.toLocaleDateString("pt-BR"),
+            itemCount: lastRemoval.itemCount,
+            totalRemovedWeight: lastRemoval.totalRemovedWeight,
+            notasFiscais: lastRemoval.notasFiscais,
+          }
+        }
+      />
     </main>
   );
 }
