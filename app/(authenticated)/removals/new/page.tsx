@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
-import { X } from "lucide-react";
+import { Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
@@ -30,6 +30,10 @@ import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payloa
 
 function itemsLabel(count: number): string {
   return count === 1 ? "item" : "itens";
+}
+
+function notasFiscaisLabel(count: number): string {
+  return count === 1 ? "nota fiscal" : "notas fiscais";
 }
 
 export default function NewRemovalPage() {
@@ -111,6 +115,11 @@ export default function NewRemovalPage() {
     setScannedItems(list);
   }
 
+  function handleClearList() {
+    scannedItemsRef.current = [];
+    setScannedItems([]);
+  }
+
   function handleConfirm() {
     setFieldErrors({});
     setFormError(undefined);
@@ -165,7 +174,7 @@ export default function NewRemovalPage() {
       : "0";
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-6 pb-44 md:mx-auto md:w-full md:max-w-4xl md:px-8 md:pb-28">
+    <div className="flex flex-col gap-6 px-4 py-6 pb-44 md:mx-auto md:w-full md:max-w-6xl md:px-8 md:pb-10">
       <Breadcrumbs
         items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
       />
@@ -211,92 +220,113 @@ export default function NewRemovalPage() {
       )}
 
       {!receipt && (
-        <div className="flex flex-col gap-6">
-          <Card className="flex flex-col gap-5 p-5">
-            <SectionLabel>Dados da Remoção</SectionLabel>
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-[420px_1fr] md:items-start md:gap-5">
+          {/* Left column: fixed removal data + scanner + toggle */}
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+              <SectionLabel className="hidden font-bold text-foreground/80 md:block">
+                Dados da Remoção
+              </SectionLabel>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="exitDate"
-                className="text-sm font-medium text-foreground"
-              >
-                Data de Saída
-              </label>
-              <Input
-                id="exitDate"
-                type="date"
-                mono
-                value={exitDate}
-                onChange={(e) => setExitDate(e.target.value)}
-                required
-              />
-              {fieldErrors.exitDate && (
-                <p role="alert" className="text-sm text-destructive">
-                  {fieldErrors.exitDate}
-                </p>
-              )}
-            </div>
+              <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="exitDate"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Data de Saída
+                  </label>
+                  <Input
+                    id="exitDate"
+                    type="date"
+                    mono
+                    value={exitDate}
+                    onChange={(e) => setExitDate(e.target.value)}
+                    required
+                  />
+                  {fieldErrors.exitDate && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {fieldErrors.exitDate}
+                    </p>
+                  )}
+                </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="driver"
-                className="text-sm font-medium text-foreground"
-              >
-                Motorista
-              </label>
-              <Input
-                id="driver"
-                value={driver}
-                onChange={(e) => setDriver(e.target.value)}
-                placeholder="Nome do motorista"
-                required
-              />
-              {fieldErrors.driver && (
-                <p role="alert" className="text-sm text-destructive">
-                  {fieldErrors.driver}
-                </p>
-              )}
-            </div>
-          </Card>
-
-          <Card className="flex flex-col gap-4 p-5">
-            <SectionLabel>Escanear Itens</SectionLabel>
-
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-input bg-foreground">
-              <video
-                ref={videoRef}
-                className="h-full w-full object-cover"
-                muted
-              />
-              <div className="pointer-events-none absolute inset-4">
-                <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-2 border-l-2 border-primary-foreground/80" />
-                <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-2 border-r-2 border-primary-foreground/80" />
-                <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-2 border-l-2 border-primary-foreground/80" />
-                <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-2 border-b-2 border-primary-foreground/80" />
-                {isScanning && (
-                  <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary-foreground/80" />
-                )}
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="driver"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Motorista
+                  </label>
+                  <Input
+                    id="driver"
+                    value={driver}
+                    onChange={(e) => setDriver(e.target.value)}
+                    placeholder="Nome do motorista"
+                    required
+                  />
+                  {fieldErrors.driver && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {fieldErrors.driver}
+                    </p>
+                  )}
+                </div>
               </div>
+
+              <span className="hidden text-xs text-muted-foreground md:block">
+                Fixos para todos os itens removidos nesta ação.
+              </span>
             </div>
 
-            <Button
-              type="button"
-              onClick={isScanning ? stopScanning : startScanning}
-            >
-              {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
-            </Button>
+            <div className="flex flex-col gap-3">
+              <div className="relative h-[210px] w-full overflow-hidden rounded-[18px] bg-foreground md:h-[280px]">
+                <video
+                  ref={videoRef}
+                  className="h-full w-full object-cover"
+                  muted
+                />
+                <div className="pointer-events-none absolute inset-4 md:inset-5">
+                  <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
+                  <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90 md:size-7" />
+                  <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
+                  <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90 md:size-7" />
+                  {isScanning && (
+                    <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
+                  )}
+                  <span className="absolute right-0 bottom-1 left-0 text-center text-xs text-primary-foreground/65 md:text-[12.5px]">
+                    Aponte a câmera para o QR Code do item
+                  </span>
+                </div>
+              </div>
 
-            {scanError && (
-              <p role="alert" className="text-sm text-destructive">
-                {scanError}
-              </p>
-            )}
-          </Card>
+              <button
+                type="button"
+                onClick={isScanning ? stopScanning : startScanning}
+                className="flex h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+              >
+                <Scan className="size-4" />
+                {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+              </button>
 
-          <div className="flex flex-col gap-3">
-            <SectionLabel>
-              Itens Escaneados ({scannedItems.length})
-            </SectionLabel>
+              {scanError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {scanError}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Right column: scanned items list */}
+          <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+            <div className="flex items-baseline justify-between">
+              <SectionLabel className="font-bold text-foreground/80">
+                ITENS LIDOS ({scannedItems.length})
+              </SectionLabel>
+              <span className="text-xs text-muted-foreground">
+                {scannedItemsByNotaFiscal.length}{" "}
+                {notasFiscaisLabel(scannedItemsByNotaFiscal.length)}
+              </span>
+            </div>
 
             {scannedItems.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -306,8 +336,8 @@ export default function NewRemovalPage() {
               <ul className="flex flex-col gap-2">
                 {scannedItems.map((item, index) => (
                   <li key={item.qrToken}>
-                    <Card className="flex items-center justify-between gap-3 p-3">
-                      <div className="flex min-w-0 flex-col gap-1">
+                    <Card className="flex items-center gap-3 rounded-[14px] px-3.5 py-3 md:bg-[oklch(0.985_0.002_250)]">
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">
                             Item {index + 1}
@@ -339,6 +369,10 @@ export default function NewRemovalPage() {
               </ul>
             )}
 
+            <div className="hidden items-center justify-center rounded-[13px] border-[1.5px] border-dashed border-border p-4 text-[12.5px] text-muted-foreground/80 md:flex">
+              Os próximos itens lidos aparecem aqui
+            </div>
+
             {fieldErrors.qrTokens && (
               <p role="alert" className="text-sm text-destructive">
                 {fieldErrors.qrTokens}
@@ -350,72 +384,110 @@ export default function NewRemovalPage() {
                 {formError}
               </p>
             )}
-          </div>
 
-          <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-card p-4 md:bottom-0">
-            <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 md:px-4">
-              <div className="flex flex-col">
-                <SectionLabel>Peso Total Removido</SectionLabel>
-                <span className="font-mono text-lg font-semibold text-foreground">
+            <div className="hidden items-center gap-5 border-t border-border pt-4 md:flex">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[11.5px] text-muted-foreground">
+                  Peso Total Removido
+                </span>
+                <span className="font-mono text-xl font-bold text-foreground">
                   {totalRemovedWeight} kg
                 </span>
               </div>
               <Button
                 type="button"
+                variant="outline"
+                onClick={handleClearList}
+                disabled={scannedItems.length === 0}
+                className="h-12 rounded-[13px] px-6"
+              >
+                Limpar lista
+              </Button>
+              <Button
+                type="button"
                 onClick={() => setIsReviewOpen(true)}
                 disabled={isPending || scannedItems.length === 0}
-                className="shrink-0"
+                className="h-12 rounded-[13px] px-6"
               >
                 Concluir Remoção ({scannedItems.length}{" "}
                 {itemsLabel(scannedItems.length)})
               </Button>
             </div>
           </div>
+
+          <div className="fixed inset-x-0 bottom-16 z-30 flex flex-col gap-3 bg-gradient-to-t from-background from-35% to-transparent p-5 pt-7 md:hidden">
+            <div className="flex items-baseline justify-between px-1">
+              <span className="text-[13px] font-semibold text-foreground/80">
+                Peso Total Removido
+              </span>
+              <span className="font-mono text-lg font-bold text-foreground">
+                {totalRemovedWeight} kg
+              </span>
+            </div>
+            <Button
+              type="button"
+              onClick={() => setIsReviewOpen(true)}
+              disabled={isPending || scannedItems.length === 0}
+              className="h-[52px] rounded-[14px] text-[15px]"
+            >
+              Concluir Remoção ({scannedItems.length}{" "}
+              {itemsLabel(scannedItems.length)})
+            </Button>
+          </div>
         </div>
       )}
 
       <Dialog.Root open={isReviewOpen} onOpenChange={setIsReviewOpen}>
         <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/50 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/45 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
           <Dialog.Popup
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-4 rounded-t-card border border-border bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-lg outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom md:top-1/2 md:bottom-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:pb-5 md:data-open:zoom-in-95 md:data-open:slide-in-from-bottom-0 md:data-closed:zoom-out-95"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-4 rounded-t-[24px] border border-border bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-lg outline-none data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom md:top-1/2 md:bottom-auto md:left-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:pb-5 md:data-open:zoom-in-95 md:data-open:slide-in-from-bottom-0 md:data-closed:zoom-out-95"
           >
-            <div className="mx-auto h-1 w-10 shrink-0 rounded-pill bg-border md:hidden" />
+            <div className="mx-auto h-[4.5px] w-10 shrink-0 rounded-pill bg-border md:hidden" />
 
             <Dialog.Title className="text-lg font-semibold text-foreground">
               Revisar Remoção
             </Dialog.Title>
 
             <div className="flex flex-col gap-4 overflow-y-auto text-sm">
-              <dl className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <dl className="grid grid-cols-2 gap-2.5">
+                <div className="flex flex-col gap-0.5 rounded-input bg-secondary px-3 py-2.5">
+                  <dt className="text-[11px] text-muted-foreground">
                     Data de Saída
                   </dt>
-                  <dd className="font-medium text-foreground">{exitDate}</dd>
+                  <dd className="font-mono text-[13.5px] font-semibold text-foreground">
+                    {exitDate}
+                  </dd>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="flex flex-col gap-0.5 rounded-input bg-secondary px-3 py-2.5">
+                  <dt className="text-[11px] text-muted-foreground">
                     Motorista
                   </dt>
-                  <dd className="font-medium text-foreground">{driver}</dd>
+                  <dd className="text-[13.5px] font-semibold text-foreground">
+                    {driver}
+                  </dd>
                 </div>
               </dl>
 
               <div className="flex flex-col gap-3">
-                {scannedItemsByNotaFiscal.map((group) => (
-                  <div key={group.notaFiscal} className="flex flex-col gap-2">
-                    <Badge>{group.notaFiscal}</Badge>
+                {scannedItemsByNotaFiscal.map((group, groupIndex) => (
+                  <div key={group.notaFiscal} className="flex flex-col gap-1.5">
+                    {groupIndex > 0 && (
+                      <div className="-mt-1.5 mb-1.5 h-px bg-border" />
+                    )}
+                    <span className="font-mono text-xs font-bold text-accent-foreground">
+                      {group.notaFiscal} · {group.items[0]?.material}
+                    </span>
                     <ul className="flex flex-col gap-1.5">
                       {group.items.map((item) => (
                         <li
                           key={item.qrToken}
-                          className="flex items-center justify-between gap-2 text-foreground"
+                          className="flex items-center justify-between gap-2 px-0.5 text-[13.5px] text-foreground"
                         >
                           <span className="truncate">
                             {item.identifier} — {item.material}
                           </span>
-                          <span className="shrink-0 font-mono text-muted-foreground">
+                          <span className="shrink-0 font-mono font-medium text-muted-foreground">
                             {item.weight} kg
                           </span>
                         </li>
@@ -425,23 +497,23 @@ export default function NewRemovalPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between rounded-input bg-accent p-3">
-                <SectionLabel className="text-accent-foreground/80">
+              <div className="flex items-center justify-between rounded-[14px] bg-accent px-4 py-3.5">
+                <span className="text-[13.5px] font-semibold text-accent-foreground">
                   Peso Total Removido
-                </SectionLabel>
-                <span className="font-mono text-lg font-semibold text-accent-foreground">
+                </span>
+                <span className="font-mono text-lg font-bold text-accent-foreground">
                   {totalRemovedWeight} kg
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+            <div className="flex gap-2.5">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsReviewOpen(false)}
                 disabled={isPending}
-                className="w-full md:w-auto"
+                className="h-[50px] flex-1 rounded-[14px]"
               >
                 Cancelar
               </Button>
@@ -449,7 +521,7 @@ export default function NewRemovalPage() {
                 type="button"
                 onClick={handleConfirm}
                 disabled={isPending}
-                className="w-full md:w-auto"
+                className="h-[50px] flex-1 rounded-[14px]"
               >
                 Confirmar
               </Button>
