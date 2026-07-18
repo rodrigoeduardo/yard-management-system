@@ -6,7 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export type StockRow = {
   id: string;
@@ -27,13 +28,45 @@ export type StockRow = {
   finished: boolean;
 };
 
+function numericCell(value: string | number, finished: boolean) {
+  return (
+    <span
+      className={cn("font-mono", finished && "text-success-foreground")}
+    >
+      {value}
+    </span>
+  );
+}
+
 const columns: ColumnDef<StockRow>[] = [
-  { accessorKey: "notaFiscal", header: "NF" },
+  {
+    accessorKey: "notaFiscal",
+    header: "NF",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{row.original.notaFiscal}</span>
+        {row.original.finished && <Badge variant="success">Finalizada</Badge>}
+      </div>
+    ),
+  },
   { accessorKey: "entryDate", header: "Data de Entrada" },
-  { accessorKey: "nfWeight", header: "Peso da Nota Fiscal" },
+  {
+    accessorKey: "nfWeight",
+    header: "Peso da Nota Fiscal",
+    cell: ({ row }) => numericCell(row.original.nfWeight, row.original.finished),
+  },
   { accessorKey: "material", header: "Material" },
-  { accessorKey: "itemCount", header: "Quantidade de Itens" },
-  { accessorKey: "remainingWeight", header: "Peso Restante" },
+  {
+    accessorKey: "itemCount",
+    header: "Quantidade de Itens",
+    cell: ({ row }) => numericCell(row.original.itemCount, row.original.finished),
+  },
+  {
+    accessorKey: "remainingWeight",
+    header: "Peso Restante",
+    cell: ({ row }) =>
+      numericCell(row.original.remainingWeight, row.original.finished),
+  },
 ];
 
 export function StockTable({
@@ -69,6 +102,7 @@ export function StockTable({
         {table.getRowModel().rows.map((row) => (
           <TableRow
             key={row.id}
+            data-finished={row.original.finished || undefined}
             role={onRowClick ? "button" : undefined}
             tabIndex={onRowClick ? 0 : undefined}
             onClick={onRowClick ? () => onRowClick(row.original) : undefined}
@@ -85,7 +119,7 @@ export function StockTable({
             className={cn(
               onRowClick && "cursor-pointer",
               row.original.finished &&
-                "bg-green-100 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/30",
+                "bg-success/15 hover:bg-success/15",
             )}
           >
             {row.getVisibleCells().map((cell) => (
