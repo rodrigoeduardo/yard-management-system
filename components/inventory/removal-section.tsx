@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RemovalCard } from "./removal-card";
 import { RemovalDetailModal } from "./removal-detail-modal";
 import { RemovalLogTable, type RemovalLogRow } from "./removal-log-table";
 
@@ -18,15 +19,21 @@ export function RemovalSection({ rows }: { rows: RemovalLogRow[] }) {
     );
   }
 
+  const handleRowClick = (row: RemovalLogRow) => {
+    setSelected(row);
+    setOpen(true);
+  };
+
   return (
     <>
-      <RemovalLogTable
-        rows={rows}
-        onRowClick={(row) => {
-          setSelected(row);
-          setOpen(true);
-        }}
-      />
+      <div className="flex flex-col gap-3 md:hidden">
+        {rows.map((row) => (
+          <RemovalCard key={row.id} row={row} onClick={handleRowClick} />
+        ))}
+      </div>
+      <div className="hidden md:block">
+        <RemovalLogTable rows={rows} onRowClick={handleRowClick} />
+      </div>
       <RemovalDetailModal
         removal={selected}
         open={open}

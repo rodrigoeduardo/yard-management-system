@@ -22,13 +22,27 @@ export type RemovalLogRow = {
   driver: string;
   totalRemovedWeight: string;
   notasFiscais: string;
+  itemCount: number;
 };
+
+function numericCell(value: string | number) {
+  return <span className="font-mono">{value}</span>;
+}
 
 const columns: ColumnDef<RemovalLogRow>[] = [
   { accessorKey: "exitDate", header: "Data de Saída" },
   { accessorKey: "driver", header: "Motorista" },
-  { accessorKey: "totalRemovedWeight", header: "Peso Total Removido" },
   { accessorKey: "notasFiscais", header: "Notas Fiscais" },
+  {
+    accessorKey: "itemCount",
+    header: "Itens",
+    cell: ({ row }) => numericCell(row.original.itemCount),
+  },
+  {
+    accessorKey: "totalRemovedWeight",
+    header: "Peso Total Removido",
+    cell: ({ row }) => numericCell(row.original.totalRemovedWeight),
+  },
 ];
 
 export function RemovalLogTable({

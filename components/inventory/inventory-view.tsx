@@ -16,9 +16,7 @@ type Segment = (typeof SEGMENTS)[number]["value"];
 
 /**
  * Segmented shell toggling between the current-stock view and the removal
- * history view. Estoque Atual is restyled here; the Remoções segment renders
- * the existing (not-yet-restyled) removal log so #79 can attach its restyle
- * without changing this shell.
+ * history view.
  */
 export function InventoryView({
   stockRows,

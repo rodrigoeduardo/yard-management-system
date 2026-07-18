@@ -21,6 +21,7 @@ const REMOVAL_ROW: RemovalLogRow = {
   driver: "João",
   totalRemovedWeight: "100,00 kg",
   notasFiscais: "NF-001",
+  itemCount: 3,
 };
 
 describe("InventoryView", () => {
@@ -40,7 +41,7 @@ describe("InventoryView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Remoções" }));
 
-    expect(screen.getByText("João")).toBeInTheDocument();
+    expect(screen.getAllByText("João").length).toBeGreaterThan(0);
   });
 
   it("renders a segmented control with both segments", () => {
