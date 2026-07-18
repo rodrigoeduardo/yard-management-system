@@ -39,7 +39,7 @@ const qrCodes: LoadItemQrCode[] = [
 ];
 
 describe("QrPrintView", () => {
-  it("shows the success banner hidden in print", () => {
+  it("shows the success banner hidden in print (mobile)", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
     const banner = screen.getByText("Carga registrada no estoque");
@@ -48,22 +48,42 @@ describe("QrPrintView", () => {
     );
   });
 
-  it("shows the NF/material context chip", () => {
+  it("shows the inline success chip hidden in print (desktop)", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
-    expect(screen.getByText("NF-123456")).toBeInTheDocument();
-    expect(screen.getAllByText("Aço").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Carga registrada")).toBeInTheDocument();
   });
 
-  it("shows the entry date and time (dd/mm/aaaa · HH:mm) in the context chip", () => {
+  it("shows the desktop title", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
     expect(
-      screen.getByText("Entrada 01/01/2026 · 09:30"),
+      screen.getByRole("heading", { name: "QR Codes da Carga" }),
     ).toBeInTheDocument();
   });
 
-  it("renders the print button with the item count in the label", () => {
+  it("shows the NF/material context on the mobile chip and the desktop context line", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    expect(screen.getAllByText("NF-123456").length).toBe(2);
+    expect(screen.getAllByText("Aço").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("shows the item count on the mobile chip", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    expect(screen.getByText("2 etiquetas")).toBeInTheDocument();
+  });
+
+  it("shows the entry date and item count in the desktop context line", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    expect(
+      screen.getByText("Entrada 01/01/2026 · 09:30 · 2 etiquetas"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the mobile print button with the item count in the label", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
     expect(
@@ -73,15 +93,22 @@ describe("QrPrintView", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders styled secondary navigation actions", () => {
+  it("renders the desktop print button without the item count in the label", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
     expect(
-      screen.getByRole("link", { name: "Voltar ao estoque" }),
-    ).toHaveAttribute("href", "/inventory");
-    expect(
-      screen.getByRole("link", { name: "Adicionar outra carga" }),
-    ).toHaveAttribute("href", "/loads/new");
+      screen.getByRole("button", { name: "Imprimir em 1 folha" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders a 'Voltar ao estoque' link in both the mobile stack and the desktop header row", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    const links = screen.getAllByRole("link", { name: "Voltar ao estoque" });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute("href", "/inventory");
+    }
   });
 
   it("renders one card per QR code with the real image, identifier, material and weight", () => {
@@ -90,7 +117,6 @@ describe("QrPrintView", () => {
     const img1 = screen.getByAltText("Item 1 - NF-123456");
     expect(img1).toHaveAttribute("src", "data:image/png;base64,item1");
     expect(screen.getByText("Item 1 - NF-123456")).toBeInTheDocument();
-    expect(screen.getAllByText("Aço").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("10.5 kg")).toBeInTheDocument();
 
     const img2 = screen.getByAltText("Item 2 - NF-123456");
