@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { SectionLabel } from "@/components/ui/section-label";
-import { formatEntryDateTime } from "@/lib/format/datetime";
+import { formatEntryDateTime, formatYardDate } from "@/lib/format/datetime";
 
 export type LastRemovalSummary = {
   driver: string;
@@ -33,7 +33,7 @@ function removalToRow(removal: LastRemovalSummary): Row {
     key: "removal",
     sortDate: removal.exitDate,
     title: `Remoção · ${removal.driver}`,
-    meta: `${removal.exitDate.toLocaleDateString("pt-BR")} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} kg`,
+    meta: `${formatYardDate(removal.exitDate)} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} kg`,
     nf: nf || undefined,
   };
 }

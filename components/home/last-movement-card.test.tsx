@@ -80,4 +80,25 @@ describe("LastMovementCard", () => {
     );
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("renders the removal date pinned to yard time, independent of host timezone", () => {
+    // 2026-07-17 23:30 in America/Sao_Paulo (UTC-03:00) is 2026-07-18
+    // 02:30Z. The removal row must show 17/07/2026 regardless of the host
+    // process's own default timezone (e.g. TZ=UTC in CI).
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-18T02:30:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    expect(rows[0]).toHaveTextContent("17/07/2026");
+  });
 });

@@ -39,3 +39,15 @@ export function formatEntryDateTime(date: Date): string {
   });
   return `${datePart} · ${timePart}`;
 }
+
+/**
+ * Formats a `Date` as `dd/mm/aaaa` (date only), pinned to `YARD_TIME_ZONE`.
+ * Used anywhere a yard timestamp is shown as a date without a time, so the
+ * calendar day matches what's shown elsewhere on the same screen (e.g.
+ * `formatEntryDateTime`) regardless of the host/runner timezone.
+ */
+export function formatYardDate(date: Date): string {
+  return date.toLocaleDateString("pt-BR", {
+    timeZone: YARD_TIME_ZONE,
+  });
+}
