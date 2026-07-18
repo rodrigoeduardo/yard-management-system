@@ -6,7 +6,6 @@ import { Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -342,7 +341,9 @@ export default function NewRemovalPage() {
                           <span className="text-sm font-medium text-foreground">
                             Item {index + 1}
                           </span>
-                          <Badge>{notaFiscalOf(item)}</Badge>
+                          <span className="rounded-[6px] bg-accent px-[7px] py-0.5 font-mono text-[11px] font-semibold text-accent-foreground">
+                            {notaFiscalOf(item)}
+                          </span>
                         </div>
                         <p className="truncate text-sm text-muted-foreground">
                           {item.material}
