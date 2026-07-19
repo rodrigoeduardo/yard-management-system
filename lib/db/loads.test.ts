@@ -344,4 +344,63 @@ describe("listStockPage", () => {
     },
     15000,
   );
+
+  it(
+    "shows finished loads by default and excludes them SQL-side when showFinished is false",
+    async () => {
+      const marker = randomUUID();
+      await seedLoad({
+        notaFiscal: `NF-FINISHED-${marker}-ACTIVE`,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "100",
+        material: "Aço",
+        itemCount: 1,
+        remainingWeight: "10",
+      });
+      await seedLoad({
+        notaFiscal: `NF-FINISHED-${marker}-DONE`,
+        entryDate: new Date("2026-01-02"),
+        nfWeight: "100",
+        material: "Aço",
+        itemCount: 0,
+        remainingWeight: "0",
+      });
+
+      const defaultResult = await listStockPage({
+        q: `NF-FINISHED-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+      });
+      expect(defaultResult.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FINISHED-${marker}-ACTIVE`,
+        `NF-FINISHED-${marker}-DONE`,
+      ]);
+
+      const shown = await listStockPage({
+        q: `NF-FINISHED-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        showFinished: true,
+      });
+      expect(shown.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FINISHED-${marker}-ACTIVE`,
+        `NF-FINISHED-${marker}-DONE`,
+      ]);
+
+      const hidden = await listStockPage({
+        q: `NF-FINISHED-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        showFinished: false,
+      });
+      expect(hidden.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FINISHED-${marker}-ACTIVE`,
+      ]);
+      expect(hidden.total).toBe(1);
+    },
+    15000,
+  );
 });

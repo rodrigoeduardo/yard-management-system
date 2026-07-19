@@ -79,6 +79,25 @@ describe("parseStockSearchParams", () => {
     expect(parsed.weightMax).toBeUndefined();
   });
 
+  it("defaults showFinished to undefined (shown) when stock_show_finished is absent", () => {
+    expect(parseStockSearchParams({}).showFinished).toBeUndefined();
+  });
+
+  it("reads stock_show_finished=0 as showFinished: false", () => {
+    expect(
+      parseStockSearchParams({ stock_show_finished: "0" }).showFinished,
+    ).toBe(false);
+  });
+
+  it("treats any other stock_show_finished value as the default (shown)", () => {
+    expect(
+      parseStockSearchParams({ stock_show_finished: "1" }).showFinished,
+    ).toBeUndefined();
+    expect(
+      parseStockSearchParams({ stock_show_finished: "bogus" }).showFinished,
+    ).toBeUndefined();
+  });
+
   it("reads stock_date_from and stock_date_to independently (either alone works)", () => {
     const from = parseStockSearchParams({ stock_date_from: "2026-01-01" });
     expect(from.dateFrom).toBe("2026-01-01");
@@ -151,6 +170,15 @@ describe("countActiveStockFilters / hasActiveStockFilters", () => {
       stock_weight_max: "500",
     });
     expect(countActiveStockFilters(query)).toBe(4);
+  });
+
+  it("counts showFinished only when set to the non-default (off) value", () => {
+    expect(countActiveStockFilters(parseStockSearchParams({}))).toBe(0);
+    expect(
+      countActiveStockFilters(
+        parseStockSearchParams({ stock_show_finished: "0" }),
+      ),
+    ).toBe(1);
   });
 });
 
@@ -250,6 +278,18 @@ describe("stockSearchHref", () => {
     expect(stockSearchHref(current, { page: 2 })).toBe(
       "?stock_page=2&stock_weight_min=10",
     );
+  });
+
+  it("sets stock_show_finished=0 and resets stock_page when showFinished is turned off", () => {
+    const current = new URLSearchParams("stock_page=3");
+    expect(stockSearchHref(current, { showFinished: false })).toBe(
+      "?stock_show_finished=0",
+    );
+  });
+
+  it("removes stock_show_finished when showFinished is turned back on (default)", () => {
+    const current = new URLSearchParams("stock_show_finished=0&stock_page=3");
+    expect(stockSearchHref(current, { showFinished: true })).toBe("");
   });
 });
 

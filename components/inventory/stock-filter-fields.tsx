@@ -10,6 +10,7 @@ export type StockFilterValues = {
   dateTo: string;
   weightMin: string;
   weightMax: string;
+  showFinished: boolean;
 };
 
 /**
@@ -32,10 +33,11 @@ export function StockFilterFields({
   const [dateTo, setDateTo] = useState(query.dateTo ?? "");
   const [weightMin, setWeightMin] = useState(query.weightMin ?? "");
   const [weightMax, setWeightMax] = useState(query.weightMax ?? "");
+  const [showFinished, setShowFinished] = useState(query.showFinished ?? true);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onApply({ dateFrom, dateTo, weightMin, weightMax });
+    onApply({ dateFrom, dateTo, weightMin, weightMax, showFinished });
   }
 
   function handleClear() {
@@ -43,6 +45,7 @@ export function StockFilterFields({
     setDateTo("");
     setWeightMin("");
     setWeightMax("");
+    setShowFinished(true);
     onClear();
   }
 
@@ -95,6 +98,22 @@ export function StockFilterFields({
           />
         </div>
       </fieldset>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="stock-show-finished"
+          checked={showFinished}
+          onChange={(event) => setShowFinished(event.target.checked)}
+          className="h-4 w-4 rounded border-input"
+        />
+        <label
+          htmlFor="stock-show-finished"
+          className="text-sm font-medium text-foreground"
+        >
+          Mostrar cargas finalizadas
+        </label>
+      </div>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" onClick={handleClear}>

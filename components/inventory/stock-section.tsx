@@ -58,6 +58,7 @@ export function StockSection({
               dateTo: "",
               weightMin: "",
               weightMax: "",
+              showFinished: true,
             })
           }
         />

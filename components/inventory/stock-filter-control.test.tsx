@@ -42,6 +42,18 @@ describe("StockFilterControl", () => {
     expect(screen.getAllByRole("button", { name: "Filtros (2)" })).toHaveLength(2);
   });
 
+  it("counts showFinished: false toward the active filter badge", () => {
+    render(
+      <StockFilterControl
+        query={{ ...DEFAULT_QUERY, showFinished: false }}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Filtros (1)" })).toHaveLength(2);
+  });
+
   it("opens a dialog with filter fields when the mobile trigger is clicked", () => {
     render(
       <StockFilterControl query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
@@ -72,6 +84,7 @@ describe("StockFilterControl", () => {
       dateTo: "",
       weightMin: "",
       weightMax: "",
+      showFinished: true,
     });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

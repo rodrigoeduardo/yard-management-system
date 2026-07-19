@@ -76,6 +76,8 @@ export type StockPageParams = {
   /** Remaining weight range filter, kg, either bound optional. */
   weightMin?: string;
   weightMax?: string;
+  /** Omitted or `true` shows finished loads (default); `false` excludes them. */
+  showFinished?: boolean;
 };
 
 export type StockPageResult = {
@@ -98,6 +100,7 @@ export async function listStockPage({
   dateTo,
   weightMin,
   weightMax,
+  showFinished,
 }: StockPageParams): Promise<StockPageResult> {
   const trimmed = q.trim();
   const searchCondition = trimmed
@@ -112,6 +115,7 @@ export async function listStockPage({
     dateTo,
     weightMin,
     weightMax,
+    showFinished,
   });
 
   const conditions = [searchCondition, ...filterConditions].filter(
