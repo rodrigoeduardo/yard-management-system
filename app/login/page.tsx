@@ -19,7 +19,7 @@ export default async function LoginPage({
   const errorMessage = error ? ERROR_MESSAGES[error] : undefined;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
       <BrandLogo />
       <h1 className="text-2xl font-semibold">Entrar</h1>
       <form action={login} className="flex w-full max-w-sm flex-col gap-4">
