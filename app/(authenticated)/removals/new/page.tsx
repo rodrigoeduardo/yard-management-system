@@ -230,7 +230,7 @@ export default function NewRemovalPage() {
               </SectionLabel>
 
               <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                <div className="flex flex-col gap-1.5">
+                <div className="flex min-w-0 flex-col gap-1.5">
                   <label
                     htmlFor="exitDate"
                     className="text-sm font-medium text-foreground"
@@ -252,7 +252,7 @@ export default function NewRemovalPage() {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex min-w-0 flex-col gap-1.5">
                   <label
                     htmlFor="exitTime"
                     className="text-sm font-medium text-foreground"

@@ -348,6 +348,20 @@ describe("NewRemovalPage exit date/time defaults", () => {
 
     vi.useRealTimers();
   });
+
+  it("lets the date/time grid cells shrink below their content's intrinsic width", () => {
+    render(<NewRemovalPage />);
+
+    const dateCell = screen
+      .getByLabelText("Data de Saída")
+      .closest("div.flex.flex-col");
+    const timeCell = screen
+      .getByLabelText("Hora de Saída")
+      .closest("div.flex.flex-col");
+
+    expect(dateCell?.className).toMatch(/\bmin-w-0\b/);
+    expect(timeCell?.className).toMatch(/\bmin-w-0\b/);
+  });
 });
 
 describe("NewRemovalPage form placeholders", () => {
