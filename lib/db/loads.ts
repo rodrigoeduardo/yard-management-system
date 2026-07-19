@@ -1,4 +1,4 @@
-import { asc, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
 import {
   STOCK_PAGE_SIZE,
   type StockOrderKey,
@@ -7,6 +7,7 @@ import {
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { items, loads } from "./schema";
+import { buildStockFilterConditions } from "./stock-filters";
 
 export type CreateLoadData = {
   notaFiscal: string;
@@ -69,6 +70,12 @@ export type StockPageParams = {
   /** 1-indexed page number. */
   page: number;
   pageSize?: number;
+  /** Entry date range filter, `YYYY-MM-DD`, either bound optional. */
+  dateFrom?: string;
+  dateTo?: string;
+  /** Remaining weight range filter, kg, either bound optional. */
+  weightMin?: string;
+  weightMax?: string;
 };
 
 export type StockPageResult = {
@@ -77,8 +84,8 @@ export type StockPageResult = {
 };
 
 /**
- * Server-side search, ordering and pagination for the Estoque stock
- * section. All filtering, ordering and slicing happens in SQL — never
+ * Server-side search, filtering, ordering and pagination for the Estoque
+ * stock section. All filtering, ordering and slicing happens in SQL — never
  * fetches the full table and slices client-side.
  */
 export async function listStockPage({
@@ -87,14 +94,31 @@ export async function listStockPage({
   dir,
   page,
   pageSize = STOCK_PAGE_SIZE,
+  dateFrom,
+  dateTo,
+  weightMin,
+  weightMax,
 }: StockPageParams): Promise<StockPageResult> {
   const trimmed = q.trim();
-  const whereClause: SQL | undefined = trimmed
+  const searchCondition = trimmed
     ? or(
         ilike(loads.notaFiscal, `%${trimmed}%`),
         ilike(loads.material, `%${trimmed}%`),
       )
     : undefined;
+
+  const filterConditions = buildStockFilterConditions({
+    dateFrom,
+    dateTo,
+    weightMin,
+    weightMax,
+  });
+
+  const conditions = [searchCondition, ...filterConditions].filter(
+    (c): c is SQL => c !== undefined,
+  );
+  const whereClause: SQL | undefined =
+    conditions.length > 0 ? and(...conditions) : undefined;
 
   const column = STOCK_ORDER_COLUMNS[order];
   const direction = dir === "asc" ? asc : desc;
