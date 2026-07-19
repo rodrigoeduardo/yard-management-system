@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormLoaderReporter } from "@/components/ui/top-loader";
@@ -91,6 +92,12 @@ export default async function RegisterPage({
         )}
         <Button type="submit">Criar conta</Button>
       </form>
+      <p className="text-sm text-muted-foreground">
+        Já possui uma conta?{" "}
+        <Link href="/login" className="underline">
+          Faça login.
+        </Link>
+      </p>
     </main>
   );
 }
