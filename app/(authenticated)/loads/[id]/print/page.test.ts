@@ -5,12 +5,12 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(path.join(__dirname, "page.tsx"), "utf-8");
 
 describe("QR print page shell (issue #95)", () => {
-  it("hides the breadcrumbs trail in print", () => {
-    const breadcrumbsWrapperMatch = source.match(
-      /<div className="([^"]*)">\s*<Breadcrumbs/,
+  it("hides the back-header in print", () => {
+    const backHeaderWrapperMatch = source.match(
+      /<div className="([^"]*)">\s*<PageBackHeader/,
     );
-    expect(breadcrumbsWrapperMatch).not.toBeNull();
-    expect(breadcrumbsWrapperMatch![1]).toMatch(/\bprint:hidden\b/);
+    expect(backHeaderWrapperMatch).not.toBeNull();
+    expect(backHeaderWrapperMatch![1]).toMatch(/\bprint:hidden\b/);
   });
 
   it("does not force a full-viewport min-height that could add a trailing blank page in print", () => {
