@@ -21,10 +21,14 @@ export function StockSearchInput({
   const [draft, setDraft] = useState(value);
 
   // Stay in sync when the URL changes from elsewhere (back/forward nav).
-  useEffect(() => {
+  // Adjusting state during render (rather than in an effect) avoids the
+  // extra cascading render that a `useEffect(() => setDraft(value), [value])`
+  // would cause.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setDraft(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }
 
   useEffect(() => {
     if (draft === value) {
