@@ -23,12 +23,14 @@ describe("mapCreateLoadFieldErrors", () => {
 
   it("maps every known field independently", () => {
     const messages = mapCreateLoadFieldErrors({
-      entryDate: ["invalid"],
+      entryDateTime: ["invalid"],
       nfWeight: ["invalid"],
       material: ["required"],
     });
 
-    expect(messages.entryDate).toBe("Informe uma data de entrada válida.");
+    expect(messages.entryDateTime).toBe(
+      "Informe uma data e hora de entrada válidas.",
+    );
     expect(messages.nfWeight).toBe("Informe o peso da nota fiscal.");
     expect(messages.material).toBe("Informe o material.");
   });

@@ -51,8 +51,7 @@ describe("removeItems", () => {
       loadIds.push(load.load.id);
 
       const result = await removeItems({
-        exitDate: "2026-02-01",
-        exitTime: "14:35",
+        exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
         qrTokens: [load.items[0].qrToken],
       });
@@ -68,8 +67,7 @@ describe("removeItems", () => {
 
   it("rejects an empty qrTokens array without touching the database", async () => {
     const result = await removeItems({
-      exitDate: "2026-02-01",
-      exitTime: "14:35",
+      exitDateTime: "2026-02-01T14:35",
       driver: "John Doe",
       qrTokens: [],
     });
@@ -79,8 +77,7 @@ describe("removeItems", () => {
 
   it("rejects a missing driver", async () => {
     const result = await removeItems({
-      exitDate: "2026-02-01",
-      exitTime: "14:35",
+      exitDateTime: "2026-02-01T14:35",
       driver: "",
       qrTokens: [randomUUID()],
     });
@@ -90,8 +87,7 @@ describe("removeItems", () => {
 
   it("rejects an invalid exit date/time combination without touching the database", async () => {
     const result = await removeItems({
-      exitDate: "2026-02-30",
-      exitTime: "14:35",
+      exitDateTime: "2026-02-30T14:35",
       driver: "John Doe",
       qrTokens: [randomUUID()],
     });
@@ -106,8 +102,7 @@ describe("removeItems", () => {
       loadIds.push(load.load.id);
 
       const result = await removeItems({
-        exitDate: "2026-02-01",
-        exitTime: "14:35",
+        exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
         qrTokens: [load.items[0].qrToken],
       });
