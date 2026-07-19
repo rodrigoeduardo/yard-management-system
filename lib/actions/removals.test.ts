@@ -52,6 +52,7 @@ describe("removeItems", () => {
 
       const result = await removeItems({
         exitDate: "2026-02-01",
+        exitTime: "14:35",
         driver: "John Doe",
         qrTokens: [load.items[0].qrToken],
       });
@@ -68,6 +69,7 @@ describe("removeItems", () => {
   it("rejects an empty qrTokens array without touching the database", async () => {
     const result = await removeItems({
       exitDate: "2026-02-01",
+      exitTime: "14:35",
       driver: "John Doe",
       qrTokens: [],
     });
@@ -78,10 +80,45 @@ describe("removeItems", () => {
   it("rejects a missing driver", async () => {
     const result = await removeItems({
       exitDate: "2026-02-01",
+      exitTime: "14:35",
       driver: "",
       qrTokens: [randomUUID()],
     });
 
     expect(result.success).toBe(false);
   });
+
+  it("rejects an invalid exit date/time combination without touching the database", async () => {
+    const result = await removeItems({
+      exitDate: "2026-02-30",
+      exitTime: "14:35",
+      driver: "John Doe",
+      qrTokens: [randomUUID()],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it(
+    "persists the exit date and time as a single combined instant",
+    async () => {
+      const load = await insertLoadWithItems(["10"]);
+      loadIds.push(load.load.id);
+
+      const result = await removeItems({
+        exitDate: "2026-02-01",
+        exitTime: "14:35",
+        driver: "John Doe",
+        qrTokens: [load.items[0].qrToken],
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) throw new Error("expected success");
+      removalIds.push(result.removal.id);
+
+      expect(result.removal.exitDate.getUTCHours()).toBe(17);
+      expect(result.removal.exitDate.getUTCMinutes()).toBe(35);
+    },
+    15000,
+  );
 });

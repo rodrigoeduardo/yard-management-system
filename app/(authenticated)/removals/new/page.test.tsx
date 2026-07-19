@@ -162,6 +162,9 @@ describe("NewRemovalPage review dialog", () => {
     fireEvent.change(screen.getByLabelText("Data de Saída"), {
       target: { value: "2026-07-18" },
     });
+    fireEvent.change(screen.getByLabelText("Hora de Saída"), {
+      target: { value: "14:35" },
+    });
     fireEvent.change(screen.getByLabelText("Motorista"), {
       target: { value: "João Silva" },
     });
@@ -203,7 +206,9 @@ describe("NewRemovalPage review dialog", () => {
   it("shows the exit date, driver, and items grouped by Nota Fiscal with a highlighted total", async () => {
     const dialog = await openReviewDialogWithTwoNotasFiscais();
 
-    expect(within(dialog).getByText("2026-07-18")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("18/07/2026 · 14:35"),
+    ).toBeInTheDocument();
     expect(within(dialog).getByText("João Silva")).toBeInTheDocument();
 
     const nf100Group = within(dialog)
@@ -243,6 +248,7 @@ describe("NewRemovalPage review dialog", () => {
 
     await waitFor(() => expect(removeItems).toHaveBeenCalledWith({
       exitDate: "2026-07-18",
+      exitTime: "14:35",
       driver: "João Silva",
       qrTokens: [
         "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
@@ -254,6 +260,21 @@ describe("NewRemovalPage review dialog", () => {
       await screen.findByText("Remoção Concluída"),
     ).toBeInTheDocument();
     expect(screen.queryByText("Revisar Remoção")).not.toBeInTheDocument();
+  });
+});
+
+describe("NewRemovalPage exit date/time defaults", () => {
+  it("defaults Data de Saída and Hora de Saída to now on mount", () => {
+    const now = new Date(2026, 6, 17, 14, 5);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+
+    render(<NewRemovalPage />);
+
+    expect(screen.getByLabelText("Data de Saída")).toHaveValue("2026-07-17");
+    expect(screen.getByLabelText("Hora de Saída")).toHaveValue("14:05");
+
+    vi.useRealTimers();
   });
 });
 
