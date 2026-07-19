@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import type { StockQueryState } from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
 import { RemovalSection } from "./removal-section";
 import type { RemovalLogRow } from "./removal-log-table";
@@ -23,9 +24,13 @@ type Segment = (typeof SEGMENTS)[number]["value"];
  */
 export function InventoryView({
   stockRows,
+  stockTotal,
+  stockQuery,
   removalRows,
 }: {
   stockRows: StockRow[];
+  stockTotal: number;
+  stockQuery: StockQueryState;
   removalRows: RemovalLogRow[];
 }) {
   const [segment, setSegment] = useState<Segment>("current");
@@ -49,10 +54,10 @@ export function InventoryView({
         <div className="hidden items-baseline gap-3 md:flex">
           <h2 className="text-xl font-bold text-foreground">Estoque Atual</h2>
           <span className="text-xs text-muted-foreground">
-            ordenado por última modificação · somente visualização
+            somente visualização
           </span>
         </div>
-        <StockSection rows={stockRows} />
+        <StockSection rows={stockRows} total={stockTotal} query={stockQuery} />
       </div>
 
       <div

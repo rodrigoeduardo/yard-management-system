@@ -1,0 +1,49 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { StockSearchInput } from "./stock-search-input";
+
+describe("StockSearchInput", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("renders the current search value", () => {
+    render(<StockSearchInput value="NF-123" onSearch={vi.fn()} />);
+
+    expect(screen.getByRole("searchbox")).toHaveValue("NF-123");
+  });
+
+  it("debounces onSearch calls while typing", () => {
+    const onSearch = vi.fn();
+    render(<StockSearchInput value="" onSearch={onSearch} />);
+
+    const input = screen.getByRole("searchbox");
+    fireEvent.change(input, { target: { value: "N" } });
+    fireEvent.change(input, { target: { value: "NF" } });
+    fireEvent.change(input, { target: { value: "NF-" } });
+
+    expect(onSearch).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(300);
+
+    expect(onSearch).toHaveBeenCalledTimes(1);
+    expect(onSearch).toHaveBeenCalledWith("NF-");
+  });
+
+  it("does not call onSearch when the value prop changes externally (e.g. back navigation)", () => {
+    const onSearch = vi.fn();
+    const { rerender } = render(
+      <StockSearchInput value="old" onSearch={onSearch} />,
+    );
+
+    rerender(<StockSearchInput value="new" onSearch={onSearch} />);
+    vi.advanceTimersByTime(300);
+
+    expect(onSearch).not.toHaveBeenCalled();
+    expect(screen.getByRole("searchbox")).toHaveValue("new");
+  });
+});

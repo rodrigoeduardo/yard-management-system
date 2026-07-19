@@ -1,20 +1,25 @@
-import { desc } from "drizzle-orm";
 import { InventoryView } from "@/components/inventory/inventory-view";
 import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
 import type { StockRow } from "@/components/inventory/stock-table";
-import { db } from "@/lib/db";
+import { listStockPage } from "@/lib/db/loads";
 import { listRemovalNfs, listRemovalsMostRecentFirst } from "@/lib/db/removal-log";
-import { loads } from "@/lib/db/schema";
 import { formatEntryDateTime } from "@/lib/format/datetime";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { isLoadFinished } from "@/lib/inventory/stock";
+import { parseStockSearchParams } from "@/lib/inventory/stock-query";
 
 export const dynamic = "force-dynamic";
 
-export default async function InventoryPage() {
-  const stock = await db.select().from(loads).orderBy(desc(loads.updatedAt));
+export default async function InventoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const stockQuery = parseStockSearchParams(resolvedSearchParams);
+  const stockPage = await listStockPage(stockQuery);
 
-  const stockRows: StockRow[] = stock.map((load) => ({
+  const stockRows: StockRow[] = stockPage.rows.map((load) => ({
     id: load.id,
     notaFiscal: load.notaFiscal,
     entryDate: formatEntryDateTime(load.entryDate),
@@ -50,7 +55,12 @@ export default async function InventoryPage() {
   return (
     <main className="flex min-h-screen flex-col gap-6 p-4 md:gap-8 md:p-8">
       <h1 className="text-2xl font-semibold">Estoque</h1>
-      <InventoryView stockRows={stockRows} removalRows={removalRows} />
+      <InventoryView
+        stockRows={stockRows}
+        stockTotal={stockPage.total}
+        stockQuery={stockQuery}
+        removalRows={removalRows}
+      />
     </main>
   );
 }
