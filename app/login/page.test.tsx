@@ -10,6 +10,16 @@ async function renderLoginPage(error?: string) {
 }
 
 describe("LoginPage", () => {
+  it("renders the logo block and Pátio title above the login form", async () => {
+    await renderLoginPage();
+
+    const title = screen.getByText("Pátio");
+    expect(title).toBeInTheDocument();
+
+    const logoMark = document.querySelector('[data-slot="brand-logo"]');
+    expect(logoMark).toBeInTheDocument();
+  });
+
   it("renders the email field as the shared Input with a Portuguese placeholder", async () => {
     await renderLoginPage();
 

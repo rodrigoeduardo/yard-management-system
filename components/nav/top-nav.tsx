@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { logout } from "@/app/login/actions";
+import { BrandLogo } from "@/components/nav/brand-logo";
 import { Button } from "@/components/ui/button";
 import { LinkLoaderReporter } from "@/components/ui/top-loader";
 import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
@@ -18,15 +19,7 @@ export function TopNav({ initials }: { initials: string }) {
 
   return (
     <header className="hidden h-[60px] items-center gap-[26px] border-b border-border bg-card px-8 md:flex print:hidden">
-      <div className="flex items-center gap-2.5">
-        <span
-          aria-hidden="true"
-          className="flex size-7 items-center justify-center rounded-[8px] bg-primary"
-        >
-          <span className="size-2.5 rotate-45 rounded-[2px] bg-primary-foreground" />
-        </span>
-        <span className="text-[15.5px] font-bold">Pátio</span>
-      </div>
+      <BrandLogo />
       <nav className="flex items-center gap-1.5">
         {APP_NAV_ITEMS.map((item) => {
           const active = isNavItemActive(pathname, item);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/nav/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormLoaderReporter } from "@/components/ui/top-loader";
@@ -19,6 +20,7 @@ export default async function LoginPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+      <BrandLogo />
       <h1 className="text-2xl font-semibold">Entrar</h1>
       <form action={login} className="flex w-full max-w-sm flex-col gap-4">
         <FormLoaderReporter />
