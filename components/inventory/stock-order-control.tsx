@@ -1,20 +1,27 @@
 "use client";
 
+import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { StockOrderKey, StockSortDir } from "@/lib/inventory/stock-query";
+import {
+  DEFAULT_STOCK_DIR,
+  DEFAULT_STOCK_ORDER,
+  type StockOrderKey,
+  type StockSortDir,
+} from "@/lib/inventory/stock-query";
+import { ControlTriggerButton } from "./control-trigger-button";
 import { StockOrderOptions } from "./stock-order-options";
 
 /**
- * Order panel trigger: a modal on mobile, an inline collapse/expand panel
- * on desktop (md:). Both render the same `StockOrderOptions` list so the
- * behavior stays identical across breakpoints — only the container differs.
+ * Order trigger for the stock section: a fixed-size icon button beside the
+ * search bar that opens a modal at every breakpoint (mirrors
+ * `StockFilterControl`) — replaces the old text-label trigger and the
+ * desktop-only inline collapse panel.
  */
 export function StockOrderControl({
   order,
@@ -25,53 +32,30 @@ export function StockOrderControl({
   dir: StockSortDir;
   onChange: (order: StockOrderKey, dir: StockSortDir) => void;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const isActive = order !== DEFAULT_STOCK_ORDER || dir !== DEFAULT_STOCK_DIR;
 
-  function handleMobileSelect(nextOrder: StockOrderKey, nextDir: StockSortDir) {
+  function handleSelect(nextOrder: StockOrderKey, nextDir: StockSortDir) {
     onChange(nextOrder, nextDir);
-    setMobileOpen(false);
+    setOpen(false);
   }
 
   return (
     <>
-      <div className="md:hidden">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setMobileOpen(true)}
-        >
-          Ordenar
-        </Button>
-        <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Ordenar estoque</DialogTitle>
-            </DialogHeader>
-            <StockOrderOptions
-              order={order}
-              dir={dir}
-              onSelect={handleMobileSelect}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="hidden md:block">
-        <Button
-          type="button"
-          variant="outline"
-          aria-expanded={desktopOpen}
-          onClick={() => setDesktopOpen((current) => !current)}
-        >
-          Ordenar
-        </Button>
-        {desktopOpen && (
-          <div className="mt-2 rounded-lg border bg-card p-3 shadow-sm">
-            <StockOrderOptions order={order} dir={dir} onSelect={onChange} />
-          </div>
-        )}
-      </div>
+      <ControlTriggerButton
+        icon={ArrowUpDown}
+        label="Ordenar"
+        count={isActive ? 1 : undefined}
+        onClick={() => setOpen(true)}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Ordenar estoque</DialogTitle>
+          </DialogHeader>
+          <StockOrderOptions order={order} dir={dir} onSelect={handleSelect} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

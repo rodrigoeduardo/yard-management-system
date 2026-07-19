@@ -11,23 +11,20 @@ const DEFAULT_QUERY: StockQueryState = {
 };
 
 describe("StockFilterControl", () => {
-  it("renders a mobile trigger hidden at md: and a desktop trigger hidden below md:", () => {
+  it("renders a single icon trigger identified by its aria-label", () => {
     render(
       <StockFilterControl query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
     );
 
-    const triggers = screen.getAllByRole("button", { name: "Filtros" });
-    expect(triggers).toHaveLength(2);
-    expect(triggers[0].closest("div")?.className).toMatch(/\bmd:hidden\b/);
-    expect(triggers[1].closest("div")?.className).toMatch(/\bmd:block\b/);
+    expect(screen.getByRole("button", { name: "Filtros" })).toBeInTheDocument();
   });
 
-  it("shows no badge count when no filter is active", () => {
+  it("shows no badge when no filter is active", () => {
     render(
       <StockFilterControl query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
     );
 
-    expect(screen.getAllByRole("button", { name: "Filtros" })).toHaveLength(2);
+    expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument();
   });
 
   it("shows a badge with the active filter count on the trigger button", () => {
@@ -39,7 +36,7 @@ describe("StockFilterControl", () => {
       />,
     );
 
-    expect(screen.getAllByRole("button", { name: "Filtros (2)" })).toHaveLength(2);
+    expect(screen.getByText("2")).toBeInTheDocument();
   });
 
   it("counts showFinished: false toward the active filter badge", () => {
@@ -51,29 +48,29 @@ describe("StockFilterControl", () => {
       />,
     );
 
-    expect(screen.getAllByRole("button", { name: "Filtros (1)" })).toHaveLength(2);
+    expect(screen.getByText("1")).toBeInTheDocument();
   });
 
-  it("opens a dialog with filter fields when the mobile trigger is clicked", () => {
+  it("opens a modal with filter fields when the trigger is clicked", () => {
     render(
       <StockFilterControl query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
     );
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByLabelText("Data de entrada - de")).toBeInTheDocument();
   });
 
-  it("applies filters and closes the dialog when submitted on mobile", () => {
+  it("applies filters and closes the modal when submitted", () => {
     const onApply = vi.fn();
     render(
       <StockFilterControl query={DEFAULT_QUERY} onApply={onApply} onClear={vi.fn()} />,
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.change(screen.getByLabelText("Data de entrada - de"), {
       target: { value: "2026-01-01" },
     });
@@ -89,7 +86,7 @@ describe("StockFilterControl", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("clears filters and closes the dialog when Limpar filtros is clicked on mobile", () => {
+  it("clears filters and closes the modal when Limpar filtros is clicked", () => {
     const onClear = vi.fn();
     render(
       <StockFilterControl
@@ -99,25 +96,10 @@ describe("StockFilterControl", () => {
       />,
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros (1)" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
 
     expect(onClear).toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-
-  it("expands an inline panel (no dialog) when the desktop trigger is clicked", () => {
-    render(
-      <StockFilterControl query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
-    );
-
-    const desktopTrigger = screen.getAllByRole("button", { name: "Filtros" })[1];
-    expect(desktopTrigger).toHaveAttribute("aria-expanded", "false");
-
-    fireEvent.click(desktopTrigger);
-
-    expect(desktopTrigger).toHaveAttribute("aria-expanded", "true");
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Aplicar filtros" })).toBeInTheDocument();
   });
 });

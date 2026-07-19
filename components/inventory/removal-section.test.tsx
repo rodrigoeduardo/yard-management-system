@@ -89,7 +89,7 @@ describe("RemovalSection", () => {
   it("pushes a rem_order/rem_dir URL update when an order option is picked", () => {
     render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Ordenar" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
     const itemCountLabel = screen
       .getAllByText("Qtd. de Itens")
       .find((el) => el.closest("fieldset"))!;
@@ -124,7 +124,7 @@ describe("RemovalSection", () => {
   it("pushes rem_date_from/rem_weight_max URL updates (page resets) when filters are applied", () => {
     render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.change(screen.getByLabelText("Data de saída - de"), {
       target: { value: "2026-01-01" },
     });
@@ -179,7 +179,7 @@ describe("RemovalSection", () => {
       />,
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros (2)" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
 
     expect(push).toHaveBeenCalledWith("/inventory?rem_q=abc");
@@ -197,7 +197,7 @@ describe("RemovalSection", () => {
     currentSearchParams = new URLSearchParams("stock_q=steel&stock_page=4");
     render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Ordenar" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
     const exitDateLabel = screen
       .getAllByText("Data de Saída")
       .find((el) => el.closest("fieldset"))!;

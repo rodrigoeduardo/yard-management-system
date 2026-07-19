@@ -93,7 +93,7 @@ describe("StockSection", () => {
   it("pushes a stock_order/stock_dir URL update when an order option is picked", () => {
     render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Ordenar" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
     const nfWeightLabel = screen
       .getAllByText("Peso da NF")
       .find((el) => el.closest("fieldset"))!;
@@ -128,7 +128,7 @@ describe("StockSection", () => {
   it("pushes stock_date_from/stock_weight_max URL updates (page resets) when filters are applied", () => {
     render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.change(screen.getByLabelText("Data de entrada - de"), {
       target: { value: "2026-01-01" },
     });
@@ -183,7 +183,7 @@ describe("StockSection", () => {
       />,
     );
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Filtros (2)" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
 
     expect(push).toHaveBeenCalledWith("/inventory?stock_q=abc");
