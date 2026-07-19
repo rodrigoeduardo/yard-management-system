@@ -27,6 +27,7 @@ import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { buildRemovalReceipt, type RemovalReceipt } from "@/lib/removals/receipt";
 import {
   addScannedItem,
+  createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
   notaFiscalOf,
@@ -41,6 +42,9 @@ function itemsLabel(count: number): string {
 function notasFiscaisLabel(count: number): string {
   return count === 1 ? "nota fiscal" : "notas fiscais";
 }
+
+/** Ignore further QR reads for this long after an accepted scan (ms). */
+const SCAN_COOLDOWN_MS = 2000;
 
 export default function NewRemovalPage() {
   const router = useRouter();
@@ -61,11 +65,16 @@ export default function NewRemovalPage() {
   const controlsRef = useRef<IScannerControls | null>(null);
   const scannedItemsRef = useRef<ItemQrPayload[]>([]);
   const pendingTokensRef = useRef<Set<string>>(new Set());
+  const scanCooldownRef = useRef(createScanCooldown(SCAN_COOLDOWN_MS));
 
   async function handleScannedText(text: string) {
     const payload = safeDecodeItemQrPayload(text);
     if (!payload) {
       setScanError("Código QR inválido.");
+      return;
+    }
+
+    if (scanCooldownRef.current.isActive(payload.qrToken)) {
       return;
     }
 
@@ -95,6 +104,7 @@ export default function NewRemovalPage() {
     setScanError(undefined);
     scannedItemsRef.current = list;
     setScannedItems(list);
+    scanCooldownRef.current.start(payload.qrToken);
   }
 
   async function startScanning() {
