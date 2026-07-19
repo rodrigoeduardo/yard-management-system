@@ -6,6 +6,7 @@ import { Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { Breadcrumbs } from "@/components/nav/breadcrumbs";
+import { RemovalReceiptView } from "@/components/removals/removal-receipt-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -199,45 +200,18 @@ export default function NewRemovalPage() {
       <Breadcrumbs
         items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
       />
-      <h1 className="text-2xl font-semibold text-foreground">Nova Remoção</h1>
+      {!receipt && (
+        <h1 className="text-2xl font-semibold text-foreground">
+          Nova Remoção
+        </h1>
+      )}
 
       {receipt && (
-        <div className="flex w-full max-w-sm flex-col gap-4">
-          <h2 className="text-lg font-semibold">Remoção Concluída</h2>
-
-          <p className="text-sm">
-            <span className="font-medium">Itens Removidos:</span>{" "}
-            {receipt.itemCount}
-          </p>
-
-          <div className="flex flex-col gap-2 text-sm">
-            {receipt.byNotaFiscal.map((group) => (
-              <div key={group.notaFiscal}>
-                <p className="font-medium">{group.notaFiscal}</p>
-                <ul className="flex flex-col gap-1 pl-3">
-                  {group.items.map((item) => (
-                    <li key={item.qrToken}>
-                      {item.identifier} — {item.material} — {item.weight} kg
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-sm font-medium">
-            Peso Total Removido: {receipt.totalRemovedWeight} kg
-          </p>
-
-          <div className="flex flex-col gap-2">
-            <Button type="button" onClick={handleNewRemoval}>
-              Nova Remoção
-            </Button>
-            <Button type="button" variant="outline" onClick={handleViewInventory}>
-              Ver Estoque
-            </Button>
-          </div>
-        </div>
+        <RemovalReceiptView
+          receipt={receipt}
+          onNewRemoval={handleNewRemoval}
+          onViewInventory={handleViewInventory}
+        />
       )}
 
       {!receipt && (
