@@ -17,6 +17,11 @@ export function getCurrentEntryTimeValue(now: Date = new Date()): string {
   return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
+/** Local (browser/server) date+time formatted for an `<input type="datetime-local">` default value. */
+export function getCurrentEntryDateTimeValue(now: Date = new Date()): string {
+  return `${getCurrentEntryDateValue(now)}T${getCurrentEntryTimeValue(now)}`;
+}
+
 /**
  * Combines a `YYYY-MM-DD` date value and an `HH:mm` time value (as produced by
  * `<input type="date">` / `<input type="time">`), both understood as a
@@ -72,4 +77,23 @@ export function combineEntryDateTime(
   // Shift by the yard's fixed UTC offset to get the actual instant that
   // wall-clock reading denotes in the yard's timezone.
   return new Date(utcNaive.getTime() + YARD_UTC_OFFSET_MINUTES * 60_000);
+}
+
+const DATETIME_LOCAL_RE = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
+
+/**
+ * Combines the single `YYYY-MM-DDTHH:mm` value produced by
+ * `<input type="datetime-local">` into the absolute instant `Date` it
+ * denotes, by splitting it into its date and time components and deferring
+ * to {@link combineEntryDateTime} — same wall-clock-to-instant conversion,
+ * same yard-timezone semantics. Returns `null` when the value is malformed
+ * or does not denote a real date/time.
+ */
+export function combineEntryDateTimeValue(value: string): Date | null {
+  const match = DATETIME_LOCAL_RE.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  return combineEntryDateTime(match[1], match[2]);
 }

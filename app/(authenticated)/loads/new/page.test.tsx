@@ -21,11 +21,8 @@ function fillDadosAndContinue() {
   fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
     target: { value: "NF-123" },
   });
-  fireEvent.change(screen.getByLabelText("Data de Entrada"), {
-    target: { value: "2026-01-01" },
-  });
-  fireEvent.change(screen.getByLabelText("Hora de Entrada"), {
-    target: { value: "09:15" },
+  fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
+    target: { value: "2026-01-01T09:15" },
   });
   fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
     target: { value: "100" },
@@ -45,10 +42,7 @@ describe("NewLoadPage", () => {
     expect(screen.getByLabelText("Nota Fiscal").className).toMatch(
       /\bfont-mono\b/,
     );
-    expect(screen.getByLabelText("Data de Entrada").className).toMatch(
-      /\bfont-mono\b/,
-    );
-    expect(screen.getByLabelText("Hora de Entrada").className).toMatch(
+    expect(screen.getByLabelText("Data e hora de entrada").className).toMatch(
       /\bfont-mono\b/,
     );
     expect(screen.getByLabelText("Peso da Nota Fiscal").className).toMatch(
@@ -144,17 +138,16 @@ describe("NewLoadPage", () => {
     );
   });
 
-  it("defaults Data de Entrada and Hora de Entrada to now on mount", () => {
+  it("defaults Data e hora de entrada to now on mount", () => {
     const now = new Date(2026, 6, 17, 14, 5);
     vi.useFakeTimers();
     vi.setSystemTime(now);
 
     render(<NewLoadPage />);
 
-    expect(screen.getByLabelText("Data de Entrada")).toHaveValue(
-      "2026-07-17",
+    expect(screen.getByLabelText("Data e hora de entrada")).toHaveValue(
+      "2026-07-17T14:05",
     );
-    expect(screen.getByLabelText("Hora de Entrada")).toHaveValue("14:05");
 
     vi.useRealTimers();
   });
@@ -187,7 +180,7 @@ describe("NewLoadPage", () => {
     expect(cta).toBeDisabled();
   });
 
-  it("treats Data de Entrada and Hora de Entrada as required, even though they default to now", () => {
+  it("treats Data e hora de entrada as required, even though it defaults to now", () => {
     render(<NewLoadPage />);
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
@@ -202,20 +195,15 @@ describe("NewLoadPage", () => {
     const cta = screen.getByRole("button", { name: "Continuar para pesos" });
     expect(cta).toBeEnabled();
 
-    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
+    fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
       target: { value: "" },
     });
     expect(cta).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
-      target: { value: "2026-01-01" },
+    fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
+      target: { value: "2026-01-01T09:00" },
     });
     expect(cta).toBeEnabled();
-
-    fireEvent.change(screen.getByLabelText("Hora de Entrada"), {
-      target: { value: "" },
-    });
-    expect(cta).toBeDisabled();
   });
 
   it("gives etapa-1 and etapa-2 inputs Portuguese placeholders and a decimal numeric keyboard on weight fields", () => {
@@ -265,8 +253,8 @@ describe("NewLoadPage", () => {
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-1" },
     });
-    fireEvent.change(screen.getByLabelText("Data de Entrada"), {
-      target: { value: "2026-01-01" },
+    fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
+      target: { value: "2026-01-01T09:00" },
     });
     fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
       target: { value: "10" },
@@ -300,20 +288,6 @@ describe("NewLoadPage", () => {
 
     expect(item2Group?.contains(error)).toBe(true);
     expect(item1Group?.contains(error)).toBe(false);
-  });
-
-  it("lets the date/time grid cells shrink below their content's intrinsic width", () => {
-    render(<NewLoadPage />);
-
-    const dateCell = screen.getByLabelText("Data de Entrada").closest(
-      "div.flex.flex-col",
-    );
-    const timeCell = screen.getByLabelText("Hora de Entrada").closest(
-      "div.flex.flex-col",
-    );
-
-    expect(dateCell?.className).toMatch(/\bmin-w-0\b/);
-    expect(timeCell?.className).toMatch(/\bmin-w-0\b/);
   });
 
   it("shows an NF context chip with the NF number and material above the weights grid", () => {

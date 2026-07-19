@@ -2,22 +2,18 @@
 
 import { z } from "zod";
 import { removeScannedItems } from "@/lib/db/removals";
-import { combineEntryDateTime } from "@/lib/loads/entry-datetime";
+import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
 
 const removeItemsSchema = z
   .object({
-    exitDate: z.string().min(1),
-    exitTime: z.string().min(1),
+    exitDateTime: z.string().min(1),
     driver: z.string().min(1),
     qrTokens: z.array(z.uuid()).min(1),
   })
-  .refine(
-    (data) => combineEntryDateTime(data.exitDate, data.exitTime) !== null,
-    {
-      message: "Informe uma data e hora de saída válidas.",
-      path: ["exitDate"],
-    },
-  );
+  .refine((data) => combineEntryDateTimeValue(data.exitDateTime) !== null, {
+    message: "Informe uma data e hora de saída válidas.",
+    path: ["exitDateTime"],
+  });
 
 export type RemoveItemsInput = z.input<typeof removeItemsSchema>;
 
@@ -28,10 +24,7 @@ export async function removeItems(input: RemoveItemsInput) {
   }
 
   // Validated above by the schema's refine — never null here.
-  const exitDate = combineEntryDateTime(
-    parsed.data.exitDate,
-    parsed.data.exitTime,
-  )!;
+  const exitDate = combineEntryDateTimeValue(parsed.data.exitDateTime)!;
 
   const removal = await removeScannedItems({
     exitDate,

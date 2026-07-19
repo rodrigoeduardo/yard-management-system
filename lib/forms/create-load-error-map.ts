@@ -10,8 +10,7 @@ export type CreateLoadItemWeightMessages = Record<number, string>;
 
 const FIELD_MESSAGES: Record<TopLevelField, string> = {
   notaFiscal: "Informe a nota fiscal.",
-  entryDate: "Informe uma data de entrada válida.",
-  entryTime: "Informe um horário de entrada válido.",
+  entryDateTime: "Informe uma data e hora de entrada válidas.",
   nfWeight: "Informe o peso da nota fiscal.",
   material: "Informe o material.",
 };

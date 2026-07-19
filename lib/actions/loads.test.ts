@@ -21,8 +21,7 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
-      entryDate: "2026-01-01",
-      entryTime: "09:30",
+      entryDateTime: "2026-01-01T09:30",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 20, 30],
@@ -41,8 +40,7 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
-      entryDate: "2026-01-01",
-      entryTime: "14:35",
+      entryDateTime: "2026-01-01T14:35",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
@@ -61,8 +59,7 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
-      entryDate: "2026-01-01",
-      entryTime: "",
+      entryDateTime: "",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
@@ -70,7 +67,7 @@ describe("createLoad", () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error("expected failure");
-    expect(result.error.fieldErrors.entryTime).toBeDefined();
+    expect(result.error.fieldErrors.entryDateTime).toBeDefined();
 
     const rows = await db
       .select()
@@ -82,8 +79,7 @@ describe("createLoad", () => {
   it("rejects a calendar date that does not exist, even with a valid time", async () => {
     const result = await createLoad({
       notaFiscal: `NF-BADDATE-${randomUUID()}`,
-      entryDate: "2026-02-30",
-      entryTime: "10:00",
+      entryDateTime: "2026-02-30T10:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
@@ -91,7 +87,7 @@ describe("createLoad", () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error("expected failure");
-    expect(result.error.fieldErrors.entryDate).toBeDefined();
+    expect(result.error.fieldErrors.entryDateTime).toBeDefined();
   });
 
   it("rejects an item count above the sane maximum without touching the database", async () => {
@@ -99,8 +95,7 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
-      entryDate: "2026-01-01",
-      entryTime: "09:00",
+      entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: Array.from({ length: 21 }, () => 10),
@@ -118,8 +113,7 @@ describe("createLoad", () => {
   it("rejects a non-positive item weight", async () => {
     const result = await createLoad({
       notaFiscal: `NF-BADWEIGHT-${randomUUID()}`,
-      entryDate: "2026-01-01",
-      entryTime: "09:00",
+      entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],
@@ -131,8 +125,7 @@ describe("createLoad", () => {
   it("attributes an invalid item weight to its own index, not a flattened bucket", async () => {
     const result = await createLoad({
       notaFiscal: `NF-INDEXED-${randomUUID()}`,
-      entryDate: "2026-01-01",
-      entryTime: "09:00",
+      entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0, 30],
@@ -148,8 +141,7 @@ describe("createLoad", () => {
   it("preserves top-level field errors alongside per-index item weight errors", async () => {
     const result = await createLoad({
       notaFiscal: "",
-      entryDate: "2026-01-01",
-      entryTime: "09:00",
+      entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],

@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { formatEntryDateTime } from "@/lib/format/datetime";
 import {
   combineEntryDateTime,
+  combineEntryDateTimeValue,
+  getCurrentEntryDateTimeValue,
   getCurrentEntryDateValue,
   getCurrentEntryTimeValue,
 } from "./entry-datetime";
@@ -85,5 +87,40 @@ describe("getCurrentEntryTimeValue", () => {
   it("formats a local time as HH:mm, zero-padded", () => {
     const now = new Date(2026, 0, 5, 9, 3);
     expect(getCurrentEntryTimeValue(now)).toBe("09:03");
+  });
+});
+
+describe("getCurrentEntryDateTimeValue", () => {
+  it("formats a local date+time as YYYY-MM-DDTHH:mm for a datetime-local input", () => {
+    const now = new Date(2026, 0, 5, 9, 3);
+    expect(getCurrentEntryDateTimeValue(now)).toBe("2026-01-05T09:03");
+  });
+});
+
+describe("combineEntryDateTimeValue", () => {
+  it("splits a datetime-local value and delegates to combineEntryDateTime", () => {
+    const combined = combineEntryDateTimeValue("2026-07-17T14:35");
+
+    expect(combined).not.toBeNull();
+    expect(combined?.getFullYear()).toBe(2026);
+    expect(combined?.getMonth()).toBe(6);
+    expect(combined?.getDate()).toBe(17);
+    expect(combined?.getHours()).toBe(14);
+    expect(combined?.getMinutes()).toBe(35);
+    expect(combined).toEqual(combineEntryDateTime("2026-07-17", "14:35"));
+  });
+
+  it("returns null for a malformed datetime-local value", () => {
+    expect(combineEntryDateTimeValue("2026-07-17 14:35")).toBeNull();
+    expect(combineEntryDateTimeValue("2026-07-17")).toBeNull();
+    expect(combineEntryDateTimeValue("")).toBeNull();
+  });
+
+  it("returns null for a datetime-local value with a non-existent calendar date", () => {
+    expect(combineEntryDateTimeValue("2026-02-30T10:00")).toBeNull();
+  });
+
+  it("returns null for a datetime-local value with an out-of-range time", () => {
+    expect(combineEntryDateTimeValue("2026-07-17T25:00")).toBeNull();
   });
 });

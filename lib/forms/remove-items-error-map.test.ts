@@ -15,18 +15,18 @@ describe("mapRemoveItemsFieldErrors", () => {
       driver: ["required"],
     });
 
-    expect(messages.exitDate).toBeUndefined();
+    expect(messages.exitDateTime).toBeUndefined();
   });
 
   it("maps every known field independently", () => {
     const messages = mapRemoveItemsFieldErrors({
-      exitDate: ["invalid"],
-      exitTime: ["invalid"],
+      exitDateTime: ["invalid"],
       qrTokens: ["too small"],
     });
 
-    expect(messages.exitDate).toBe("Informe uma data de saída válida.");
-    expect(messages.exitTime).toBe("Informe uma hora de saída válida.");
+    expect(messages.exitDateTime).toBe(
+      "Informe uma data e hora de saída válidas.",
+    );
     expect(messages.qrTokens).toBe("Escaneie ao menos um item.");
   });
 

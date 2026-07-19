@@ -2,24 +2,20 @@
 
 import { z } from "zod";
 import { insertLoadWithItems } from "@/lib/db/loads";
-import { combineEntryDateTime } from "@/lib/loads/entry-datetime";
+import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
 
 const createLoadSchema = z
   .object({
     notaFiscal: z.string().min(1),
-    entryDate: z.string().min(1),
-    entryTime: z.string().min(1),
+    entryDateTime: z.string().min(1),
     nfWeight: z.number().positive(),
     material: z.string().min(1),
     itemWeights: z.array(z.number().positive()).min(1).max(20),
   })
-  .refine(
-    (data) => combineEntryDateTime(data.entryDate, data.entryTime) !== null,
-    {
-      message: "Informe uma data e hora de entrada válidas.",
-      path: ["entryDate"],
-    },
-  );
+  .refine((data) => combineEntryDateTimeValue(data.entryDateTime) !== null, {
+    message: "Informe uma data e hora de entrada válidas.",
+    path: ["entryDateTime"],
+  });
 
 export type CreateLoadInput = z.input<typeof createLoadSchema>;
 
@@ -58,10 +54,7 @@ export async function createLoad(input: CreateLoadInput) {
   }
 
   // Validated above by the schema's refine — never null here.
-  const entryDate = combineEntryDateTime(
-    parsed.data.entryDate,
-    parsed.data.entryTime,
-  )!;
+  const entryDate = combineEntryDateTimeValue(parsed.data.entryDateTime)!;
 
   const load = await insertLoadWithItems({
     notaFiscal: parsed.data.notaFiscal,

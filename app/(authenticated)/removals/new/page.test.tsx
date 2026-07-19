@@ -160,11 +160,8 @@ describe("NewRemovalPage review dialog", () => {
   async function openReviewDialogWithTwoNotasFiscais() {
     render(<NewRemovalPage />);
 
-    fireEvent.change(screen.getByLabelText("Data de Saída"), {
-      target: { value: "2026-07-18" },
-    });
-    fireEvent.change(screen.getByLabelText("Hora de Saída"), {
-      target: { value: "14:35" },
+    fireEvent.change(screen.getByLabelText("Data e hora de saída"), {
+      target: { value: "2026-07-18T14:35" },
     });
     fireEvent.change(screen.getByLabelText("Motorista"), {
       target: { value: "João Silva" },
@@ -248,8 +245,7 @@ describe("NewRemovalPage review dialog", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirmar" }));
 
     await waitFor(() => expect(removeItems).toHaveBeenCalledWith({
-      exitDate: "2026-07-18",
-      exitTime: "14:35",
+      exitDateTime: "2026-07-18T14:35",
       driver: "João Silva",
       qrTokens: [
         "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
@@ -336,31 +332,18 @@ describe("NewRemovalPage review dialog", () => {
 });
 
 describe("NewRemovalPage exit date/time defaults", () => {
-  it("defaults Data de Saída and Hora de Saída to now on mount", () => {
+  it("defaults Data e hora de saída to now on mount", () => {
     const now = new Date(2026, 6, 17, 14, 5);
     vi.useFakeTimers();
     vi.setSystemTime(now);
 
     render(<NewRemovalPage />);
 
-    expect(screen.getByLabelText("Data de Saída")).toHaveValue("2026-07-17");
-    expect(screen.getByLabelText("Hora de Saída")).toHaveValue("14:05");
+    expect(screen.getByLabelText("Data e hora de saída")).toHaveValue(
+      "2026-07-17T14:05",
+    );
 
     vi.useRealTimers();
-  });
-
-  it("lets the date/time grid cells shrink below their content's intrinsic width", () => {
-    render(<NewRemovalPage />);
-
-    const dateCell = screen
-      .getByLabelText("Data de Saída")
-      .closest("div.flex.flex-col");
-    const timeCell = screen
-      .getByLabelText("Hora de Saída")
-      .closest("div.flex.flex-col");
-
-    expect(dateCell?.className).toMatch(/\bmin-w-0\b/);
-    expect(timeCell?.className).toMatch(/\bmin-w-0\b/);
   });
 });
 
