@@ -48,6 +48,51 @@ describe("StockFilterFields", () => {
       dateTo: "",
       weightMin: "",
       weightMax: "",
+      showFinished: true,
+    });
+  });
+
+  it("shows the 'Mostrar cargas finalizadas' checkbox checked by default", () => {
+    render(
+      <StockFilterFields query={DEFAULT_QUERY} onApply={vi.fn()} onClear={vi.fn()} />,
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: "Mostrar cargas finalizadas" }),
+    ).toBeChecked();
+  });
+
+  it("unchecks the checkbox when query.showFinished is false", () => {
+    render(
+      <StockFilterFields
+        query={{ ...DEFAULT_QUERY, showFinished: false }}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("checkbox", { name: "Mostrar cargas finalizadas" }),
+    ).not.toBeChecked();
+  });
+
+  it("submits showFinished: false when the checkbox is unchecked", () => {
+    const onApply = vi.fn();
+    render(
+      <StockFilterFields query={DEFAULT_QUERY} onApply={onApply} onClear={vi.fn()} />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Mostrar cargas finalizadas" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+
+    expect(onApply).toHaveBeenCalledWith({
+      dateFrom: "",
+      dateTo: "",
+      weightMin: "",
+      weightMax: "",
+      showFinished: false,
     });
   });
 
@@ -70,14 +115,20 @@ describe("StockFilterFields", () => {
       dateTo: "",
       weightMin: "10",
       weightMax: "500",
+      showFinished: true,
     });
   });
 
-  it("resets every field to empty and calls onClear when Limpar filtros is clicked", () => {
+  it("resets every field to empty and the checkbox to checked, and calls onClear, when Limpar filtros is clicked", () => {
     const onClear = vi.fn();
     render(
       <StockFilterFields
-        query={{ ...DEFAULT_QUERY, dateFrom: "2026-01-01", weightMin: "10" }}
+        query={{
+          ...DEFAULT_QUERY,
+          dateFrom: "2026-01-01",
+          weightMin: "10",
+          showFinished: false,
+        }}
         onApply={vi.fn()}
         onClear={onClear}
       />,
@@ -88,5 +139,8 @@ describe("StockFilterFields", () => {
     expect(onClear).toHaveBeenCalled();
     expect(screen.getByLabelText("Data de entrada - de")).toHaveValue("");
     expect(screen.getByLabelText("Peso restante - mínimo")).toHaveValue(null);
+    expect(
+      screen.getByRole("checkbox", { name: "Mostrar cargas finalizadas" }),
+    ).toBeChecked();
   });
 });
