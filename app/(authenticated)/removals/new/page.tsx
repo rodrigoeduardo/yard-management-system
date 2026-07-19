@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
-import { Scan, X } from "lucide-react";
+import { Calendar, Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { PageBackHeader } from "@/components/nav/page-back-header";
@@ -222,26 +222,30 @@ export default function NewRemovalPage() {
         <div className="flex flex-col gap-5 md:grid md:grid-cols-[420px_1fr] md:items-start md:gap-5">
           {/* Left column: fixed removal data + scanner + toggle */}
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+            <div className="flex w-full min-w-0 flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
               <SectionLabel className="hidden font-bold text-foreground/80 md:block">
                 Dados da Remoção
               </SectionLabel>
 
-              <div className="flex min-w-0 flex-col gap-1.5">
+              <div className="flex w-full min-w-0 flex-col gap-1.5">
                 <label
                   htmlFor="exitDateTime"
                   className="text-sm font-medium text-foreground"
                 >
                   Data e hora de saída
                 </label>
-                <Input
-                  id="exitDateTime"
-                  type="datetime-local"
-                  mono
-                  value={exitDateTime}
-                  onChange={(e) => setExitDateTime(e.target.value)}
-                  required
-                />
+                <div className="relative w-full min-w-0 overflow-hidden rounded-input">
+                  <Input
+                    id="exitDateTime"
+                    type="datetime-local"
+                    mono
+                    value={exitDateTime}
+                    onChange={(e) => setExitDateTime(e.target.value)}
+                    required
+                    className="min-w-0 pr-11 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0"
+                  />
+                  <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
+                </div>
                 {fieldErrors.exitDateTime && (
                   <p role="alert" className="text-sm text-destructive">
                     {fieldErrors.exitDateTime}
