@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { TopLoader } from "@/components/ui/top-loader";
 import { encodeItemQrPayload } from "@/lib/qrcode/payload";
 import { removeItems } from "@/lib/actions/removals";
 import NewRemovalPage from "./page";
@@ -260,6 +261,77 @@ describe("NewRemovalPage review dialog", () => {
       await screen.findByText("Remoção Concluída"),
     ).toBeInTheDocument();
     expect(screen.queryByText("Revisar Remoção")).not.toBeInTheDocument();
+  });
+
+  it("activates the TopLoader and swaps Confirmar to Removendo… while the remove-items transition is pending", async () => {
+    let resolveRemoveItems: (value: unknown) => void = () => {};
+    vi.mocked(removeItems).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRemoveItems = resolve;
+        }) as never,
+    );
+
+    render(
+      <>
+        <TopLoader />
+        <NewRemovalPage />
+      </>,
+    );
+
+    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    await waitFor(() => expect(scanCallback).toBeDefined());
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+          identifier: "Item 1 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        } as never),
+    });
+    await screen.findByText("NF-100");
+
+    const [openReviewCta] = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(1 item\)/,
+    });
+    fireEvent.click(openReviewCta);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Revisar Remoção",
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirmar" }),
+    );
+
+    // The dialog makes the rest of the tree inert (aria-hidden) while open,
+    // so query with `hidden: true` to still find the backgrounded TopLoader.
+    await waitFor(() => {
+      expect(
+        screen.getByRole("progressbar", {
+          name: "Carregando",
+          hidden: true,
+        }),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("button", { name: "Removendo…", hidden: true }),
+    ).toBeDisabled();
+
+    resolveRemoveItems({
+      success: true,
+      removal: { totalRemovedWeight: "10" },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("progressbar", {
+          name: "Carregando",
+          hidden: true,
+        }),
+      ).not.toBeInTheDocument();
+    });
   });
 });
 

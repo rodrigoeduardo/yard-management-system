@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionLabel } from "@/components/ui/section-label";
+import { useTopLoaderTask } from "@/components/ui/top-loader";
 import { removeItems } from "@/lib/actions/removals";
 import { sumDecimalStrings } from "@/lib/db/decimal";
 import { formatEntryDateTime } from "@/lib/format/datetime";
@@ -44,6 +45,7 @@ function notasFiscaisLabel(count: number): string {
 export default function NewRemovalPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  useTopLoaderTask(isPending);
   const [exitDate, setExitDate] = useState(() => getCurrentEntryDateValue());
   const [exitTime, setExitTime] = useState(() => getCurrentEntryTimeValue());
   const [driver, setDriver] = useState("");
@@ -558,7 +560,7 @@ export default function NewRemovalPage() {
                 disabled={isPending}
                 className="h-[50px] flex-1 rounded-[14px]"
               >
-                Confirmar
+                {isPending ? "Removendo…" : "Confirmar"}
               </Button>
             </div>
           </Dialog.Popup>
