@@ -31,6 +31,13 @@ export type StockQueryState = {
   /** Remaining weight range filter, each bound optional, kg as a numeric string. */
   weightMin?: string;
   weightMax?: string;
+  /**
+   * Whether finished loads are shown. Omitted means the default (shown,
+   * preserving prior behavior) — only ever set to `false` (hidden), which is
+   * why it's optional like the other filter bounds rather than always
+   * present like `q`/`order`/`dir`/`page`.
+   */
+  showFinished?: boolean;
 };
 
 const PARAM_KEYS = {
@@ -42,6 +49,7 @@ const PARAM_KEYS = {
   dateTo: "stock_date_to",
   weightMin: "stock_weight_min",
   weightMax: "stock_weight_max",
+  showFinished: "stock_show_finished",
 } as const;
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -103,6 +111,9 @@ export function parseStockSearchParams(
   const weightMaxRaw = readParam(params, PARAM_KEYS.weightMax);
   const weightMax = isValidWeightParam(weightMaxRaw) ? weightMaxRaw : undefined;
 
+  const showFinishedRaw = readParam(params, PARAM_KEYS.showFinished);
+  const showFinished = showFinishedRaw === "0" ? false : undefined;
+
   return {
     q,
     order,
@@ -112,14 +123,23 @@ export function parseStockSearchParams(
     ...(dateTo !== undefined ? { dateTo } : {}),
     ...(weightMin !== undefined ? { weightMin } : {}),
     ...(weightMax !== undefined ? { weightMax } : {}),
+    ...(showFinished !== undefined ? { showFinished } : {}),
   };
 }
 
-/** Number of stock filters currently active (date range + weight range bounds). */
+/**
+ * Number of stock filters currently active (date range + weight range bounds,
+ * plus `showFinished` when it's set to its non-default "hidden" value).
+ */
 export function countActiveStockFilters(query: StockQueryState): number {
-  return [query.dateFrom, query.dateTo, query.weightMin, query.weightMax].filter(
-    (v) => v !== undefined && v !== "",
-  ).length;
+  const rangeFilterCount = [
+    query.dateFrom,
+    query.dateTo,
+    query.weightMin,
+    query.weightMax,
+  ].filter((v) => v !== undefined && v !== "").length;
+
+  return rangeFilterCount + (query.showFinished === false ? 1 : 0);
 }
 
 export function hasActiveStockFilters(query: StockQueryState): boolean {
@@ -144,7 +164,8 @@ export function stockSearchHref(
     updates.dateFrom !== undefined ||
     updates.dateTo !== undefined ||
     updates.weightMin !== undefined ||
-    updates.weightMax !== undefined;
+    updates.weightMax !== undefined ||
+    updates.showFinished !== undefined;
 
   if (updates.q !== undefined) {
     if (updates.q) {
@@ -178,6 +199,14 @@ export function stockSearchHref(
       } else {
         next.delete(PARAM_KEYS[key]);
       }
+    }
+  }
+
+  if (updates.showFinished !== undefined) {
+    if (updates.showFinished) {
+      next.delete(PARAM_KEYS.showFinished);
+    } else {
+      next.set(PARAM_KEYS.showFinished, "0");
     }
   }
 
