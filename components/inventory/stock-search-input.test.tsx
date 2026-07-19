@@ -46,4 +46,31 @@ describe("StockSearchInput", () => {
     expect(onSearch).not.toHaveBeenCalled();
     expect(screen.getByRole("searchbox")).toHaveValue("new");
   });
+
+  it("keeps a keystroke typed while the previous debounced push is still round-tripping", () => {
+    const onSearch = vi.fn();
+    const { rerender } = render(
+      <StockSearchInput value="" onSearch={onSearch} />,
+    );
+
+    const input = screen.getByRole("searchbox");
+
+    // First push: user types "a" and the debounce fires.
+    fireEvent.change(input, { target: { value: "a" } });
+    vi.advanceTimersByTime(300);
+    expect(onSearch).toHaveBeenCalledWith("a");
+
+    // A further keystroke lands before the navigation triggered by that
+    // push has round-tripped back into the `value` prop.
+    fireEvent.change(input, { target: { value: "ab" } });
+
+    // The stale echo of the first push now arrives as a new `value` prop.
+    rerender(<StockSearchInput value="a" onSearch={onSearch} />);
+
+    // The newer keystroke must survive the stale round-trip.
+    expect(input).toHaveValue("ab");
+
+    vi.advanceTimersByTime(300);
+    expect(onSearch).toHaveBeenCalledWith("ab");
+  });
 });

@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-
-const DEBOUNCE_MS = 300;
+import { useDebouncedSearchDraft } from "@/components/inventory/use-debounced-search-draft";
 
 /**
  * Search box for the stock section. Keeps typing local (uncontrolled from
@@ -18,26 +16,7 @@ export function StockSearchInput({
   value: string;
   onSearch: (q: string) => void;
 }) {
-  const [draft, setDraft] = useState(value);
-
-  // Stay in sync when the URL changes from elsewhere (back/forward nav).
-  // Adjusting state during render (rather than in an effect) avoids the
-  // extra cascading render that a `useEffect(() => setDraft(value), [value])`
-  // would cause.
-  const [prevValue, setPrevValue] = useState(value);
-  if (value !== prevValue) {
-    setPrevValue(value);
-    setDraft(value);
-  }
-
-  useEffect(() => {
-    if (draft === value) {
-      return;
-    }
-    const timeout = setTimeout(() => onSearch(draft), DEBOUNCE_MS);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft]);
+  const [draft, setDraft] = useDebouncedSearchDraft(value, onSearch);
 
   return (
     <Input
