@@ -76,4 +76,28 @@ describe("buildStockFilterConditions", () => {
     );
     expect(params).toEqual(["2026-01-01T03:00:00.000Z", "500"]);
   });
+
+  it("builds no condition for showFinished when omitted or true (default: finished loads shown)", () => {
+    expect(buildStockFilterConditions({})).toEqual([]);
+    expect(buildStockFilterConditions({ showFinished: true })).toEqual([]);
+  });
+
+  it("excludes finished loads (item_count = 0 and remaining_weight = 0) when showFinished is false", () => {
+    const { sql, params } = toQuery({ showFinished: false });
+    expect(sql).toBe(
+      '("loads"."item_count" > $1 or "loads"."remaining_weight" > $2)',
+    );
+    expect(params).toEqual([0, "0"]);
+  });
+
+  it("combines the finished-loads exclusion with other active filters", () => {
+    const { sql, params } = toQuery({
+      showFinished: false,
+      weightMin: "10",
+    });
+    expect(sql).toBe(
+      '("loads"."remaining_weight" >= $1 and ("loads"."item_count" > $2 or "loads"."remaining_weight" > $3))',
+    );
+    expect(params).toEqual(["10", 0, "0"]);
+  });
 });

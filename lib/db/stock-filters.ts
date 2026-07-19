@@ -1,4 +1,4 @@
-import { gte, lte, type SQL } from "drizzle-orm";
+import { gt, gte, lte, or, type SQL } from "drizzle-orm";
 import { YARD_UTC_OFFSET_MINUTES } from "@/lib/format/datetime";
 import { loads } from "./schema";
 
@@ -17,6 +17,12 @@ export type StockDateWeightFilters = {
   weightMin?: string;
   /** Kg, inclusive upper bound on `remainingWeight`. */
   weightMax?: string;
+  /**
+   * Whether finished loads (see `isLoadFinished` in `lib/inventory/stock.ts`)
+   * are included. Omitted or `true` shows them (default, preserves current
+   * behavior); `false` excludes them SQL-side.
+   */
+  showFinished?: boolean;
 };
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -67,6 +73,15 @@ export function buildStockFilterConditions(
   }
   if (filters.weightMax) {
     conditions.push(lte(loads.remainingWeight, filters.weightMax));
+  }
+
+  if (filters.showFinished === false) {
+    // Mirrors `isLoadFinished`'s negation and `activeLoads` in
+    // `lib/db/dashboard.ts`: a load is "active" (not finished) when it still
+    // has items or remaining weight.
+    conditions.push(
+      or(gt(loads.itemCount, 0), gt(loads.remainingWeight, "0"))!,
+    );
   }
 
   return conditions;
