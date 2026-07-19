@@ -34,11 +34,10 @@ describe("GreetingHeader", () => {
     ).toBeInTheDocument();
   });
 
-  it("is hidden below md: (mobile shows its own header instead)", () => {
+  it("renders on mobile too (not hidden below md:)", () => {
     const { container } = render(
       <GreetingHeader greeting="Bom dia" displayName="Rafael" dateLabel="17/07/2026" />,
     );
-    expect(container.firstElementChild?.className).toMatch(/\bhidden\b/);
-    expect(container.firstElementChild?.className).toMatch(/\bmd:flex\b/);
+    expect(container.firstElementChild?.className).not.toMatch(/\bhidden\b/);
   });
 });

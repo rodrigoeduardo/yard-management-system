@@ -1,9 +1,9 @@
 /**
- * Desktop-only greeting block ("Bom dia, Rafael" + a date subtitle).
- * Falls back to just the time-of-day greeting when no session-derived
- * display name is available. Hidden below `md:` — mobile shows
- * `MobileHomeHeader` instead (the design's Início frame has no greeting
- * text on mobile, only the logo header).
+ * Greeting block ("Bom dia, Rafael" + a date subtitle), shown on both
+ * mobile and desktop. Falls back to just the time-of-day greeting when
+ * no session-derived display name is available. Mobile shows this above
+ * `MobileHomeHeader`'s account/logout row; desktop shows it inline in
+ * the top-nav area.
  */
 export function GreetingHeader({
   greeting,
@@ -15,7 +15,7 @@ export function GreetingHeader({
   dateLabel: string;
 }) {
   return (
-    <div className="hidden md:flex md:flex-col md:gap-1">
+    <div className="flex flex-col gap-1">
       <h1 className="text-2xl font-bold text-foreground">
         {displayName ? `${greeting}, ${displayName}` : greeting}
       </h1>
