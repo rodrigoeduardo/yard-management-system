@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/register"];
 
 export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.includes(pathname);
@@ -48,8 +48,14 @@ export async function updateSession(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && !isPublicPath(request.nextUrl.pathname)) {
+  const isPublic = isPublicPath(request.nextUrl.pathname);
+
+  if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (user && isPublic) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;
