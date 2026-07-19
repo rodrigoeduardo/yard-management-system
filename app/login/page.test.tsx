@@ -25,4 +25,11 @@ describe("LoginPage", () => {
     expect(password).toHaveAttribute("placeholder", "••••••••");
     expect(password.dataset.slot).toBe("input");
   });
+
+  it("links to the register page", async () => {
+    await renderLoginPage();
+
+    const link = screen.getByRole("link", { name: "Criar conta" });
+    expect(link).toHaveAttribute("href", "/register");
+  });
 });
