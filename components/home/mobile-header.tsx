@@ -1,13 +1,8 @@
-import { Moon } from "lucide-react";
-
 /**
- * Mobile-only top header for the dashboard: logo + app name/subtitle on
- * the left, a settings-style icon button on the right. Hidden at `md:`
- * and up, where the top-nav (`components/nav/top-nav.tsx`) already shows
- * the logo and the desktop greeting block takes its place instead.
- *
- * The icon button is a visual placeholder matching the design frame —
- * it has no behavior yet (no settings/theme feature exists).
+ * Mobile-only top header for the dashboard: logo + app name/subtitle.
+ * Hidden at `md:` and up, where the top-nav (`components/nav/top-nav.tsx`)
+ * already shows the logo and the desktop greeting block takes its place
+ * instead.
  */
 export function MobileHomeHeader() {
   return (
@@ -28,13 +23,6 @@ export function MobileHomeHeader() {
           </span>
         </span>
       </div>
-      <button
-        type="button"
-        aria-label="Configurações"
-        className="flex size-[38px] items-center justify-center rounded-[12px] border border-border bg-card text-muted-foreground"
-      >
-        <Moon className="size-[19px]" strokeWidth={1.8} />
-      </button>
     </div>
   );
 }
