@@ -56,4 +56,11 @@ describe("RegisterPage", () => {
       "Conta criada! Confirme seu e-mail para poder entrar.",
     );
   });
+
+  it("links to the login page", async () => {
+    await renderRegisterPage();
+
+    const link = screen.getByRole("link", { name: "Faça login." });
+    expect(link).toHaveAttribute("href", "/login");
+  });
 });
