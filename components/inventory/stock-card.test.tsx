@@ -7,10 +7,10 @@ const OPEN_ROW: StockRow = {
   id: "1",
   notaFiscal: "145.812",
   entryDate: "01/01/2026",
-  nfWeight: "1.000,00 kg",
+  nfWeight: "1000",
   material: "Sucata",
   itemCount: 4,
-  remainingWeight: "250,00 kg",
+  remainingWeight: "250",
   finished: false,
 };
 
@@ -19,7 +19,7 @@ const FINISHED_ROW: StockRow = {
   id: "2",
   notaFiscal: "145.813",
   itemCount: 0,
-  remainingWeight: "0,00 kg",
+  remainingWeight: "0",
   finished: true,
 };
 
@@ -29,10 +29,10 @@ describe("StockCard", () => {
 
     expect(screen.getByText("NF 145.812")).toBeInTheDocument();
     expect(screen.getByText("01/01/2026")).toBeInTheDocument();
-    expect(screen.getByText("1.000,00 kg")).toBeInTheDocument();
+    expect(screen.getByText("1000 kg")).toBeInTheDocument();
     expect(screen.getByText("Sucata")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("250,00 kg")).toBeInTheDocument();
+    expect(screen.getByText("250 kg")).toBeInTheDocument();
   });
 
   it("calls onClick when the card is activated", () => {
@@ -70,10 +70,10 @@ describe("StockCard", () => {
     render(<StockCard row={FINISHED_ROW} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0,00 kg").className).toMatch(
+    expect(screen.getByText("0 kg").className).toMatch(
       /\btext-success-foreground\b/,
     );
-    expect(screen.getByText("1.000,00 kg").className).not.toMatch(
+    expect(screen.getByText("1000 kg").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });

@@ -6,10 +6,10 @@ const OPEN_ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
   entryDate: "01/01/2026",
-  nfWeight: "1.000,00 kg",
+  nfWeight: "1000",
   material: "Sucata",
   itemCount: 4,
-  remainingWeight: "250,00 kg",
+  remainingWeight: "250",
   finished: false,
 };
 
@@ -17,10 +17,10 @@ const FINISHED_ROW: StockRow = {
   id: "2",
   notaFiscal: "NF-002",
   entryDate: "02/01/2026",
-  nfWeight: "500,00 kg",
+  nfWeight: "500",
   material: "Papel",
   itemCount: 0,
-  remainingWeight: "0,00 kg",
+  remainingWeight: "0",
   finished: true,
 };
 
@@ -28,9 +28,9 @@ describe("StockTable", () => {
   it("renders numeric columns with the mono font", () => {
     render(<StockTable rows={[OPEN_ROW]} />);
 
-    expect(screen.getByText("1.000,00 kg").className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("1000 kg").className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("4").className).toMatch(/\bfont-mono\b/);
-    expect(screen.getByText("250,00 kg").className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("250 kg").className).toMatch(/\bfont-mono\b/);
   });
 
   it("renders uppercase, letter-spaced column headers", () => {
@@ -61,10 +61,10 @@ describe("StockTable", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0,00 kg").className).toMatch(
+    expect(screen.getByText("0 kg").className).toMatch(
       /\btext-success-foreground\b/,
     );
-    expect(screen.getByText("500,00 kg").className).not.toMatch(
+    expect(screen.getByText("500 kg").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });
