@@ -102,6 +102,44 @@ describe("LastMovementCard", () => {
     expect(rows[0]).toHaveTextContent("17/07/2026");
   });
 
+  it("renders the removal row with date and time, matching the load row format", () => {
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-16T15:45:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    // 2026-07-16 15:45Z is 12:45 in America/Sao_Paulo (UTC-03:00).
+    expect(rows[0]).toHaveTextContent("16/07/2026 · 12:45");
+  });
+
+  it("renders a sensible time for pre-existing removals with a midnight-only timestamp", () => {
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-16T00:00:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    // Midnight UTC is 21:00 the previous day in America/Sao_Paulo.
+    expect(rows[0]).toHaveTextContent("15/07/2026 · 21:00");
+  });
+
   it("renders the NF using the accent-foreground token, matching the design's mono NF color", () => {
     render(
       <LastMovementCard
