@@ -40,9 +40,9 @@ describe("design tokens (globals.css)", () => {
     expect(css).toMatch(/body\s*\{\s*@apply bg-background text-foreground;/);
   });
 
-  it("does not add a new .dark theme", () => {
-    const darkBlockCount = (css.match(/\.dark\s*\{/g) ?? []).length;
-    expect(darkBlockCount).toBeLessThanOrEqual(1);
+  it("has no dark-theme remnants: no .dark token block, no dark variant (issue #123)", () => {
+    expect(css).not.toMatch(/\.dark\s*\{/);
+    expect(css).not.toMatch(/@custom-variant dark/);
   });
 
   it("defines @page margins and forces a white background for print (issue #95)", () => {
