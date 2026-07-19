@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import type { RemovalQueryState } from "@/lib/inventory/removal-query";
 import type { StockQueryState } from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
 import { RemovalSection } from "./removal-section";
@@ -27,11 +28,15 @@ export function InventoryView({
   stockTotal,
   stockQuery,
   removalRows,
+  removalTotal,
+  removalQuery,
 }: {
   stockRows: StockRow[];
   stockTotal: number;
   stockQuery: StockQueryState;
   removalRows: RemovalLogRow[];
+  removalTotal: number;
+  removalQuery: RemovalQueryState;
 }) {
   const [segment, setSegment] = useState<Segment>("current");
 
@@ -74,7 +79,11 @@ export function InventoryView({
             remoções mais recentes no topo
           </span>
         </div>
-        <RemovalSection rows={removalRows} />
+        <RemovalSection
+          rows={removalRows}
+          total={removalTotal}
+          query={removalQuery}
+        />
       </div>
     </div>
   );
