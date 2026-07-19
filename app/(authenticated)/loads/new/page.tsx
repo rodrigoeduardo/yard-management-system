@@ -150,7 +150,7 @@ export default function NewLoadPage() {
           <Card
             data-testid="load-form-dados-panel"
             className={cn(
-              "flex-col gap-5 border-transparent bg-transparent p-0 md:flex md:rounded-card md:border-border md:bg-card md:p-[22px]",
+              "w-full min-w-0 flex-col gap-5 border-transparent bg-transparent p-0 md:flex md:rounded-card md:border-border md:bg-card md:p-[22px]",
               step === "dados" ? "flex" : "hidden",
             )}
           >
@@ -181,14 +181,14 @@ export default function NewLoadPage() {
               )}
             </div>
 
-            <div className="flex min-w-0 flex-col gap-1.5">
+            <div className="flex w-full min-w-0 flex-col gap-1.5">
               <label
                 htmlFor="entryDateTime"
                 className="text-sm font-medium text-foreground"
               >
                 Data e hora de entrada
               </label>
-              <div className="relative">
+              <div className="relative w-full min-w-0 overflow-hidden rounded-input">
                 <Input
                   id="entryDateTime"
                   type="datetime-local"
@@ -196,7 +196,7 @@ export default function NewLoadPage() {
                   value={entryDateTime}
                   onChange={(e) => setEntryDateTime(e.target.value)}
                   required
-                  className="h-12 px-3.5 pr-11 text-[15px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0 md:h-11 md:text-sm"
+                  className="h-12 min-w-0 overflow-hidden px-3.5 pr-11 text-[15px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0 md:h-11 md:text-sm"
                 />
                 <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
               </div>

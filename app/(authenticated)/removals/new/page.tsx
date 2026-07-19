@@ -222,26 +222,29 @@ export default function NewRemovalPage() {
         <div className="flex flex-col gap-5 md:grid md:grid-cols-[420px_1fr] md:items-start md:gap-5">
           {/* Left column: fixed removal data + scanner + toggle */}
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+            <div className="flex w-full min-w-0 flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
               <SectionLabel className="hidden font-bold text-foreground/80 md:block">
                 Dados da Remoção
               </SectionLabel>
 
-              <div className="flex min-w-0 flex-col gap-1.5">
+              <div className="flex w-full min-w-0 flex-col gap-1.5">
                 <label
                   htmlFor="exitDateTime"
                   className="text-sm font-medium text-foreground"
                 >
                   Data e hora de saída
                 </label>
-                <Input
-                  id="exitDateTime"
-                  type="datetime-local"
-                  mono
-                  value={exitDateTime}
-                  onChange={(e) => setExitDateTime(e.target.value)}
-                  required
-                />
+                <div className="w-full min-w-0 overflow-hidden rounded-input">
+                  <Input
+                    id="exitDateTime"
+                    type="datetime-local"
+                    mono
+                    value={exitDateTime}
+                    onChange={(e) => setExitDateTime(e.target.value)}
+                    required
+                    className="min-w-0"
+                  />
+                </div>
                 {fieldErrors.exitDateTime && (
                   <p role="alert" className="text-sm text-destructive">
                     {fieldErrors.exitDateTime}
