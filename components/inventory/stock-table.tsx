@@ -1,5 +1,3 @@
-"use client";
-
 import {
   type ColumnDef,
   flexRender,
@@ -37,9 +35,9 @@ const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
 const COLUMN_WIDTHS = [
   "w-[120px]",
-  "w-[140px]",
-  "w-[150px]",
-  "",
+  "w-[200px]",
+  "w-[120px]",
+  "w-[200px]",
   "w-[130px]",
   "w-[140px]",
 ];
@@ -62,7 +60,11 @@ const columns: ColumnDef<StockRow>[] = [
     accessorKey: "notaFiscal",
     header: "NF",
     cell: ({ row }) => (
-      <span className="font-mono font-bold">{row.original.notaFiscal}</span>
+      <span className="flex w-full min-w-4 items-center gap-2.5">
+        <span className="font-mono font-bold truncate" title={row.original.notaFiscal}>
+          {row.original.notaFiscal}
+        </span>
+      </span>
     ),
   },
   {
@@ -83,7 +85,7 @@ const columns: ColumnDef<StockRow>[] = [
     accessorKey: "material",
     header: "Material",
     cell: ({ row }) => (
-      <span className="flex w-full min-w-0 items-center gap-2.5 font-semibold">
+      <span className="flex w-full min-w-4 items-center gap-2.5 font-semibold">
         <span className="truncate" title={row.original.material}>
           {row.original.material}
         </span>

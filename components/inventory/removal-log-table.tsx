@@ -1,5 +1,3 @@
-"use client";
-
 import {
   type ColumnDef,
   flexRender,
@@ -32,7 +30,7 @@ const HEADER_CLASS =
 
 const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
-const COLUMN_WIDTHS = ["w-[150px]", "", "w-[300px]", "w-[110px]", "w-[170px]"];
+const COLUMN_WIDTHS = ["w-[200px]", "w-[200px]", "w-[300px]", "w-[110px]", "w-[170px]"];
 
 const columns: ColumnDef<RemovalLogRow>[] = [
   {
