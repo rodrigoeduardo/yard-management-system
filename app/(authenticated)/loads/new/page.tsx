@@ -391,30 +391,34 @@ export default function NewLoadPage() {
               ))}
             </div>
 
-            <div className="hidden items-center gap-6 border-t border-border pt-4 md:flex">
-              <div className="flex flex-col gap-0.5">
+            <div className="hidden flex-col gap-4 border-t border-border pt-4 md:flex">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11.5px] text-muted-foreground">
+                      Peso Restante (soma dos itens)
+                    </span>
+                    <span className="font-mono text-xl font-bold text-foreground">
+                      {remainingWeight} kg
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11.5px] text-muted-foreground">
+                      Peso da Nota Fiscal
+                    </span>
+                    <span className="font-mono text-xl font-bold text-muted-foreground">
+                      {nfWeight || 0} kg
+                    </span>
+                  </div>
+                </div>
                 <span className="text-[11.5px] text-muted-foreground">
-                  Peso Restante (soma dos itens)
-                </span>
-                <span className="font-mono text-xl font-bold text-foreground">
-                  {remainingWeight} kg
+                  A soma não precisa ser igual ao peso da NF.
                 </span>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[11.5px] text-muted-foreground">
-                  Peso da Nota Fiscal
-                </span>
-                <span className="font-mono text-xl font-bold text-muted-foreground">
-                  {nfWeight || 0} kg
-                </span>
-              </div>
-              <span className="max-w-[220px] text-[11.5px] text-muted-foreground">
-                A soma não precisa ser igual ao peso da NF.
-              </span>
               <Button
                 type="submit"
                 disabled={isPending || !allWeightsEntered}
-                className="ml-auto h-12 rounded-[13px] px-6 text-[14.5px]"
+                className="h-12 w-full rounded-[13px] px-6 text-[14.5px]"
               >
                 Criar carga e gerar {itemCount} QR Codes
               </Button>
