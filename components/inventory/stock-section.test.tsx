@@ -72,7 +72,7 @@ describe("StockSection", () => {
 
     const tableWrapper = occurrences[1].closest(
       '[data-slot="table-container"]',
-    )?.parentElement;
+    )?.parentElement?.parentElement;
     expect(tableWrapper?.className).toMatch(/\bhidden\b/);
     expect(tableWrapper?.className).toMatch(/\bmd:block\b/);
   });

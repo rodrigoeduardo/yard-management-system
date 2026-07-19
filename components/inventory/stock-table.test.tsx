@@ -68,4 +68,28 @@ describe("StockTable", () => {
       /\btext-success-foreground\b/,
     );
   });
+
+  it("truncates a long material name with an ellipsis and exposes the full value via title", () => {
+    const longMaterial =
+      "Sucata de Alumínio Estanhado com Revestimento Especial de Alta Resistência";
+    render(
+      <StockTable
+        rows={[{ ...OPEN_ROW, material: longMaterial }]}
+      />,
+    );
+
+    const materialText = screen.getByText(longMaterial);
+    expect(materialText.className).toMatch(/\btruncate\b/);
+    expect(materialText.getAttribute("title")).toBe(longMaterial);
+  });
+
+  it("wraps the table in a rounded, bordered card matching the design", () => {
+    render(<StockTable rows={[OPEN_ROW]} />);
+
+    const card = screen
+      .getByText("NF")
+      .closest('[data-slot="table-container"]')?.parentElement;
+    expect(card?.getAttribute("data-slot")).toBe("card");
+    expect(card?.className).toMatch(/\boverflow-hidden\b/);
+  });
 });

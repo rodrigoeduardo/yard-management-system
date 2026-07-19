@@ -7,6 +7,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -30,7 +31,9 @@ export type StockRow = {
 };
 
 const HEADER_CLASS =
-  "h-auto py-3 text-[11px] font-bold tracking-wide text-muted-foreground uppercase";
+  "h-auto px-5 py-3 text-[11px] font-bold tracking-[0.04em] text-muted-foreground uppercase";
+
+const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
 const COLUMN_WIDTHS = [
   "w-[120px]",
@@ -80,9 +83,15 @@ const columns: ColumnDef<StockRow>[] = [
     accessorKey: "material",
     header: "Material",
     cell: ({ row }) => (
-      <span className="flex items-center gap-2.5 font-semibold">
-        {row.original.material}
-        {row.original.finished && <Badge variant="success">Finalizada</Badge>}
+      <span className="flex w-full min-w-0 items-center gap-2.5 font-semibold">
+        <span className="truncate" title={row.original.material}>
+          {row.original.material}
+        </span>
+        {row.original.finished && (
+          <span className="shrink-0">
+            <Badge variant="success">Finalizada</Badge>
+          </span>
+        )}
       </span>
     ),
   },
@@ -116,55 +125,57 @@ export function StockTable({
   });
 
   return (
-    <Table className="table-fixed">
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header, index) => (
-              <TableHead
-                key={header.id}
-                className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
-              >
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext(),
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow
-            key={row.id}
-            data-finished={row.original.finished || undefined}
-            role={onRowClick ? "button" : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-            onKeyDown={
-              onRowClick
-                ? (event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onRowClick(row.original);
+    <Card className="overflow-hidden">
+      <Table className="table-fixed">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header, index) => (
+                <TableHead
+                  key={header.id}
+                  className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-finished={row.original.finished || undefined}
+              role={onRowClick ? "button" : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+              onKeyDown={
+                onRowClick
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowClick(row.original);
+                      }
                     }
-                  }
-                : undefined
-            }
-            className={cn(
-              onRowClick && "cursor-pointer",
-              row.original.finished && "bg-success/10 hover:bg-success/10",
-            )}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id} className="text-[13.5px]">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                  : undefined
+              }
+              className={cn(
+                onRowClick && "cursor-pointer",
+                row.original.finished && "bg-success/10 hover:bg-success/10",
+              )}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} className={CELL_CLASS}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }
