@@ -6,7 +6,7 @@ const ROW: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
-  totalRemovedWeight: "100,00 kg",
+  totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
 };
@@ -19,7 +19,7 @@ describe("RemovalLogTable", () => {
     expect(screen.getByText("João")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("100,00 kg")).toBeInTheDocument();
+    expect(screen.getByText("100 kg")).toBeInTheDocument();
   });
 
   it("renders numeric columns with the mono font, the total weight in accent color", () => {
@@ -27,7 +27,7 @@ describe("RemovalLogTable", () => {
 
     expect(screen.getByText("3").className).toMatch(/\bfont-mono\b/);
 
-    const weight = screen.getByText("100,00 kg");
+    const weight = screen.getByText("100 kg");
     expect(weight.className).toMatch(/\bfont-mono\b/);
     expect(weight.className).toMatch(/\btext-accent-foreground\b/);
   });

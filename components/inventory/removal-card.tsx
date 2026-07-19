@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { formatWeightKg } from "@/lib/format/weight";
 import { cn } from "@/lib/utils";
 import type { RemovalLogRow } from "./removal-log-table";
 
@@ -37,7 +38,7 @@ export function RemovalCard({
         </span>
         <span className="text-[13px] text-muted-foreground">{row.driver}</span>
         <span className="ml-auto font-mono text-[14px] font-bold text-accent-foreground">
-          {row.totalRemovedWeight}
+          {formatWeightKg(row.totalRemovedWeight)}
         </span>
       </div>
 

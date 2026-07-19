@@ -6,7 +6,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -15,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatWeightKg } from "@/lib/format/weight";
+import { cn } from "@/lib/utils";
 
 export type RemovalLogRow = {
   id: string;
@@ -62,7 +63,7 @@ const columns: ColumnDef<RemovalLogRow>[] = [
     header: "Peso Total Removido",
     cell: ({ row }) => (
       <span className="font-mono font-bold text-accent-foreground">
-        {row.original.totalRemovedWeight}
+        {formatWeightKg(row.original.totalRemovedWeight)}
       </span>
     ),
   },
