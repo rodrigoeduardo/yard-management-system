@@ -1,7 +1,7 @@
 "use client";
 
+import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,15 @@ import {
   countActiveStockFilters,
   type StockQueryState,
 } from "@/lib/inventory/stock-query";
+import { ControlTriggerButton } from "./control-trigger-button";
 import { StockFilterFields, type StockFilterValues } from "./stock-filter-fields";
 
 /**
- * Filter panel trigger for the stock section: a modal on mobile, an inline
- * collapse/expand panel on desktop (md:) — mirrors `StockOrderControl`. The
- * trigger button shows a badge with the number of active filters.
+ * Filter trigger for the stock section: a fixed-size icon button beside the
+ * search bar that opens a modal at every breakpoint (mirrors
+ * `StockOrderControl`) — replaces the old text-label trigger and the
+ * desktop-only inline collapse panel. The trigger shows a badge overlay
+ * with the number of active filters.
  */
 export function StockFilterControl({
   query,
@@ -28,60 +31,39 @@ export function StockFilterControl({
   onApply: (filters: StockFilterValues) => void;
   onClear: () => void;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const activeCount = countActiveStockFilters(query);
-  const label = activeCount > 0 ? `Filtros (${activeCount})` : "Filtros";
 
-  function handleMobileApply(filters: StockFilterValues) {
+  function handleApply(filters: StockFilterValues) {
     onApply(filters);
-    setMobileOpen(false);
+    setOpen(false);
   }
 
-  function handleMobileClear() {
+  function handleClear() {
     onClear();
-    setMobileOpen(false);
+    setOpen(false);
   }
 
   return (
     <>
-      <div className="md:hidden">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setMobileOpen(true)}
-        >
-          {label}
-        </Button>
-        <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Filtrar estoque</DialogTitle>
-            </DialogHeader>
-            <StockFilterFields
-              query={query}
-              onApply={handleMobileApply}
-              onClear={handleMobileClear}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="hidden md:block">
-        <Button
-          type="button"
-          variant="outline"
-          aria-expanded={desktopOpen}
-          onClick={() => setDesktopOpen((current) => !current)}
-        >
-          {label}
-        </Button>
-        {desktopOpen && (
-          <div className="mt-2 rounded-lg border bg-card p-3 shadow-sm">
-            <StockFilterFields query={query} onApply={onApply} onClear={onClear} />
-          </div>
-        )}
-      </div>
+      <ControlTriggerButton
+        icon={SlidersHorizontal}
+        label="Filtros"
+        count={activeCount || undefined}
+        onClick={() => setOpen(true)}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Filtrar estoque</DialogTitle>
+          </DialogHeader>
+          <StockFilterFields
+            query={query}
+            onApply={handleApply}
+            onClear={handleClear}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
