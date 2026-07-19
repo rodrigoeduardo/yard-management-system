@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatWeightKg } from "@/lib/format/weight";
 import { cn } from "@/lib/utils";
 
 export type StockRow = {
@@ -71,7 +72,9 @@ const columns: ColumnDef<StockRow>[] = [
   {
     accessorKey: "nfWeight",
     header: "Peso da NF",
-    cell: ({ row }) => <span className="font-mono">{row.original.nfWeight}</span>,
+    cell: ({ row }) => (
+      <span className="font-mono">{formatWeightKg(row.original.nfWeight)}</span>
+    ),
   },
   {
     accessorKey: "material",
@@ -92,7 +95,10 @@ const columns: ColumnDef<StockRow>[] = [
     accessorKey: "remainingWeight",
     header: "Peso Restante",
     cell: ({ row }) =>
-      numericCell(row.original.remainingWeight, row.original.finished),
+      numericCell(
+        formatWeightKg(row.original.remainingWeight),
+        row.original.finished,
+      ),
   },
 ];
 

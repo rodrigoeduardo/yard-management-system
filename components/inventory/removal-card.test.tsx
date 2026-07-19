@@ -7,7 +7,7 @@ const ROW: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
-  totalRemovedWeight: "100,00 kg",
+  totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
 };
@@ -19,7 +19,7 @@ describe("RemovalCard", () => {
     expect(screen.getByText("02/01/2026")).toBeInTheDocument();
     expect(screen.getByText("João")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
-    expect(screen.getByText("100,00 kg")).toBeInTheDocument();
+    expect(screen.getByText("100 kg")).toBeInTheDocument();
     expect(screen.getByText(/3 itens removidos/)).toBeInTheDocument();
   });
 
@@ -28,7 +28,7 @@ describe("RemovalCard", () => {
 
     expect(screen.getByText("02/01/2026").className).toMatch(/\bfont-mono\b/);
 
-    const weight = screen.getByText("100,00 kg");
+    const weight = screen.getByText("100 kg");
     expect(weight.className).toMatch(/\bfont-mono\b/);
     expect(weight.className).toMatch(/\btext-accent-foreground\b/);
   });

@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { formatWeightKg } from "@/lib/format/weight";
 import { cn } from "@/lib/utils";
 import type { StockRow } from "./stock-table";
 
@@ -74,7 +75,11 @@ export function StockCard({
       </div>
 
       <dl className="grid grid-cols-3 gap-2">
-        <MetricField label="Peso da NF" value={row.nfWeight} highlight={false} />
+        <MetricField
+          label="Peso da NF"
+          value={formatWeightKg(row.nfWeight)}
+          highlight={false}
+        />
         <MetricField
           label="Qtd. de Itens"
           value={row.itemCount}
@@ -82,7 +87,7 @@ export function StockCard({
         />
         <MetricField
           label="Peso Restante"
-          value={row.remainingWeight}
+          value={formatWeightKg(row.remainingWeight)}
           highlight={row.finished}
         />
       </dl>
