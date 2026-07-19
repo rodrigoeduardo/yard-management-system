@@ -62,13 +62,7 @@ export function StockCard({
         <span className="font-mono text-[15px] font-bold text-foreground">
           NF {row.notaFiscal}
         </span>
-        {row.finished ? (
-          <Badge variant="success">Finalizada</Badge>
-        ) : (
-          <span className="rounded-md bg-accent px-2 py-[3px] text-[11.5px] font-semibold text-accent-foreground">
-            {row.material}
-          </span>
-        )}
+        {row.finished && <Badge variant="success">Finalizada</Badge>}
         <span className="ml-auto text-[12px] text-muted-foreground">
           {row.entryDate}
         </span>
@@ -92,11 +86,15 @@ export function StockCard({
         />
       </dl>
 
-      {row.finished && (
-        <span className="text-[11px] text-success-foreground">
-          Material: {row.material} · estoque desta carga finalizado
-        </span>
-      )}
+      <span
+        className={cn(
+          "text-[11px] text-muted-foreground",
+          row.finished && "text-success-foreground",
+        )}
+      >
+        Material: {row.material}
+        {row.finished && " · estoque desta carga finalizado"}
+      </span>
     </Card>
   );
 }

@@ -30,7 +30,7 @@ describe("StockCard", () => {
     expect(screen.getByText("NF 145.812")).toBeInTheDocument();
     expect(screen.getByText("01/01/2026")).toBeInTheDocument();
     expect(screen.getByText("1000 kg")).toBeInTheDocument();
-    expect(screen.getByText("Sucata")).toBeInTheDocument();
+    expect(screen.getByText("Material: Sucata")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("250 kg")).toBeInTheDocument();
   });
@@ -49,6 +49,7 @@ describe("StockCard", () => {
 
     expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
     expect(screen.queryByText(/estoque desta carga finalizado/)).not.toBeInTheDocument();
+    expect(screen.getByText("Material: Sucata")).toBeInTheDocument();
   });
 
   it("shows a Finalizada badge, green border tint, and a footer note for a finished load", () => {
