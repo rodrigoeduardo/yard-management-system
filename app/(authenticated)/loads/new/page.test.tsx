@@ -302,6 +302,20 @@ describe("NewLoadPage", () => {
     expect(item1Group?.contains(error)).toBe(false);
   });
 
+  it("lets the date/time grid cells shrink below their content's intrinsic width", () => {
+    render(<NewLoadPage />);
+
+    const dateCell = screen.getByLabelText("Data de Entrada").closest(
+      "div.flex.flex-col",
+    );
+    const timeCell = screen.getByLabelText("Hora de Entrada").closest(
+      "div.flex.flex-col",
+    );
+
+    expect(dateCell?.className).toMatch(/\bmin-w-0\b/);
+    expect(timeCell?.className).toMatch(/\bmin-w-0\b/);
+  });
+
   it("shows an NF context chip with the NF number and material above the weights grid", () => {
     render(<NewLoadPage />);
     fillDadosAndContinue();

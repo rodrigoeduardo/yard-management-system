@@ -186,7 +186,7 @@ export default function NewLoadPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <label
                   htmlFor="entryDate"
                   className="text-sm font-medium text-foreground"
@@ -212,7 +212,7 @@ export default function NewLoadPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <label
                   htmlFor="entryTime"
                   className="text-sm font-medium text-foreground"
