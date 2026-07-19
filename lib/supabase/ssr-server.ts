@@ -17,6 +17,51 @@ export interface SsrCookieStore {
   ) => void;
 }
 
+interface CookieToSet {
+  name: string;
+  value: string;
+  options?: Record<string, unknown>;
+}
+
+/**
+ * Writes refreshed session cookies, tolerating a read-only cookie store.
+ *
+ * This client is used directly from plain Server Components
+ * (app/(authenticated)/layout.tsx, app/(authenticated)/page.tsx) via
+ * `supabase.auth.getUser()`, which can trigger a token refresh. Next.js only
+ * allows cookie writes from Server Actions, Route Handlers, and middleware,
+ * so `cookieStore.set` throws when called from a Server Component. Left
+ * unhandled, that throw happens inside @supabase/ssr's fire-and-forget
+ * onAuthStateChange handler: the refresh still succeeds against Supabase
+ * Auth (rotating the refresh token), but the new token pair is never
+ * persisted to the browser's cookies. The browser then keeps the old,
+ * already-used refresh token, so the *next* refresh attempt — in
+ * lib/supabase/middleware.ts, which can write cookies — is rejected as
+ * reuse and Supabase revokes the whole session. That is the root cause of
+ * a premature logout after an idle period long enough for the access
+ * token to expire: an invisible failed refresh here, followed by a real
+ * logout on the next request.
+ *
+ * Swallowing the error is safe (and matches the official @supabase/ssr
+ * Next.js pattern) because lib/supabase/middleware.ts already refreshes
+ * and persists the session on every matched request before any Server
+ * Component runs.
+ */
+export function writeSsrCookies(
+  cookieStore: Pick<SsrCookieStore, "set">,
+  cookiesToSet: CookieToSet[],
+): void {
+  for (const { name, value, options } of cookiesToSet) {
+    try {
+      cookieStore.set(name, value, options);
+    } catch {
+      // See doc comment above — expected when called from a Server
+      // Component; middleware.ts is the authoritative place that persists
+      // refreshed sessions.
+    }
+  }
+}
+
 /**
  * Cookie-backed client for Server Components/Actions/Route Handlers.
  * Uses the publishable key so all queries run through RLS, same as
@@ -30,11 +75,7 @@ export function createSupabaseSsrServerClient(cookieStore: SsrCookieStore) {
   return createServerClient(url, publishableKey, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: (cookiesToSet) => {
-        for (const { name, value, options } of cookiesToSet) {
-          cookieStore.set(name, value, options);
-        }
-      },
+      setAll: (cookiesToSet) => writeSsrCookies(cookieStore, cookiesToSet),
     },
   });
 }
