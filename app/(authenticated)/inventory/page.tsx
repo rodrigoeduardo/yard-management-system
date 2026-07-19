@@ -8,6 +8,8 @@ import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
+import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +49,12 @@ export default async function InventoryPage({
   }));
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 p-4 md:gap-8 md:p-8">
+    <main
+      className={cn(
+        "flex min-h-screen flex-col gap-6 p-4 md:gap-8 md:py-8",
+        PAGE_CONTAINER_DESKTOP_CLASS,
+      )}
+    >
       <h1 className="text-2xl font-semibold">Estoque</h1>
       <InventoryView
         stockRows={stockRows}

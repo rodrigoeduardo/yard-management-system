@@ -34,6 +34,8 @@ import {
 } from "@/lib/removals/scan-list";
 import { checkItemStatus } from "@/lib/actions/item-status";
 import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payload";
+import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
+import { cn } from "@/lib/utils";
 
 function itemsLabel(count: number): string {
   return count === 1 ? "item" : "itens";
@@ -195,7 +197,12 @@ export default function NewRemovalPage() {
       : "0";
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-6 pb-44 md:mx-auto md:w-full md:max-w-6xl md:px-8 md:pb-10">
+    <div
+      className={cn(
+        "flex flex-col gap-6 px-4 py-6 pb-44 md:pb-10",
+        PAGE_CONTAINER_DESKTOP_CLASS,
+      )}
+    >
       {!receipt && (
         <>
           <PageBackHeader title="Nova Remoção" href="/" />
