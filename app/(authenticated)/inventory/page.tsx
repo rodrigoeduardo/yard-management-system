@@ -2,9 +2,10 @@ import { InventoryView } from "@/components/inventory/inventory-view";
 import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
 import type { StockRow } from "@/components/inventory/stock-table";
 import { listStockPage } from "@/lib/db/loads";
-import { listRemovalNfs, listRemovalsMostRecentFirst } from "@/lib/db/removal-log";
+import { listRemovalNfs, listRemovalsPage } from "@/lib/db/removal-log";
 import { formatEntryDateTime } from "@/lib/format/datetime";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
+import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
 
@@ -30,26 +31,19 @@ export default async function InventoryPage({
     finished: isLoadFinished(load),
   }));
 
-  const [removalList, nfRows] = await Promise.all([
-    listRemovalsMostRecentFirst(),
-    listRemovalNfs(),
-  ]);
-  const nfsByRemoval = groupNfsByRemoval(nfRows);
-  const itemCountByRemoval = new Map<string, number>();
-  for (const { removalId } of nfRows) {
-    itemCountByRemoval.set(
-      removalId,
-      (itemCountByRemoval.get(removalId) ?? 0) + 1,
-    );
-  }
+  const removalQuery = parseRemovalSearchParams(resolvedSearchParams);
+  const removalPage = await listRemovalsPage(removalQuery);
 
-  const removalRows: RemovalLogRow[] = removalList.map((removal) => ({
+  const nfRows = await listRemovalNfs(removalPage.rows.map((r) => r.id));
+  const nfsByRemoval = groupNfsByRemoval(nfRows);
+
+  const removalRows: RemovalLogRow[] = removalPage.rows.map((removal) => ({
     id: removal.id,
     exitDate: formatEntryDateTime(removal.exitDate),
     driver: removal.driver,
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais: (nfsByRemoval.get(removal.id) ?? []).join(", "),
-    itemCount: itemCountByRemoval.get(removal.id) ?? 0,
+    itemCount: removal.itemCount,
   }));
 
   return (
@@ -60,6 +54,8 @@ export default async function InventoryPage({
         stockTotal={stockPage.total}
         stockQuery={stockQuery}
         removalRows={removalRows}
+        removalTotal={removalPage.total}
+        removalQuery={removalQuery}
       />
     </main>
   );
