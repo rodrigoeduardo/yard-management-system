@@ -2,6 +2,15 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Keep the `dark:` variant declared but inert: no `.dark` class is ever
+   applied (no theme system exists, issue #123), so this matches an
+   ancestor selector that can never occur. Without this declaration,
+   Tailwind v4 falls back to `dark:` triggering on the OS-level
+   `prefers-color-scheme: dark` media query, which would silently enable
+   partial dark styling on shared components (e.g. button.tsx) for users
+   with OS dark mode on — a real regression, not just dead code. */
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
