@@ -1,7 +1,7 @@
 "use client";
 
+import { SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +12,18 @@ import {
   countActiveRemovalFilters,
   type RemovalQueryState,
 } from "@/lib/inventory/removal-query";
+import { ControlTriggerButton } from "./control-trigger-button";
 import {
   RemovalFilterFields,
   type RemovalFilterValues,
 } from "./removal-filter-fields";
 
 /**
- * Filter panel trigger for the removals section: a modal on mobile, an
- * inline collapse/expand panel on desktop (md:) — mirrors
- * `RemovalOrderControl`. The trigger button shows a badge with the number
- * of active filters. Mirrors `StockFilterControl`.
+ * Filter trigger for the removals section: a fixed-size icon button beside
+ * the search bar that opens a modal at every breakpoint (mirrors
+ * `RemovalOrderControl`) — replaces the old text-label trigger and the
+ * desktop-only inline collapse panel. Mirrors `StockFilterControl`. The
+ * trigger shows a badge overlay with the number of active filters.
  */
 export function RemovalFilterControl({
   query,
@@ -32,64 +34,39 @@ export function RemovalFilterControl({
   onApply: (filters: RemovalFilterValues) => void;
   onClear: () => void;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const activeCount = countActiveRemovalFilters(query);
-  const label = activeCount > 0 ? `Filtros (${activeCount})` : "Filtros";
 
-  function handleMobileApply(filters: RemovalFilterValues) {
+  function handleApply(filters: RemovalFilterValues) {
     onApply(filters);
-    setMobileOpen(false);
+    setOpen(false);
   }
 
-  function handleMobileClear() {
+  function handleClear() {
     onClear();
-    setMobileOpen(false);
+    setOpen(false);
   }
 
   return (
     <>
-      <div className="md:hidden">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setMobileOpen(true)}
-        >
-          {label}
-        </Button>
-        <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Filtrar remoções</DialogTitle>
-            </DialogHeader>
-            <RemovalFilterFields
-              query={query}
-              onApply={handleMobileApply}
-              onClear={handleMobileClear}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="hidden md:block">
-        <Button
-          type="button"
-          variant="outline"
-          aria-expanded={desktopOpen}
-          onClick={() => setDesktopOpen((current) => !current)}
-        >
-          {label}
-        </Button>
-        {desktopOpen && (
-          <div className="mt-2 rounded-lg border bg-card p-3 shadow-sm">
-            <RemovalFilterFields
-              query={query}
-              onApply={onApply}
-              onClear={onClear}
-            />
-          </div>
-        )}
-      </div>
+      <ControlTriggerButton
+        icon={SlidersHorizontal}
+        label="Filtros"
+        count={activeCount || undefined}
+        onClick={() => setOpen(true)}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Filtrar remoções</DialogTitle>
+          </DialogHeader>
+          <RemovalFilterFields
+            query={query}
+            onApply={handleApply}
+            onClear={handleClear}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
