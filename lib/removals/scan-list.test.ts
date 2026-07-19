@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addScannedItem,
+  createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
   notaFiscalOf,
@@ -85,6 +86,60 @@ describe("notaFiscalOf", () => {
     };
 
     expect(notaFiscalOf(legacyItem)).toBe("NF-100");
+  });
+});
+
+describe("createScanCooldown", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("is inactive before any scan has started the cooldown", () => {
+    const cooldown = createScanCooldown(2000);
+
+    expect(cooldown.isActive("a")).toBe(false);
+  });
+
+  it("becomes active for the accepted token for the configured duration", () => {
+    const cooldown = createScanCooldown(2000);
+
+    cooldown.start("a");
+    expect(cooldown.isActive("a")).toBe(true);
+
+    vi.advanceTimersByTime(1999);
+    expect(cooldown.isActive("a")).toBe(true);
+  });
+
+  it("expires once the duration elapses, allowing the same token to be read again", () => {
+    const cooldown = createScanCooldown(2000);
+
+    cooldown.start("a");
+    vi.advanceTimersByTime(2000);
+
+    expect(cooldown.isActive("a")).toBe(false);
+  });
+
+  it("restarts the window from scratch on each call to start", () => {
+    const cooldown = createScanCooldown(2000);
+
+    cooldown.start("a");
+    vi.advanceTimersByTime(1500);
+    cooldown.start("a");
+    vi.advanceTimersByTime(1500);
+
+    expect(cooldown.isActive("a")).toBe(true);
+  });
+
+  it("never blocks a different token, even while another token's cooldown is active", () => {
+    const cooldown = createScanCooldown(2000);
+
+    cooldown.start("a");
+
+    expect(cooldown.isActive("b")).toBe(false);
   });
 });
 

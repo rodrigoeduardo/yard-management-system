@@ -404,3 +404,51 @@ describe("NewRemovalPage clear list", () => {
     }
   });
 });
+
+describe("NewRemovalPage scan cooldown", () => {
+  it("ignores an immediate re-read of the same code right after a successful scan, instead of flashing 'already scanned'", async () => {
+    render(<NewRemovalPage />);
+
+    const payload = {
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    };
+
+    await scanItem(payload);
+    expect(await screen.findByText("ITENS LIDOS (1)")).toBeInTheDocument();
+
+    // The continuous decoder re-reads the same code on the very next frame.
+    scanCallback!({ getText: () => encodeItemQrPayload(payload as never) });
+
+    expect(screen.getByText("ITENS LIDOS (1)")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Este item já foi escaneado nesta remoção."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not arm the cooldown on an invalid scan, so a valid scan right after is still accepted", async () => {
+    render(<NewRemovalPage />);
+
+    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    await waitFor(() => expect(scanCallback).toBeDefined());
+
+    scanCallback!({ getText: () => "not a valid qr payload" });
+    expect(await screen.findByText("Código QR inválido.")).toBeInTheDocument();
+
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+          identifier: "Item 1 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        } as never),
+    });
+
+    expect(await screen.findByText("ITENS LIDOS (1)")).toBeInTheDocument();
+  });
+});
