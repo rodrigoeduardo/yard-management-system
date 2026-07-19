@@ -13,4 +13,12 @@ describe("formatWeightKg", () => {
   it("preserves decimal values", () => {
     expect(formatWeightKg(12.5)).toBe("12.5 kg");
   });
+
+  it("accepts a numeric string, as returned by the database layer", () => {
+    expect(formatWeightKg("2000")).toBe("2000 kg");
+  });
+
+  it("accepts a decimal numeric string", () => {
+    expect(formatWeightKg("12.5")).toBe("12.5 kg");
+  });
 });
