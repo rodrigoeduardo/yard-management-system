@@ -6,6 +6,7 @@ import { GreetingHeader } from "@/components/home/greeting-header";
 import { LastMovementCard } from "@/components/home/last-movement-card";
 import { MobileHomeHeader } from "@/components/home/mobile-header";
 import { getUserDisplayName } from "@/lib/auth/user-display-name";
+import { getUserInitials } from "@/lib/auth/user-initials";
 import { getDashboardStats, getLastLoad, getLastRemoval } from "@/lib/db/dashboard";
 import { formatYardDate } from "@/lib/format/datetime";
 import { getGreeting } from "@/lib/home/greeting";
@@ -31,6 +32,7 @@ export default async function Home() {
   const now = new Date();
   const greeting = getGreeting(now);
   const displayName = getUserDisplayName(user);
+  const initials = getUserInitials(user);
   const dateLabel = formatYardDate(now);
 
   return (
@@ -40,7 +42,7 @@ export default async function Home() {
         PAGE_CONTAINER_DESKTOP_CLASS,
       )}
     >
-      <MobileHomeHeader />
+      <MobileHomeHeader initials={initials} />
       <GreetingHeader greeting={greeting} displayName={displayName} dateLabel={dateLabel} />
 
       <DashboardStats
