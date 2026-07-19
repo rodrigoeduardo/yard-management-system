@@ -10,12 +10,10 @@ describe("MobileHomeHeader", () => {
     expect(screen.getByText("Controle de Estoque")).toBeInTheDocument();
   });
 
-  it("renders a settings-style icon button", () => {
+  it("does not render the removed theme-toggle placeholder button", () => {
     render(<MobileHomeHeader />);
 
-    expect(
-      screen.getByRole("button", { name: "Configurações" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("is hidden at md: and up", () => {

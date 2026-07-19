@@ -40,9 +40,18 @@ describe("design tokens (globals.css)", () => {
     expect(css).toMatch(/body\s*\{\s*@apply bg-background text-foreground;/);
   });
 
-  it("does not add a new .dark theme", () => {
-    const darkBlockCount = (css.match(/\.dark\s*\{/g) ?? []).length;
-    expect(darkBlockCount).toBeLessThanOrEqual(1);
+  it("has no dark-theme token remnants: no .dark token block (issue #123)", () => {
+    expect(css).not.toMatch(/\.dark\s*\{/);
+  });
+
+  it("keeps the dark: variant declared but inert, matching an ancestor that never occurs (issue #123)", () => {
+    // Without this declaration, Tailwind v4 falls back to firing `dark:`
+    // utilities on the OS `prefers-color-scheme: dark` media query, which
+    // would silently re-enable dark styling on shared components even
+    // though no `.dark` class is ever applied anywhere in the app.
+    const variantMatch = css.match(/@custom-variant dark \((.*)\);/);
+    expect(variantMatch).not.toBeNull();
+    expect(variantMatch![1]).toContain(".dark");
   });
 
   it("defines @page margins and forces a white background for print (issue #95)", () => {
