@@ -17,6 +17,16 @@ describe("StockSearchInput", () => {
     expect(screen.getByRole("searchbox")).toHaveValue("NF-123");
   });
 
+  it("flex-fills available width and only caps width from md up", () => {
+    render(<StockSearchInput value="" onSearch={vi.fn()} />);
+
+    const input = screen.getByRole("searchbox");
+    expect(input.className).toMatch(/\bflex-1\b/);
+    expect(input.className).toMatch(/\bmin-w-0\b/);
+    expect(input.className).toMatch(/\bmd:max-w-xs\b/);
+    expect(input.className).not.toMatch(/(?<!:)\bmax-w-xs\b/);
+  });
+
   it("debounces onSearch calls while typing", () => {
     const onSearch = vi.fn();
     render(<StockSearchInput value="" onSearch={onSearch} />);
