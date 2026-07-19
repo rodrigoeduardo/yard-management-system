@@ -24,7 +24,7 @@ export default async function RegisterPage({
   const successMessage = success ? SUCCESS_MESSAGES[success] : undefined;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
       <h1 className="text-2xl font-semibold">Criar conta</h1>
       <form action={register} className="flex w-full max-w-sm flex-col gap-4">
         <FormLoaderReporter />

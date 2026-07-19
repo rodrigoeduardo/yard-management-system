@@ -63,4 +63,11 @@ describe("RegisterPage", () => {
     const link = screen.getByRole("link", { name: "Faça login." });
     expect(link).toHaveAttribute("href", "/login");
   });
+
+  it("applies horizontal padding on the main container to keep the form off narrow-viewport edges", async () => {
+    await renderRegisterPage();
+
+    const main = document.querySelector("main");
+    expect(main).toHaveClass("px-4");
+  });
 });

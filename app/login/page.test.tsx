@@ -42,4 +42,11 @@ describe("LoginPage", () => {
     const link = screen.getByRole("link", { name: "Criar conta" });
     expect(link).toHaveAttribute("href", "/register");
   });
+
+  it("applies horizontal padding on the main container to keep the form off narrow-viewport edges", async () => {
+    await renderLoginPage();
+
+    const main = document.querySelector("main");
+    expect(main).toHaveClass("px-4");
+  });
 });
