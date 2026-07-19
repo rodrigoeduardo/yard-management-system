@@ -20,9 +20,8 @@ import {
   mapRemoveItemsFieldErrors,
 } from "@/lib/forms/remove-items-error-map";
 import {
-  combineEntryDateTime,
-  getCurrentEntryDateValue,
-  getCurrentEntryTimeValue,
+  combineEntryDateTimeValue,
+  getCurrentEntryDateTimeValue,
 } from "@/lib/loads/entry-datetime";
 import { buildRemovalReceipt, type RemovalReceipt } from "@/lib/removals/receipt";
 import {
@@ -52,8 +51,9 @@ export default function NewRemovalPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   useTopLoaderTask(isPending);
-  const [exitDate, setExitDate] = useState(() => getCurrentEntryDateValue());
-  const [exitTime, setExitTime] = useState(() => getCurrentEntryTimeValue());
+  const [exitDateTime, setExitDateTime] = useState(() =>
+    getCurrentEntryDateTimeValue(),
+  );
   const [driver, setDriver] = useState("");
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
   const [scanError, setScanError] = useState<string | undefined>();
@@ -146,8 +146,7 @@ export default function NewRemovalPage() {
 
     startTransition(async () => {
       const result = await removeItems({
-        exitDate,
-        exitTime,
+        exitDateTime,
         driver,
         qrTokens: scannedItemsRef.current.map((item) => item.qrToken),
       });
@@ -176,8 +175,7 @@ export default function NewRemovalPage() {
 
   function handleNewRemoval() {
     stopScanning();
-    setExitDate(getCurrentEntryDateValue());
-    setExitTime(getCurrentEntryTimeValue());
+    setExitDateTime(getCurrentEntryDateTimeValue());
     setDriver("");
     setFieldErrors({});
     setFormError(undefined);
@@ -189,7 +187,7 @@ export default function NewRemovalPage() {
     router.push("/inventory");
   }
 
-  const combinedExitDateTime = combineEntryDateTime(exitDate, exitTime);
+  const combinedExitDateTime = combineEntryDateTimeValue(exitDateTime);
   const scannedItemsByNotaFiscal = groupScannedItemsByNotaFiscal(scannedItems);
   const totalRemovedWeight =
     scannedItems.length > 0
@@ -229,50 +227,26 @@ export default function NewRemovalPage() {
                 Dados da Remoção
               </SectionLabel>
 
-              <div className="grid grid-cols-2 gap-2.5 md:gap-3">
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <label
-                    htmlFor="exitDate"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Data de Saída
-                  </label>
-                  <Input
-                    id="exitDate"
-                    type="date"
-                    mono
-                    value={exitDate}
-                    onChange={(e) => setExitDate(e.target.value)}
-                    required
-                  />
-                  {fieldErrors.exitDate && (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.exitDate}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <label
-                    htmlFor="exitTime"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Hora de Saída
-                  </label>
-                  <Input
-                    id="exitTime"
-                    type="time"
-                    mono
-                    value={exitTime}
-                    onChange={(e) => setExitTime(e.target.value)}
-                    required
-                  />
-                  {fieldErrors.exitTime && (
-                    <p role="alert" className="text-sm text-destructive">
-                      {fieldErrors.exitTime}
-                    </p>
-                  )}
-                </div>
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <label
+                  htmlFor="exitDateTime"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Data e hora de saída
+                </label>
+                <Input
+                  id="exitDateTime"
+                  type="datetime-local"
+                  mono
+                  value={exitDateTime}
+                  onChange={(e) => setExitDateTime(e.target.value)}
+                  required
+                />
+                {fieldErrors.exitDateTime && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {fieldErrors.exitDateTime}
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -483,7 +457,7 @@ export default function NewRemovalPage() {
                   <dd className="font-mono text-[13.5px] font-semibold text-foreground">
                     {combinedExitDateTime
                       ? formatEntryDateTime(combinedExitDateTime)
-                      : exitDate}
+                      : exitDateTime}
                   </dd>
                 </div>
                 <div className="flex flex-col gap-0.5 rounded-input bg-secondary px-3 py-2.5">

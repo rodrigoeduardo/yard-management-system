@@ -16,10 +16,7 @@ import {
   mapCreateLoadFieldErrors,
   mapCreateLoadItemWeightErrors,
 } from "@/lib/forms/create-load-error-map";
-import {
-  getCurrentEntryDateValue,
-  getCurrentEntryTimeValue,
-} from "@/lib/loads/entry-datetime";
+import { getCurrentEntryDateTimeValue } from "@/lib/loads/entry-datetime";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
 
@@ -31,8 +28,9 @@ export default function NewLoadPage() {
   useTopLoaderTask(isPending);
   const [step, setStep] = useState<Step>("dados");
   const [notaFiscal, setNotaFiscal] = useState("");
-  const [entryDate, setEntryDate] = useState(() => getCurrentEntryDateValue());
-  const [entryTime, setEntryTime] = useState(() => getCurrentEntryTimeValue());
+  const [entryDateTime, setEntryDateTime] = useState(() =>
+    getCurrentEntryDateTimeValue(),
+  );
   const [nfWeight, setNfWeight] = useState("");
   const [material, setMaterial] = useState("");
   const [itemCount, setItemCount] = useState(1);
@@ -70,8 +68,7 @@ export default function NewLoadPage() {
 
   const dadosValid =
     notaFiscal.trim() !== "" &&
-    entryDate.trim() !== "" &&
-    entryTime.trim() !== "" &&
+    entryDateTime.trim() !== "" &&
     nfWeight.trim() !== "" &&
     Number.isFinite(Number(nfWeight)) &&
     Number(nfWeight) > 0 &&
@@ -98,8 +95,7 @@ export default function NewLoadPage() {
     startTransition(async () => {
       const result = await createLoad({
         notaFiscal,
-        entryDate,
-        entryTime,
+        entryDateTime,
         nfWeight: Number(nfWeight),
         material,
         itemWeights: itemWeights.map((weight) => Number(weight)),
@@ -185,55 +181,30 @@ export default function NewLoadPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <label
-                  htmlFor="entryDate"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Data de Entrada
-                </label>
-                <div className="relative">
-                  <Input
-                    id="entryDate"
-                    type="date"
-                    mono
-                    value={entryDate}
-                    onChange={(e) => setEntryDate(e.target.value)}
-                    required
-                    className="h-12 px-3.5 pr-11 text-[15px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0 md:h-11 md:text-sm"
-                  />
-                  <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
-                </div>
-                {fieldErrors.entryDate && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {fieldErrors.entryDate}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <label
-                  htmlFor="entryTime"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Hora de Entrada
-                </label>
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <label
+                htmlFor="entryDateTime"
+                className="text-sm font-medium text-foreground"
+              >
+                Data e hora de entrada
+              </label>
+              <div className="relative">
                 <Input
-                  id="entryTime"
-                  type="time"
+                  id="entryDateTime"
+                  type="datetime-local"
                   mono
-                  value={entryTime}
-                  onChange={(e) => setEntryTime(e.target.value)}
+                  value={entryDateTime}
+                  onChange={(e) => setEntryDateTime(e.target.value)}
                   required
-                  className="h-12 px-3.5 text-[15px] md:h-11 md:text-sm"
+                  className="h-12 px-3.5 pr-11 text-[15px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0 md:h-11 md:text-sm"
                 />
-                {fieldErrors.entryTime && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {fieldErrors.entryTime}
-                  </p>
-                )}
+                <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
               </div>
+              {fieldErrors.entryDateTime && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.entryDateTime}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">
