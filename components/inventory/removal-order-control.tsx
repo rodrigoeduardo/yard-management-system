@@ -1,24 +1,27 @@
 "use client";
 
+import { ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type {
-  RemovalOrderKey,
-  RemovalSortDir,
+import {
+  DEFAULT_REMOVAL_DIR,
+  DEFAULT_REMOVAL_ORDER,
+  type RemovalOrderKey,
+  type RemovalSortDir,
 } from "@/lib/inventory/removal-query";
+import { ControlTriggerButton } from "./control-trigger-button";
 import { RemovalOrderOptions } from "./removal-order-options";
 
 /**
- * Order panel trigger: a modal on mobile, an inline collapse/expand panel
- * on desktop (md:). Both render the same `RemovalOrderOptions` list so the
- * behavior stays identical across breakpoints — only the container differs.
- * Mirrors `StockOrderControl`.
+ * Order trigger for the removals section: a fixed-size icon button beside
+ * the search bar that opens a modal at every breakpoint (mirrors
+ * `RemovalFilterControl`) — replaces the old text-label trigger and the
+ * desktop-only inline collapse panel. Mirrors `StockOrderControl`.
  */
 export function RemovalOrderControl({
   order,
@@ -29,56 +32,30 @@ export function RemovalOrderControl({
   dir: RemovalSortDir;
   onChange: (order: RemovalOrderKey, dir: RemovalSortDir) => void;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopOpen, setDesktopOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const isActive = order !== DEFAULT_REMOVAL_ORDER || dir !== DEFAULT_REMOVAL_DIR;
 
-  function handleMobileSelect(
-    nextOrder: RemovalOrderKey,
-    nextDir: RemovalSortDir,
-  ) {
+  function handleSelect(nextOrder: RemovalOrderKey, nextDir: RemovalSortDir) {
     onChange(nextOrder, nextDir);
-    setMobileOpen(false);
+    setOpen(false);
   }
 
   return (
     <>
-      <div className="md:hidden">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setMobileOpen(true)}
-        >
-          Ordenar
-        </Button>
-        <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Ordenar remoções</DialogTitle>
-            </DialogHeader>
-            <RemovalOrderOptions
-              order={order}
-              dir={dir}
-              onSelect={handleMobileSelect}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="hidden md:block">
-        <Button
-          type="button"
-          variant="outline"
-          aria-expanded={desktopOpen}
-          onClick={() => setDesktopOpen((current) => !current)}
-        >
-          Ordenar
-        </Button>
-        {desktopOpen && (
-          <div className="mt-2 rounded-lg border bg-card p-3 shadow-sm">
-            <RemovalOrderOptions order={order} dir={dir} onSelect={onChange} />
-          </div>
-        )}
-      </div>
+      <ControlTriggerButton
+        icon={ArrowUpDown}
+        label="Ordenar"
+        count={isActive ? 1 : undefined}
+        onClick={() => setOpen(true)}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Ordenar remoções</DialogTitle>
+          </DialogHeader>
+          <RemovalOrderOptions order={order} dir={dir} onSelect={handleSelect} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
