@@ -25,6 +25,12 @@ export type StockQueryState = {
   order: StockOrderKey;
   dir: StockSortDir;
   page: number;
+  /** Entry date range filter, each bound optional, `YYYY-MM-DD`. */
+  dateFrom?: string;
+  dateTo?: string;
+  /** Remaining weight range filter, each bound optional, kg as a numeric string. */
+  weightMin?: string;
+  weightMax?: string;
 };
 
 const PARAM_KEYS = {
@@ -32,7 +38,25 @@ const PARAM_KEYS = {
   order: "stock_order",
   dir: "stock_dir",
   page: "stock_page",
+  dateFrom: "stock_date_from",
+  dateTo: "stock_date_to",
+  weightMin: "stock_weight_min",
+  weightMax: "stock_weight_max",
 } as const;
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidDateParam(value: string | undefined): value is string {
+  return value !== undefined && ISO_DATE_RE.test(value) && !Number.isNaN(Date.parse(value));
+}
+
+function isValidWeightParam(value: string | undefined): value is string {
+  if (value === undefined) {
+    return false;
+  }
+  const n = Number(value);
+  return value.trim() !== "" && Number.isFinite(n) && n >= 0;
+}
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
 type SearchParamsLike = URLSearchParams | SearchParamsRecord;
@@ -67,7 +91,39 @@ export function parseStockSearchParams(
   const page =
     Number.isInteger(pageNumber) && pageNumber > 0 ? pageNumber : 1;
 
-  return { q, order, dir, page };
+  const dateFromRaw = readParam(params, PARAM_KEYS.dateFrom);
+  const dateFrom = isValidDateParam(dateFromRaw) ? dateFromRaw : undefined;
+
+  const dateToRaw = readParam(params, PARAM_KEYS.dateTo);
+  const dateTo = isValidDateParam(dateToRaw) ? dateToRaw : undefined;
+
+  const weightMinRaw = readParam(params, PARAM_KEYS.weightMin);
+  const weightMin = isValidWeightParam(weightMinRaw) ? weightMinRaw : undefined;
+
+  const weightMaxRaw = readParam(params, PARAM_KEYS.weightMax);
+  const weightMax = isValidWeightParam(weightMaxRaw) ? weightMaxRaw : undefined;
+
+  return {
+    q,
+    order,
+    dir,
+    page,
+    ...(dateFrom !== undefined ? { dateFrom } : {}),
+    ...(dateTo !== undefined ? { dateTo } : {}),
+    ...(weightMin !== undefined ? { weightMin } : {}),
+    ...(weightMax !== undefined ? { weightMax } : {}),
+  };
+}
+
+/** Number of stock filters currently active (date range + weight range bounds). */
+export function countActiveStockFilters(query: StockQueryState): number {
+  return [query.dateFrom, query.dateTo, query.weightMin, query.weightMax].filter(
+    (v) => v !== undefined && v !== "",
+  ).length;
+}
+
+export function hasActiveStockFilters(query: StockQueryState): boolean {
+  return countActiveStockFilters(query) > 0;
 }
 
 /**
@@ -84,7 +140,11 @@ export function stockSearchHref(
   const resetsPage =
     updates.q !== undefined ||
     updates.order !== undefined ||
-    updates.dir !== undefined;
+    updates.dir !== undefined ||
+    updates.dateFrom !== undefined ||
+    updates.dateTo !== undefined ||
+    updates.weightMin !== undefined ||
+    updates.weightMax !== undefined;
 
   if (updates.q !== undefined) {
     if (updates.q) {
@@ -107,6 +167,17 @@ export function stockSearchHref(
       next.delete(PARAM_KEYS.dir);
     } else {
       next.set(PARAM_KEYS.dir, updates.dir);
+    }
+  }
+
+  for (const key of ["dateFrom", "dateTo", "weightMin", "weightMax"] as const) {
+    const value = updates[key];
+    if (value !== undefined) {
+      if (value) {
+        next.set(PARAM_KEYS[key], value);
+      } else {
+        next.delete(PARAM_KEYS[key]);
+      }
     }
   }
 
