@@ -20,6 +20,7 @@ import {
   getCurrentEntryDateValue,
   getCurrentEntryTimeValue,
 } from "@/lib/loads/entry-datetime";
+import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
 
 type Step = "dados" | "pesos";
@@ -123,7 +124,12 @@ export default function NewLoadPage() {
   const stepNumber = step === "dados" ? 1 : 2;
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-6 pb-28 md:mx-auto md:w-full md:max-w-4xl md:gap-[22px] md:px-8 md:pb-10">
+    <div
+      className={cn(
+        "flex flex-col gap-5 px-4 py-6 pb-28 md:gap-[22px] md:pb-10",
+        PAGE_CONTAINER_DESKTOP_CLASS,
+      )}
+    >
       <PageBackHeader
         title={mobileTitle}
         onBack={handleBack}
