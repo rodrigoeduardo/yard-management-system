@@ -9,6 +9,7 @@ import {
 } from "@/lib/inventory/stock-query";
 import { LoadDetailModal } from "./load-detail-modal";
 import { StockCard } from "./stock-card";
+import { StockFilterControl } from "./stock-filter-control";
 import { StockOrderControl } from "./stock-order-control";
 import { StockPagination } from "./stock-pagination";
 import { StockSearchInput } from "./stock-search-input";
@@ -47,6 +48,18 @@ export function StockSection({
           order={query.order}
           dir={query.dir}
           onChange={(order, dir) => navigateStock({ order, dir })}
+        />
+        <StockFilterControl
+          query={query}
+          onApply={(filters) => navigateStock(filters)}
+          onClear={() =>
+            navigateStock({
+              dateFrom: "",
+              dateTo: "",
+              weightMin: "",
+              weightMax: "",
+            })
+          }
         />
       </div>
 

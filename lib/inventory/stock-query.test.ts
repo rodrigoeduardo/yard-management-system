@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  countActiveStockFilters,
   DEFAULT_STOCK_DIR,
   DEFAULT_STOCK_ORDER,
+  hasActiveStockFilters,
   parseStockSearchParams,
   STOCK_PAGE_SIZE,
   stockSearchHref,
@@ -68,6 +70,88 @@ describe("parseStockSearchParams", () => {
       "first",
     );
   });
+
+  it("is undefined for date/weight filters when absent", () => {
+    const parsed = parseStockSearchParams({});
+    expect(parsed.dateFrom).toBeUndefined();
+    expect(parsed.dateTo).toBeUndefined();
+    expect(parsed.weightMin).toBeUndefined();
+    expect(parsed.weightMax).toBeUndefined();
+  });
+
+  it("reads stock_date_from and stock_date_to independently (either alone works)", () => {
+    const from = parseStockSearchParams({ stock_date_from: "2026-01-01" });
+    expect(from.dateFrom).toBe("2026-01-01");
+    expect(from.dateTo).toBeUndefined();
+
+    const to = parseStockSearchParams({ stock_date_to: "2026-01-31" });
+    expect(to.dateFrom).toBeUndefined();
+    expect(to.dateTo).toBe("2026-01-31");
+  });
+
+  it("falls back to undefined for a malformed date param", () => {
+    expect(
+      parseStockSearchParams({ stock_date_from: "not-a-date" }).dateFrom,
+    ).toBeUndefined();
+    expect(
+      parseStockSearchParams({ stock_date_from: "2026/01/01" }).dateFrom,
+    ).toBeUndefined();
+  });
+
+  it("reads stock_weight_min and stock_weight_max independently (gt/lt alone work)", () => {
+    const min = parseStockSearchParams({ stock_weight_min: "10" });
+    expect(min.weightMin).toBe("10");
+    expect(min.weightMax).toBeUndefined();
+
+    const max = parseStockSearchParams({ stock_weight_max: "500" });
+    expect(max.weightMin).toBeUndefined();
+    expect(max.weightMax).toBe("500");
+  });
+
+  it("reads both bounds together for a range filter", () => {
+    expect(
+      parseStockSearchParams({ stock_weight_min: "10", stock_weight_max: "500" }),
+    ).toMatchObject({ weightMin: "10", weightMax: "500" });
+  });
+
+  it("falls back to undefined for a non-numeric or negative weight param", () => {
+    expect(
+      parseStockSearchParams({ stock_weight_min: "abc" }).weightMin,
+    ).toBeUndefined();
+    expect(
+      parseStockSearchParams({ stock_weight_min: "-5" }).weightMin,
+    ).toBeUndefined();
+    expect(
+      parseStockSearchParams({ stock_weight_min: "" }).weightMin,
+    ).toBeUndefined();
+  });
+});
+
+describe("countActiveStockFilters / hasActiveStockFilters", () => {
+  it("counts zero when no filters are set", () => {
+    const query = parseStockSearchParams({});
+    expect(countActiveStockFilters(query)).toBe(0);
+    expect(hasActiveStockFilters(query)).toBe(false);
+  });
+
+  it("counts each active bound independently", () => {
+    const query = parseStockSearchParams({
+      stock_date_from: "2026-01-01",
+      stock_weight_max: "100",
+    });
+    expect(countActiveStockFilters(query)).toBe(2);
+    expect(hasActiveStockFilters(query)).toBe(true);
+  });
+
+  it("counts a full range (both date bounds and both weight bounds) as 4", () => {
+    const query = parseStockSearchParams({
+      stock_date_from: "2026-01-01",
+      stock_date_to: "2026-01-31",
+      stock_weight_min: "10",
+      stock_weight_max: "500",
+    });
+    expect(countActiveStockFilters(query)).toBe(4);
+  });
 });
 
 describe("stockSearchHref", () => {
@@ -114,6 +198,57 @@ describe("stockSearchHref", () => {
     const current = new URLSearchParams("removal_page=2&stock_q=old");
     expect(stockSearchHref(current, { q: "new" })).toBe(
       "?removal_page=2&stock_q=new",
+    );
+  });
+
+  it("sets stock_date_from/stock_date_to and resets stock_page when the date filter changes", () => {
+    const current = new URLSearchParams("stock_page=3");
+    expect(
+      stockSearchHref(current, { dateFrom: "2026-01-01", dateTo: "2026-01-31" }),
+    ).toBe("?stock_date_from=2026-01-01&stock_date_to=2026-01-31");
+  });
+
+  it("sets only stock_date_from when stock_date_to is left untouched", () => {
+    const current = new URLSearchParams();
+    expect(stockSearchHref(current, { dateFrom: "2026-01-01" })).toBe(
+      "?stock_date_from=2026-01-01",
+    );
+  });
+
+  it("sets stock_weight_min/stock_weight_max and resets stock_page when the weight filter changes", () => {
+    const current = new URLSearchParams("stock_page=2");
+    expect(
+      stockSearchHref(current, { weightMin: "10", weightMax: "500" }),
+    ).toBe("?stock_weight_max=500&stock_weight_min=10");
+  });
+
+  it("removes a filter param entirely when cleared to an empty string", () => {
+    const current = new URLSearchParams(
+      "stock_date_from=2026-01-01&stock_weight_min=10",
+    );
+    expect(
+      stockSearchHref(current, { dateFrom: "", weightMin: "" }),
+    ).toBe("");
+  });
+
+  it("clears all four filter params without touching stock_q", () => {
+    const current = new URLSearchParams(
+      "stock_q=abc&stock_date_from=2026-01-01&stock_date_to=2026-01-31&stock_weight_min=10&stock_weight_max=500",
+    );
+    expect(
+      stockSearchHref(current, {
+        dateFrom: "",
+        dateTo: "",
+        weightMin: "",
+        weightMax: "",
+      }),
+    ).toBe("?stock_q=abc");
+  });
+
+  it("preserves an active filter when only the page changes", () => {
+    const current = new URLSearchParams("stock_weight_min=10");
+    expect(stockSearchHref(current, { page: 2 })).toBe(
+      "?stock_page=2&stock_weight_min=10",
     );
   });
 });

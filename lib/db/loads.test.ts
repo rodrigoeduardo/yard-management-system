@@ -248,4 +248,100 @@ describe("listStockPage", () => {
     },
     15000,
   );
+
+  it(
+    "combines the entry date range and remaining weight range filters with search and ordering",
+    async () => {
+      const marker = randomUUID();
+      await seedLoad({
+        notaFiscal: `NF-FILTER-${marker}-EARLY-LIGHT`,
+        entryDate: new Date("2026-01-01T12:00:00Z"),
+        nfWeight: "100",
+        material: "Aço",
+        itemCount: 1,
+        remainingWeight: "50",
+      });
+      await seedLoad({
+        notaFiscal: `NF-FILTER-${marker}-MID-HEAVY`,
+        entryDate: new Date("2026-01-15T12:00:00Z"),
+        nfWeight: "100",
+        material: "Aço",
+        itemCount: 1,
+        remainingWeight: "500",
+      });
+      await seedLoad({
+        notaFiscal: `NF-FILTER-${marker}-LATE-LIGHT`,
+        entryDate: new Date("2026-02-01T12:00:00Z"),
+        nfWeight: "100",
+        material: "Aço",
+        itemCount: 1,
+        remainingWeight: "50",
+      });
+
+      // only-from: entries on/after 2026-01-10
+      const onlyFrom = await listStockPage({
+        q: `NF-FILTER-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        dateFrom: "2026-01-10",
+      });
+      expect(onlyFrom.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FILTER-${marker}-MID-HEAVY`,
+        `NF-FILTER-${marker}-LATE-LIGHT`,
+      ]);
+
+      // only-to: entries on/before 2026-01-10
+      const onlyTo = await listStockPage({
+        q: `NF-FILTER-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        dateTo: "2026-01-10",
+      });
+      expect(onlyTo.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FILTER-${marker}-EARLY-LIGHT`,
+      ]);
+
+      // gt: remaining weight >= 100
+      const gt = await listStockPage({
+        q: `NF-FILTER-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        weightMin: "100",
+      });
+      expect(gt.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FILTER-${marker}-MID-HEAVY`,
+      ]);
+
+      // lt: remaining weight <= 100
+      const lt = await listStockPage({
+        q: `NF-FILTER-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        weightMax: "100",
+      });
+      expect(lt.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FILTER-${marker}-EARLY-LIGHT`,
+        `NF-FILTER-${marker}-LATE-LIGHT`,
+      ]);
+
+      // range: weight between 40 and 60, combined with a date filter
+      const range = await listStockPage({
+        q: `NF-FILTER-${marker}`,
+        order: "entryDate",
+        dir: "asc",
+        page: 1,
+        dateFrom: "2026-01-10",
+        weightMin: "40",
+        weightMax: "60",
+      });
+      expect(range.rows.map((r) => r.notaFiscal)).toEqual([
+        `NF-FILTER-${marker}-LATE-LIGHT`,
+      ]);
+    },
+    15000,
+  );
 });

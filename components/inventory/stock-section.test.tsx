@@ -124,4 +124,68 @@ describe("StockSection", () => {
       "/inventory?stock_dir=asc&stock_order=itemCount&stock_page=2&stock_q=abc",
     );
   });
+
+  it("pushes stock_date_from/stock_weight_max URL updates (page resets) when filters are applied", () => {
+    render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Filtros" })[1]);
+    fireEvent.change(screen.getByLabelText("Data de entrada - de"), {
+      target: { value: "2026-01-01" },
+    });
+    fireEvent.change(screen.getByLabelText("Peso restante - máximo"), {
+      target: { value: "500" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+
+    expect(push).toHaveBeenCalledWith(
+      "/inventory?stock_date_from=2026-01-01&stock_weight_max=500",
+    );
+  });
+
+  it("preserves active filters (and drops page) when pagination is used after filtering", () => {
+    currentSearchParams = new URLSearchParams(
+      "stock_date_from=2026-01-01&stock_weight_max=500&stock_page=2",
+    );
+    render(
+      <StockSection
+        rows={[ROW]}
+        total={45}
+        query={{
+          ...DEFAULT_QUERY,
+          dateFrom: "2026-01-01",
+          weightMax: "500",
+          page: 2,
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+
+    expect(push).toHaveBeenCalledWith(
+      "/inventory?stock_date_from=2026-01-01&stock_page=3&stock_weight_max=500",
+    );
+  });
+
+  it("clears filters without clearing search when Limpar filtros is used", () => {
+    currentSearchParams = new URLSearchParams(
+      "stock_q=abc&stock_date_from=2026-01-01&stock_weight_max=500",
+    );
+    render(
+      <StockSection
+        rows={[ROW]}
+        total={1}
+        query={{
+          ...DEFAULT_QUERY,
+          q: "abc",
+          dateFrom: "2026-01-01",
+          weightMax: "500",
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Filtros (2)" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+
+    expect(push).toHaveBeenCalledWith("/inventory?stock_q=abc");
+  });
 });
