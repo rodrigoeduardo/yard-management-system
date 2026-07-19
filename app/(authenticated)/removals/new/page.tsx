@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
-import { Scan, X } from "lucide-react";
+import { Calendar, Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { PageBackHeader } from "@/components/nav/page-back-header";
@@ -234,7 +234,7 @@ export default function NewRemovalPage() {
                 >
                   Data e hora de saída
                 </label>
-                <div className="w-full min-w-0 overflow-hidden rounded-input">
+                <div className="relative w-full min-w-0 overflow-hidden rounded-input">
                   <Input
                     id="exitDateTime"
                     type="datetime-local"
@@ -242,8 +242,9 @@ export default function NewRemovalPage() {
                     value={exitDateTime}
                     onChange={(e) => setExitDateTime(e.target.value)}
                     required
-                    className="min-w-0"
+                    className="min-w-0 pr-11 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0"
                   />
+                  <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
                 </div>
                 {fieldErrors.exitDateTime && (
                   <p role="alert" className="text-sm text-destructive">
