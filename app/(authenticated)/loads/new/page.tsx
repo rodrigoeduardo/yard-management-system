@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionLabel } from "@/components/ui/section-label";
+import { useTopLoaderTask } from "@/components/ui/top-loader";
 import { createLoad } from "@/lib/actions/loads";
 import {
   type CreateLoadFieldMessages,
@@ -25,6 +26,7 @@ type Step = "dados" | "pesos";
 export default function NewLoadPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  useTopLoaderTask(isPending);
   const [step, setStep] = useState<Step>("dados");
   const [notaFiscal, setNotaFiscal] = useState("");
   const [entryDate, setEntryDate] = useState(() => getCurrentEntryDateValue());
@@ -420,7 +422,9 @@ export default function NewLoadPage() {
                 disabled={isPending || !allWeightsEntered}
                 className="h-12 w-full rounded-[13px] px-6 text-[14.5px]"
               >
-                Criar carga e gerar {itemCount} QR Codes
+                {isPending
+                  ? "Criando…"
+                  : `Criar carga e gerar ${itemCount} QR Codes`}
               </Button>
             </div>
 
@@ -493,7 +497,9 @@ export default function NewLoadPage() {
               disabled={isPending || !allWeightsEntered}
               className="h-[52px] w-full rounded-[14px] text-[15px]"
             >
-              Criar carga e gerar {itemCount} QR Codes
+              {isPending
+                ? "Criando…"
+                : `Criar carga e gerar ${itemCount} QR Codes`}
             </Button>
           </div>
         )}

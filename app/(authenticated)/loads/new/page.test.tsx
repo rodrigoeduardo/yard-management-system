@@ -1,5 +1,12 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { TopLoader } from "@/components/ui/top-loader";
 import NewLoadPage from "./page";
 
 vi.mock("next/navigation", () => ({
@@ -383,5 +390,49 @@ describe("NewLoadPage", () => {
       target: { value: "20" },
     });
     for (const cta of submitCtas) expect(cta).toBeEnabled();
+  });
+
+  it("activates the TopLoader and swaps the submit label to Criando… while the create-load transition is pending", async () => {
+    const { createLoad } = await import("@/lib/actions/loads");
+    let resolveCreateLoad: (value: unknown) => void = () => {};
+    vi.mocked(createLoad).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreateLoad = resolve;
+        }) as never,
+    );
+
+    render(
+      <>
+        <TopLoader />
+        <NewLoadPage />
+      </>,
+    );
+    fillDadosAndContinue();
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "100" },
+    });
+
+    const submitCtas = screen.getAllByRole("button", {
+      name: "Criar carga e gerar 1 QR Codes",
+    });
+    fireEvent.click(submitCtas[0]);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("progressbar", { name: "Carregando" }),
+      ).toBeInTheDocument();
+    });
+    for (const cta of screen.getAllByRole("button", { name: "Criando…" })) {
+      expect(cta).toBeDisabled();
+    }
+
+    resolveCreateLoad({ success: true, load: { id: "load-1" } });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("progressbar", { name: "Carregando" }),
+      ).not.toBeInTheDocument();
+    });
   });
 });
