@@ -10,8 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { fetchLoadItems } from "@/lib/actions/load-items";
-import { formatItemStatus } from "@/lib/inventory/item-status";
 import type { LoadItemDetail } from "@/lib/db/load-items";
+import { formatWeightKg } from "@/lib/format/weight";
+import { formatItemStatus } from "@/lib/inventory/item-status";
 import type { StockRow } from "./stock-table";
 
 export function LoadDetailModal({
@@ -65,7 +66,7 @@ export function LoadDetailModal({
               </div>
               <div>
                 <dt className="text-muted-foreground">Peso da NF</dt>
-                <dd className="font-medium">{load.nfWeight}</dd>
+                <dd className="font-medium">{formatWeightKg(load.nfWeight)}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Quantidade de Itens</dt>
@@ -73,7 +74,9 @@ export function LoadDetailModal({
               </div>
               <div>
                 <dt className="text-muted-foreground">Peso Restante</dt>
-                <dd className="font-medium">{load.remainingWeight}</dd>
+                <dd className="font-medium">
+                  {formatWeightKg(load.remainingWeight)}
+                </dd>
               </div>
             </dl>
 
@@ -95,7 +98,7 @@ export function LoadDetailModal({
                     >
                       <span>{item.identifier}</span>
                       <span className="text-muted-foreground">
-                        {item.weight}
+                        {formatWeightKg(item.weight)}
                       </span>
                       <span>{formatItemStatus(item.status)}</span>
                     </li>
