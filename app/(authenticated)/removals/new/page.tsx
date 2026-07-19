@@ -5,7 +5,7 @@ import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { Breadcrumbs } from "@/components/nav/breadcrumbs";
+import { PageBackHeader } from "@/components/nav/page-back-header";
 import { RemovalReceiptView } from "@/components/removals/removal-receipt-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,7 +24,6 @@ import {
   getCurrentEntryDateValue,
   getCurrentEntryTimeValue,
 } from "@/lib/loads/entry-datetime";
-import { buildTrail } from "@/lib/nav/breadcrumbs";
 import { buildRemovalReceipt, type RemovalReceipt } from "@/lib/removals/receipt";
 import {
   addScannedItem,
@@ -197,13 +196,13 @@ export default function NewRemovalPage() {
 
   return (
     <div className="flex flex-col gap-6 px-4 py-6 pb-44 md:mx-auto md:w-full md:max-w-6xl md:px-8 md:pb-10">
-      <Breadcrumbs
-        items={buildTrail({ href: "/removals/new", label: "Nova Remoção" })}
-      />
       {!receipt && (
-        <h1 className="text-2xl font-semibold text-foreground">
-          Nova Remoção
-        </h1>
+        <>
+          <PageBackHeader title="Nova Remoção" href="/" />
+          <h1 className="hidden text-2xl font-semibold text-foreground md:block">
+            Nova Remoção
+          </h1>
+        </>
       )}
 
       {receipt && (

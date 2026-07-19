@@ -1,8 +1,9 @@
 "use client";
 
-import { Calendar, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { Calendar, ChevronRight, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { PageBackHeader } from "@/components/nav/page-back-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -123,22 +124,15 @@ export default function NewLoadPage() {
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6 pb-28 md:mx-auto md:w-full md:max-w-4xl md:gap-[22px] md:px-8 md:pb-10">
-      <div className="flex items-center gap-2.5 md:hidden">
-        <button
-          type="button"
-          aria-label="Voltar"
-          onClick={handleBack}
-          className="flex size-[38px] shrink-0 items-center justify-center rounded-input border border-input bg-card text-foreground"
-        >
-          <ChevronLeft className="size-[19px]" />
-        </button>
-        <span className="flex-1 text-lg font-bold text-foreground">
-          {mobileTitle}
-        </span>
-        <span className="rounded-pill bg-accent px-3 py-[5px] font-mono text-xs font-semibold text-accent-foreground">
-          Etapa {stepNumber} de 2
-        </span>
-      </div>
+      <PageBackHeader
+        title={mobileTitle}
+        onBack={handleBack}
+        action={
+          <span className="rounded-pill bg-accent px-3 py-[5px] font-mono text-xs font-semibold text-accent-foreground">
+            Etapa {stepNumber} de 2
+          </span>
+        }
+      />
 
       <div className="hidden items-center gap-3 md:flex">
         <h1 className="flex-1 text-[22px] font-bold text-foreground">
