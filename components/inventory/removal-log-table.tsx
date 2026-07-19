@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -27,7 +28,9 @@ export type RemovalLogRow = {
 };
 
 const HEADER_CLASS =
-  "h-auto py-3 text-[11px] font-bold tracking-wide text-muted-foreground uppercase";
+  "h-auto px-5 py-3 text-[11px] font-bold tracking-[0.04em] text-muted-foreground uppercase";
+
+const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
 const COLUMN_WIDTHS = ["w-[150px]", "", "w-[300px]", "w-[110px]", "w-[170px]"];
 
@@ -42,13 +45,23 @@ const columns: ColumnDef<RemovalLogRow>[] = [
   {
     accessorKey: "driver",
     header: "Motorista",
-    cell: ({ row }) => <span className="font-semibold">{row.original.driver}</span>,
+    cell: ({ row }) => (
+      <span
+        className="block truncate font-semibold"
+        title={row.original.driver}
+      >
+        {row.original.driver}
+      </span>
+    ),
   },
   {
     accessorKey: "notasFiscais",
     header: "Notas Fiscais",
     cell: ({ row }) => (
-      <span className="font-mono text-[12px] text-foreground">
+      <span
+        className="block truncate font-mono text-[12px] text-foreground"
+        title={row.original.notasFiscais}
+      >
         {row.original.notasFiscais}
       </span>
     ),
@@ -83,51 +96,53 @@ export function RemovalLogTable({
   });
 
   return (
-    <Table className="table-fixed">
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header, index) => (
-              <TableHead
-                key={header.id}
-                className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
-              >
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext(),
-                )}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <TableRow
-            key={row.id}
-            role={onRowClick ? "button" : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-            onKeyDown={
-              onRowClick
-                ? (event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      onRowClick(row.original);
+    <Card className="overflow-hidden">
+      <Table className="table-fixed">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header, index) => (
+                <TableHead
+                  key={header.id}
+                  className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              role={onRowClick ? "button" : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+              onKeyDown={
+                onRowClick
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onRowClick(row.original);
+                      }
                     }
-                  }
-                : undefined
-            }
-            className={cn(onRowClick && "cursor-pointer")}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id} className="text-[13.5px]">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                  : undefined
+              }
+              className={cn(onRowClick && "cursor-pointer")}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} className={CELL_CLASS}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

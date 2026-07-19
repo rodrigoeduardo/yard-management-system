@@ -40,4 +40,32 @@ describe("RemovalLogTable", () => {
       /\buppercase\b/,
     );
   });
+
+  it("truncates a long driver name and a long NF list with an ellipsis and exposes the full value via title", () => {
+    const longDriver = "José Antônio da Silva Nascimento de Albuquerque Filho";
+    const longNfs = "NF-001, NF-002, NF-003, NF-004, NF-005, NF-006, NF-007";
+    render(
+      <RemovalLogTable
+        rows={[{ ...ROW, driver: longDriver, notasFiscais: longNfs }]}
+      />,
+    );
+
+    const driverText = screen.getByText(longDriver);
+    expect(driverText.className).toMatch(/\btruncate\b/);
+    expect(driverText.getAttribute("title")).toBe(longDriver);
+
+    const nfsText = screen.getByText(longNfs);
+    expect(nfsText.className).toMatch(/\btruncate\b/);
+    expect(nfsText.getAttribute("title")).toBe(longNfs);
+  });
+
+  it("wraps the table in a rounded, bordered card matching the design", () => {
+    render(<RemovalLogTable rows={[ROW]} />);
+
+    const card = screen
+      .getByText("Motorista")
+      .closest('[data-slot="table-container"]')?.parentElement;
+    expect(card?.getAttribute("data-slot")).toBe("card");
+    expect(card?.className).toMatch(/\boverflow-hidden\b/);
+  });
 });
