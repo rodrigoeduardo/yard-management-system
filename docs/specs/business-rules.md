@@ -21,6 +21,12 @@ Source of truth for application behavior. Translated and expanded from the origi
 - A single removal action may scan items from **different loads** (different NFs).
 - On completion, compute **Total Removed Weight** = sum of the weights of all items removed in the action.
 
+## Registration (`auth`)
+
+- Signup is closed to outsiders: `/register` requires a shared invite code (env var `REGISTER_INVITE_CODE`), checked with a constant-time comparison. A wrong or missing code shows a Portuguese error and creates no account.
+- There is no admin UI or approval queue — access is granted or revoked by rotating the invite code.
+- On a valid code, the account is created with `user_metadata.display_name` set from the name field. If email confirmation is enabled on the Supabase project, the user sees a confirmation notice instead of landing directly in the app.
+
 ## Inventory View (`inventory-view`)
 
 - **Table 1 — current stock**: loads ordered by last modification (most recent on top). Columns: NF, Entry Date, NF Weight, Material (fixed) + Item Count, Remaining Weight (variable). When both Item Count and Remaining Weight reach zero, display the row in green (load finished).
