@@ -25,7 +25,7 @@ export function RemovalSearchInput({
       onChange={(event) => setDraft(event.target.value)}
       placeholder="Buscar por NF ou motorista..."
       aria-label="Buscar em remoções"
-      className="max-w-xs"
+      className="flex-1 min-w-0 md:max-w-xs"
     />
   );
 }

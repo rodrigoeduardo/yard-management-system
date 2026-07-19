@@ -42,7 +42,7 @@ export function RemovalSection({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-3">
         <RemovalSearchInput
           value={query.q}
           onSearch={(q) => navigateRemoval({ q })}

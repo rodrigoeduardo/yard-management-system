@@ -25,7 +25,7 @@ export function StockSearchInput({
       onChange={(event) => setDraft(event.target.value)}
       placeholder="Buscar por NF ou material..."
       aria-label="Buscar no estoque"
-      className="max-w-xs"
+      className="flex-1 min-w-0 md:max-w-xs"
     />
   );
 }

@@ -14,6 +14,15 @@ describe("ControlTriggerButton", () => {
     expect(button.querySelector("svg")).toBeInTheDocument();
   });
 
+  it("matches the search input's height (h-11) so the mobile row doesn't jag", () => {
+    render(
+      <ControlTriggerButton icon={ArrowUpDown} label="Ordenar" onClick={vi.fn()} />,
+    );
+
+    const button = screen.getByRole("button", { name: "Ordenar" });
+    expect(button.className).toMatch(/\bh-11\b/);
+  });
+
   it("shows no badge when count is omitted", () => {
     render(
       <ControlTriggerButton icon={ArrowUpDown} label="Ordenar" onClick={vi.fn()} />,

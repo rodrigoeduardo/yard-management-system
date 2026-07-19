@@ -59,6 +59,13 @@ describe("StockSection", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("keeps the search + order/filter controls on one non-wrapping row", () => {
+    render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
+
+    const row = screen.getByRole("searchbox").closest("div");
+    expect(row?.className).not.toMatch(/\bflex-wrap\b/);
+  });
+
   it("renders a mobile card list hidden at md: and a desktop table hidden below md:", () => {
     render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
