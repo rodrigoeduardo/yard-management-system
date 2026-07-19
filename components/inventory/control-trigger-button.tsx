@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
  * removals). The button itself is a fixed size regardless of the active
  * count — the count is an absolutely-positioned badge overlay rather than
  * inline text, so the trigger's width never changes and the search-bar row
- * it sits in doesn't reflow when a filter/order becomes active. Height is
- * pinned to h-11 to match the adjacent search input (`StockSearchInput` /
- * `RemovalSearchInput`) so the mobile row's controls align.
+ * it sits in doesn't reflow when a filter/order becomes active. Below `md`
+ * the size is bumped to h-11 to match the adjacent search input
+ * (`StockSearchInput` / `RemovalSearchInput`) so the mobile row's controls
+ * align; at `md` and up it reverts to the original size-8 so the desktop
+ * layout is unchanged.
  */
 export function ControlTriggerButton({
   icon: Icon,
@@ -31,7 +33,7 @@ export function ControlTriggerButton({
         size="icon"
         aria-label={label}
         {...props}
-        className={cn("h-11 w-11", props.className)}
+        className={cn("h-11 w-11 md:size-8", props.className)}
       >
         <Icon />
       </Button>

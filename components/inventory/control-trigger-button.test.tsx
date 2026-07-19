@@ -23,6 +23,15 @@ describe("ControlTriggerButton", () => {
     expect(button.className).toMatch(/\bh-11\b/);
   });
 
+  it("reverts to the original size-8 button at md and up (desktop unchanged)", () => {
+    render(
+      <ControlTriggerButton icon={ArrowUpDown} label="Ordenar" onClick={vi.fn()} />,
+    );
+
+    const button = screen.getByRole("button", { name: "Ordenar" });
+    expect(button.className).toMatch(/\bmd:size-8\b/);
+  });
+
   it("shows no badge when count is omitted", () => {
     render(
       <ControlTriggerButton icon={ArrowUpDown} label="Ordenar" onClick={vi.fn()} />,
