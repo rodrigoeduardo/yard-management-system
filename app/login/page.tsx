@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/nav/brand-logo";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { FormLoaderReporter } from "@/components/ui/top-loader";
 import { login } from "./actions";
 
@@ -55,7 +55,7 @@ export default async function LoginPage({
             {errorMessage}
           </p>
         )}
-        <Button type="submit">Entrar</Button>
+        <SubmitButton>Entrar</SubmitButton>
       </form>
       <p className="text-sm text-muted-foreground">
         Não tem uma conta?{" "}

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { FormLoaderReporter } from "@/components/ui/top-loader";
 import { register } from "./actions";
 
@@ -90,7 +90,7 @@ export default async function RegisterPage({
             {successMessage}
           </p>
         )}
-        <Button type="submit">Criar conta</Button>
+        <SubmitButton>Criar conta</SubmitButton>
       </form>
       <p className="text-sm text-muted-foreground">
         Já possui uma conta?{" "}
