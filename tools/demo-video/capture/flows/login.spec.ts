@@ -12,7 +12,9 @@ test("login", async ({ browser }) => {
   await page.getByLabel("Senha").fill(process.env.TEST_USER_PASSWORD ?? "");
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL((url) => !url.pathname.startsWith("/login"));
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => window.scrollTo({ top: 300, behavior: "smooth" }));
+  await page.waitForTimeout(1800);
 
   await save("login");
 });

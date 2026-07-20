@@ -1,21 +1,44 @@
 import type React from "react";
 import { Composition } from "remotion";
-import { DemoFlow } from "./compositions/DemoFlow";
+import { DemoFlow, type Clip } from "./compositions/DemoFlow";
 
-// Duration/fps here must match the captured clip (check with
-// `@remotion/renderer`'s getVideoMetadata, or Root.tsx's fps must match the
-// clip's own fps since OffthreadVideo plays back frame-for-frame).
+const FPS = 25;
+const PLAYBACK_RATE = 2;
+
+// durationInSeconds comes from probing each real capture with
+// @remotion/renderer's getVideoMetadata (see tools/demo-video/README.md) —
+// update these if a clip is re-captured.
+const CLIPS: Clip[] = [
+  { file: "login.webm", caption: "Login", durationInSeconds: 6.12 },
+  {
+    file: "load-intake.webm",
+    caption: "Cadastro de carga por Nota Fiscal",
+    durationInSeconds: 11.56,
+  },
+  {
+    file: "removal.webm",
+    caption: "Remoção de itens via leitura de QR Code",
+    durationInSeconds: 11.12,
+  },
+  { file: "inventory.webm", caption: "Estoque e histórico", durationInSeconds: 7.96 },
+];
+
+const totalDurationInFrames = CLIPS.reduce(
+  (sum, clip) => sum + Math.round((clip.durationInSeconds * FPS) / PLAYBACK_RATE),
+  0,
+);
+
 export const Root: React.FC = () => {
   return (
     <>
       <Composition
         id="DemoFlow"
         component={DemoFlow}
-        durationInFrames={Math.round(25 * 6.84)}
-        fps={25}
+        durationInFrames={totalDurationInFrames}
+        fps={FPS}
         width={1280}
         height={720}
-        defaultProps={{ clip: "login.webm" }}
+        defaultProps={{ clips: CLIPS, fps: FPS, playbackRate: PLAYBACK_RATE }}
       />
     </>
   );
