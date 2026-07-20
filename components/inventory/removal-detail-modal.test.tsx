@@ -119,4 +119,18 @@ describe("RemovalDetailModal", () => {
     expect(nfColumn.className).toContain("text-muted-foreground");
     expect(screen.getByText("50 kg")).toBeInTheDocument();
   });
+
+  it("widens the dialog to 600px on desktop widths", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const heading = screen.getByRole("heading", {
+      name: "Remoção de 02/01/2026",
+    });
+    const dialogContent = heading.closest('[class*="rounded-[20px]"]');
+    expect(dialogContent?.className).toContain("sm:max-w-[600px]");
+  });
 });
