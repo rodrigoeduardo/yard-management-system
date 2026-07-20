@@ -100,7 +100,7 @@ export function LoadDetailModal({
               </div>
             </dl>
 
-            <div className="overflow-hidden rounded-[14px] border border-border">
+            <div className="max-h-64 overflow-y-auto rounded-[14px] border border-border">
               {isPending ? (
                 <p className="p-3 text-sm text-muted-foreground">
                   Carregando itens...
