@@ -131,7 +131,7 @@ describe("RemovalSection", () => {
     fireEvent.change(screen.getByLabelText("Peso total removido - máximo"), {
       target: { value: "500" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_date_from=2026-01-01&rem_weight_max=500",
@@ -162,7 +162,7 @@ describe("RemovalSection", () => {
     );
   });
 
-  it("clears filters without clearing search when Limpar filtros is used", () => {
+  it("clears filters without clearing search when Limpar is used", () => {
     currentSearchParams = new URLSearchParams(
       "rem_q=abc&rem_date_from=2026-01-01&rem_weight_max=500",
     );
@@ -180,7 +180,7 @@ describe("RemovalSection", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
     expect(push).toHaveBeenCalledWith("/inventory?rem_q=abc");
   });

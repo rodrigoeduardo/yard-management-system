@@ -135,7 +135,7 @@ describe("StockSection", () => {
     fireEvent.change(screen.getByLabelText("Peso restante - máximo"), {
       target: { value: "500" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?stock_date_from=2026-01-01&stock_weight_max=500",
@@ -166,7 +166,7 @@ describe("StockSection", () => {
     );
   });
 
-  it("clears filters without clearing search when Limpar filtros is used", () => {
+  it("clears filters without clearing search when Limpar is used", () => {
     currentSearchParams = new URLSearchParams(
       "stock_q=abc&stock_date_from=2026-01-01&stock_weight_max=500",
     );
@@ -184,7 +184,7 @@ describe("StockSection", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
     expect(push).toHaveBeenCalledWith("/inventory?stock_q=abc");
   });
