@@ -30,6 +30,8 @@ const HEADER_CLASS =
 
 const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
+const COLUMN_WIDTHS = ["w-[20%]", "w-[20%]", "w-[30%]", "w-[10%]", "w-[20%]"];
+
 const columns: ColumnDef<RemovalLogRow>[] = [
   {
     accessorKey: "exitDate",
@@ -97,10 +99,10 @@ export function RemovalLogTable({
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
+              {headerGroup.headers.map((header, index) => (
                 <TableHead
                   key={header.id}
-                  className={cn(HEADER_CLASS)}
+                  className={cn(HEADER_CLASS, COLUMN_WIDTHS[index])}
                 >
                   {flexRender(
                     header.column.columnDef.header,
