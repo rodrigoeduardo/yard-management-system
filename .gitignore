@@ -42,3 +42,5 @@ yarn-error.log*
 next-env.d.ts
 
 .claude/worktrees
+
+tools/demo-video/*
