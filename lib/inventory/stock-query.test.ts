@@ -295,8 +295,8 @@ describe("stockSearchHref", () => {
 });
 
 describe("STOCK_PAGE_SIZE", () => {
-  it("is 20 rows per page", () => {
-    expect(STOCK_PAGE_SIZE).toBe(20);
+  it("is 10 rows per page", () => {
+    expect(STOCK_PAGE_SIZE).toBe(10);
   });
 });
 

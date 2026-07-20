@@ -7,7 +7,7 @@
 
 import { buildStatusLabel } from "./status-label";
 
-export const STOCK_PAGE_SIZE = 20;
+export const STOCK_PAGE_SIZE = 10;
 
 export const STOCK_ORDER_OPTIONS = [
   { key: "entryDate", label: "Data de Entrada" },
