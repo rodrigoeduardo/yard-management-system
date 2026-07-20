@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RemovalQueryState } from "@/lib/inventory/removal-query";
 import { RemovalSection } from "./removal-section";
@@ -97,16 +97,9 @@ describe("RemovalSection", () => {
     render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
-    const itemCountLabel = screen
-      .getAllByText("Qtd. de Itens")
-      .find((el) => el.closest("fieldset"))!;
-    fireEvent.click(
-      itemCountLabel.closest("div")!.querySelectorAll("button")[0],
-    );
+    fireEvent.click(screen.getByRole("radio", { name: "Qtd. de Itens" }));
 
-    expect(push).toHaveBeenCalledWith(
-      "/inventory?rem_dir=asc&rem_order=itemCount",
-    );
+    expect(push).toHaveBeenCalledWith("/inventory?rem_order=itemCount");
   });
 
   it("pushes a rem_page URL update, preserving q/order, when navigating pages", () => {
@@ -205,12 +198,8 @@ describe("RemovalSection", () => {
     render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
-    const exitDateLabel = screen
-      .getAllByText("Data de Saída")
-      .find((el) => el.closest("fieldset"))!;
-    fireEvent.click(
-      exitDateLabel.closest("div")!.querySelectorAll("button")[0],
-    );
+    const exitDateRow = screen.getByRole("radio", { name: "Data de Saída" });
+    fireEvent.click(within(exitDateRow).getByText("Asc ↑"));
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_dir=asc&stock_page=4&stock_q=steel",
