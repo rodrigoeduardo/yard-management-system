@@ -68,4 +68,25 @@ describe("RemovalLogTable", () => {
     expect(card?.getAttribute("data-slot")).toBe("card");
     expect(card?.className).toMatch(/\boverflow-hidden\b/);
   });
+
+  it("sizes columns with proportional percentage widths that sum to 100%, not fixed pixel widths", () => {
+    render(<RemovalLogTable rows={[ROW]} />);
+
+    const headers = [
+      "Data de Saída",
+      "Motorista",
+      "Notas Fiscais",
+      "Itens",
+      "Peso Total Removido",
+    ].map((text) => screen.getByText(text));
+
+    let total = 0;
+    for (const header of headers) {
+      expect(header.className).not.toMatch(/\bw-\[\d+px\]\b/);
+      const match = header.className.match(/\bw-\[(\d+(?:\.\d+)?)%\]/);
+      expect(match).not.toBeNull();
+      total += Number(match?.[1]);
+    }
+    expect(total).toBe(100);
+  });
 });

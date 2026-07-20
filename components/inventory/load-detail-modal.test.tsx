@@ -94,4 +94,14 @@ describe("LoadDetailModal", () => {
       screen.getByRole("heading", { name: "Carga NF-001" }),
     ).toBeInTheDocument();
   });
+
+  it("widens the dialog to 600px on desktop widths", () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    const heading = screen.getByRole("heading", { name: "Carga NF-001" });
+    const dialogContent = heading.closest('[class*="rounded-[20px]"]');
+    expect(dialogContent?.className).toContain("sm:max-w-[600px]");
+  });
 });

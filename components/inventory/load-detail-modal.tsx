@@ -42,7 +42,7 @@ export function LoadDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-[20px] px-[26px] py-6 shadow-2xl sm:max-w-[520px]">
+      <DialogContent className="rounded-[20px] px-[26px] py-6 shadow-2xl sm:max-w-[600px]">
         {load && (
           <>
             <DialogHeader>
