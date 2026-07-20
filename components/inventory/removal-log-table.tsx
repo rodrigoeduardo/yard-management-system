@@ -30,7 +30,13 @@ const HEADER_CLASS =
 
 const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
-const COLUMN_WIDTHS = ["w-[200px]", "w-[200px]", "w-[300px]", "w-[110px]", "w-[170px]"];
+const COLUMN_WIDTHS = [
+  "w-[15%]",
+  "w-[25%]",
+  "w-[35%]",
+  "w-[10%]",
+  "w-[15%]",
+];
 
 const columns: ColumnDef<RemovalLogRow>[] = [
   {
