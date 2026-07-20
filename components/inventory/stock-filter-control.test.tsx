@@ -61,6 +61,7 @@ describe("StockFilterControl", () => {
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Filtros")).toBeInTheDocument();
     expect(screen.getByLabelText("Data de entrada - de")).toBeInTheDocument();
   });
 
@@ -74,7 +75,7 @@ describe("StockFilterControl", () => {
     fireEvent.change(screen.getByLabelText("Data de entrada - de"), {
       target: { value: "2026-01-01" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(onApply).toHaveBeenCalledWith({
       dateFrom: "2026-01-01",
@@ -86,7 +87,7 @@ describe("StockFilterControl", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("clears filters and closes the modal when Limpar filtros is clicked", () => {
+  it("clears filters and closes the modal when Limpar is clicked", () => {
     const onClear = vi.fn();
     render(
       <StockFilterControl
@@ -97,7 +98,7 @@ describe("StockFilterControl", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
     expect(onClear).toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

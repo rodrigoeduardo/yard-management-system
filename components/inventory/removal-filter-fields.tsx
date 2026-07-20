@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { RemovalQueryState } from "@/lib/inventory/removal-query";
+import { FilterRangeField } from "./filter-range-field";
 
 export type RemovalFilterValues = {
   dateFrom: string;
@@ -13,12 +13,12 @@ export type RemovalFilterValues = {
 };
 
 /**
- * The exit date range and total removed weight range filter inputs, shared
- * by the mobile modal and the desktop collapse panel (mirrors the
- * `RemovalOrderOptions`/`RemovalOrderControl` split). Edits are local
- * drafts — nothing navigates until "Aplicar filtros" is submitted, so
+ * The exit date range and total removed weight range filter fields (design
+ * `2d`), shared by the mobile modal and the desktop collapse panel. Edits
+ * are local drafts — nothing navigates until "Aplicar" is submitted, so
  * typing a partial date/number doesn't spam the URL. Mirrors
- * `StockFilterFields`.
+ * `StockFilterFields` (no checkbox row here — removals have no
+ * "finalizada" state to toggle).
  */
 export function RemovalFilterFields({
   query,
@@ -49,59 +49,37 @@ export function RemovalFilterFields({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-foreground">
-          Data de saída
-        </legend>
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            aria-label="Data de saída - de"
-            value={dateFrom}
-            onChange={(event) => setDateFrom(event.target.value)}
-          />
-          <span className="text-sm text-muted-foreground">até</span>
-          <Input
-            type="date"
-            aria-label="Data de saída - até"
-            value={dateTo}
-            onChange={(event) => setDateTo(event.target.value)}
-          />
-        </div>
-      </fieldset>
+      <FilterRangeField
+        legend="Data de Saída"
+        type="date"
+        valueFrom={dateFrom}
+        valueTo={dateTo}
+        onChangeFrom={setDateFrom}
+        onChangeTo={setDateTo}
+        ariaLabelFrom="Data de saída - de"
+        ariaLabelTo="Data de saída - até"
+      />
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-foreground">
-          Peso total removido
-        </legend>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min="0"
-            step="any"
-            unit="kg"
-            aria-label="Peso total removido - mínimo"
-            value={weightMin}
-            onChange={(event) => setWeightMin(event.target.value)}
-          />
-          <span className="text-sm text-muted-foreground">até</span>
-          <Input
-            type="number"
-            min="0"
-            step="any"
-            unit="kg"
-            aria-label="Peso total removido - máximo"
-            value={weightMax}
-            onChange={(event) => setWeightMax(event.target.value)}
-          />
-        </div>
-      </fieldset>
+      <FilterRangeField
+        legend="Peso Total Removido (kg)"
+        type="number"
+        valueFrom={weightMin}
+        valueTo={weightMax}
+        onChangeFrom={setWeightMin}
+        onChangeTo={setWeightMax}
+        ariaLabelFrom="Peso total removido - mínimo"
+        ariaLabelTo="Peso total removido - máximo"
+        placeholderFrom="Mín."
+        placeholderTo="Máx."
+      />
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={handleClear}>
-          Limpar filtros
+      <div className="flex gap-2.5">
+        <Button type="button" variant="outline" className="flex-1" onClick={handleClear}>
+          Limpar
         </Button>
-        <Button type="submit">Aplicar filtros</Button>
+        <Button type="submit" className="flex-1">
+          Aplicar
+        </Button>
       </div>
     </form>
   );

@@ -56,9 +56,9 @@ export function RemovalFilterControl({
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="rounded-2xl px-[22px] py-5 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Filtrar remoções</DialogTitle>
+            <DialogTitle className="text-base">Filtros</DialogTitle>
           </DialogHeader>
           <RemovalFilterFields
             query={query}

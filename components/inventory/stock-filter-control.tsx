@@ -53,9 +53,9 @@ export function StockFilterControl({
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="rounded-2xl px-[22px] py-5 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Filtrar estoque</DialogTitle>
+            <DialogTitle className="text-base">Filtros</DialogTitle>
           </DialogHeader>
           <StockFilterFields
             query={query}
