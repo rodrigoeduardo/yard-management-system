@@ -1,7 +1,7 @@
-import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import { loadEnv } from "./scripts/lib/load-env";
 
-config({ path: ".env.local" });
+loadEnv();
 
 function requireEnv(name: string): string {
   const value = process.env[name];
