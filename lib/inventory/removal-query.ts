@@ -8,7 +8,7 @@
 
 import { buildStatusLabel } from "./status-label";
 
-export const REMOVAL_PAGE_SIZE = 20;
+export const REMOVAL_PAGE_SIZE = 10;
 
 export const REMOVAL_ORDER_OPTIONS = [
   { key: "exitDate", label: "Data de Saída" },
