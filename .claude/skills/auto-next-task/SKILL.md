@@ -104,9 +104,12 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
      stop working this PR.
 
 8. **Merge gate + merge.** Merge **only** when ALL hold:
-   - label `ai-review:approved` present,
-   - `gh pr checks <p>` — every check **green** (pending → poll a few times with a short wait, then
-     re-evaluate; still pending after the timeout → treat as not-ready, revisit next pass),
+   - label `ai-review:approved` present (or the PR was skip-reviewed as trivial in step 6),
+   - `gh pr checks <p>` — every check **green**. If checks are still running, don't poll in a loop:
+     run `gh pr checks <p> --watch --fail-fast` as a single **background** command with a ~10 min
+     timeout, and continue other bookkeeping (re-derive the claimable set, adopt other open PRs)
+     while it runs. React to its result when it completes; still pending/timed out → treat as
+     not-ready, revisit next pass,
    - PR **mergeable**, not behind `main` (`gh pr view <p> --json mergeable,mergeStateStatus`).
    Then:
    ```bash
