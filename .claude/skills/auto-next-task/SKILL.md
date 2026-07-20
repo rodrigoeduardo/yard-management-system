@@ -15,6 +15,10 @@ yourself.
 > `ai-review:approved` + green CI + mergeable. That one human gate is broken **on purpose**. The
 > other human gate — promoting `status:proposed → status:ready` — is **preserved**: this skill only
 > ever consumes `status:ready` issues. Do not edit those docs; this note is the record of divergence.
+>
+> This skill also tiers review cost: trivial PRs skip AI review entirely (step 6), and fix-cycle
+> re-reviews are delta-only, not from-scratch (step 7). Neither changes what a full first review of
+> substantive code checks — they only cut redundant re-checking.
 
 **REQUIRED READING:** `docs/workflow/board-protocol.md`, `git-conventions.md`, `review-policy.md`.
 
@@ -78,15 +82,23 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
    On `BLOCKED`/`TOO_BIG` → the worker already labeled the issue; record it and move on.
    On `DONE pr=#<p>` → proceed to review that PR.
 
-6. **Request review.** `gh pr edit <p> --add-label "ai-review:requested"`, then dispatch an
-   `auto-reviewer` for PR `<p>`. Wait for `APPROVED` / `CHANGES_REQUESTED`.
+6. **Request review — unless trivial.** Check `gh pr diff <p> --name-only` and
+   `gh pr view <p> --json additions,deletions`. Skip the reviewer entirely when the diff touches
+   **only** docs/config (`*.md`, `.github/**`, `.claude/**`, dotfiles) **or** total changed lines
+   < ~30 with no files under `app/`, `lib/`, `drizzle/`. For a skipped PR: don't apply
+   `ai-review:requested`, treat the merge gate (step 8) as satisfied by green CI + mergeable alone,
+   and record "review skipped: trivial" for it in the run summary.
+   Otherwise: `gh pr edit <p> --add-label "ai-review:requested"`, dispatch an `auto-reviewer` for PR
+   `<p>` as a **first review**. Wait for `APPROVED` / `CHANGES_REQUESTED`.
 
 7. **Fix loop (cap = `--max-fix-cycles`, default 3).** A "round" = one AI review verdict on the PR.
    Derive the current round count from the PR timeline (count of `ai-review:*` verdicts / reviewer
    comments) so a restarted orchestrator resumes correctly — do not rely on memory.
    - `ai-review:changes-requested`, **or** `gh pr checks <p>` red, **or** PR behind `main`:
      dispatch an `auto-executor` (mode FIX) with the PR number, branch, and reason. On its `DONE`,
-     re-apply `ai-review:requested` and dispatch `auto-reviewer` again.
+     re-apply `ai-review:requested` and dispatch `auto-reviewer` again as a **delta re-review**,
+     passing it the previous round's blocking findings and the SHA it last reviewed (last
+     `ai-review:*` label event) so it diffs only what changed since then.
    - Rounds ≥ cap and still not clean → `gh pr edit <p> --add-label` is not enough: label the
      **issue** `status:blocked` and comment what remains, leave the PR+branch untouched for a human,
      stop working this PR.
