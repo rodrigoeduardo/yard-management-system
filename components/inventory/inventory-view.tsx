@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import type { RemovalQueryState } from "@/lib/inventory/removal-query";
-import type { StockQueryState } from "@/lib/inventory/stock-query";
+import {
+  removalStatusLabel,
+  type RemovalQueryState,
+} from "@/lib/inventory/removal-query";
+import {
+  stockStatusLabel,
+  type StockQueryState,
+} from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
 import { RemovalSection } from "./removal-section";
 import type { RemovalLogRow } from "./removal-log-table";
@@ -59,7 +65,7 @@ export function InventoryView({
         <div className="hidden items-baseline gap-3 md:flex">
           <h2 className="text-xl font-bold text-foreground">Estoque Atual</h2>
           <span className="text-xs text-muted-foreground">
-            somente visualização
+            {stockStatusLabel(stockQuery)}
           </span>
         </div>
         <StockSection rows={stockRows} total={stockTotal} query={stockQuery} />
@@ -76,7 +82,7 @@ export function InventoryView({
             Histórico de Remoções
           </h2>
           <span className="text-xs text-muted-foreground">
-            remoções mais recentes no topo
+            {removalStatusLabel(removalQuery)}
           </span>
         </div>
         <RemovalSection

@@ -216,6 +216,48 @@ describe("RemovalSection", () => {
     );
   });
 
+  it("shows a status label reflecting the default order, with no filters-active marker", () => {
+    render(<RemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
+
+    expect(
+      screen.getByText(
+        "Ordenado por Data de Saída (desc) · somente visualização",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a status label reflecting a changed order/direction", () => {
+    render(
+      <RemovalSection
+        rows={[ROW]}
+        total={1}
+        query={{ ...DEFAULT_QUERY, order: "itemCount", dir: "asc" }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Ordenado por Qtd. de Itens (asc) · somente visualização",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a filters-active marker in the status label when a filter is set", () => {
+    render(
+      <RemovalSection
+        rows={[ROW]}
+        total={1}
+        query={{ ...DEFAULT_QUERY, dateFrom: "2026-01-01" }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Ordenado por Data de Saída (desc) · filtros ativos · somente visualização",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("keeps the previous rows rendered and marks the region busy while a navigation is pending", async () => {
     vi.resetModules();
     vi.doMock("./use-removal-query-nav", () => ({

@@ -129,6 +129,31 @@ describe("InventoryView", () => {
     );
   });
 
+  it("shows dynamic order/filter status labels for both sections, not the old static captions", () => {
+    render(
+      <InventoryView
+        stockRows={[STOCK_ROW]}
+        stockTotal={1}
+        stockQuery={{ q: "", order: "nfWeight", dir: "asc", page: 1, weightMin: "10" }}
+        removalRows={[REMOVAL_ROW]}
+        removalTotal={1}
+        removalQuery={REMOVAL_QUERY}
+      />,
+    );
+
+    expect(
+      screen.getAllByText(
+        "Ordenado por Peso da NF (asc) · filtros ativos · somente visualização",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        "Ordenado por Data de Saída (desc) · somente visualização",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText("remoções mais recentes no topo")).not.toBeInTheDocument();
+  });
+
   it("keeps stock_* and rem_* URL state fully independent: searching removals never touches stock params", () => {
     currentSearchParams = new URLSearchParams(
       "stock_q=steel&stock_order=nfWeight&stock_dir=asc&stock_page=3",

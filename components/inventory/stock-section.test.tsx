@@ -198,6 +198,46 @@ describe("StockSection", () => {
     });
   });
 
+  it("shows a status label reflecting the default order, with no filters-active marker", () => {
+    render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
+
+    expect(
+      screen.getByText(
+        "Ordenado por Data de Entrada (desc) · somente visualização",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a status label reflecting a changed order/direction", () => {
+    render(
+      <StockSection
+        rows={[ROW]}
+        total={1}
+        query={{ ...DEFAULT_QUERY, order: "nfWeight", dir: "asc" }}
+      />,
+    );
+
+    expect(
+      screen.getByText("Ordenado por Peso da NF (asc) · somente visualização"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a filters-active marker in the status label when a filter is set", () => {
+    render(
+      <StockSection
+        rows={[ROW]}
+        total={1}
+        query={{ ...DEFAULT_QUERY, weightMin: "10" }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Ordenado por Data de Entrada (desc) · filtros ativos · somente visualização",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("keeps the previous rows rendered and marks the region busy while a navigation is pending", async () => {
     vi.resetModules();
     vi.doMock("./use-stock-query-nav", () => ({
