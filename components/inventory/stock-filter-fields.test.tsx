@@ -41,7 +41,7 @@ describe("StockFilterFields", () => {
     fireEvent.change(screen.getByLabelText("Data de entrada - de"), {
       target: { value: "2026-01-01" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(onApply).toHaveBeenCalledWith({
       dateFrom: "2026-01-01",
@@ -85,7 +85,7 @@ describe("StockFilterFields", () => {
     fireEvent.click(
       screen.getByRole("checkbox", { name: "Mostrar cargas finalizadas" }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(onApply).toHaveBeenCalledWith({
       dateFrom: "",
@@ -108,7 +108,7 @@ describe("StockFilterFields", () => {
     fireEvent.change(screen.getByLabelText("Peso restante - máximo"), {
       target: { value: "500" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
 
     expect(onApply).toHaveBeenCalledWith({
       dateFrom: "",
@@ -119,7 +119,7 @@ describe("StockFilterFields", () => {
     });
   });
 
-  it("resets every field to empty and the checkbox to checked, and calls onClear, when Limpar filtros is clicked", () => {
+  it("resets every field to empty and the checkbox to checked, and calls onClear, when Limpar is clicked", () => {
     const onClear = vi.fn();
     render(
       <StockFilterFields
@@ -134,7 +134,7 @@ describe("StockFilterFields", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
     expect(onClear).toHaveBeenCalled();
     expect(screen.getByLabelText("Data de entrada - de")).toHaveValue("");
