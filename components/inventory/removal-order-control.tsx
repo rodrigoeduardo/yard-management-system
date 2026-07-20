@@ -37,6 +37,14 @@ export function RemovalOrderControl({
 
   function handleSelect(nextOrder: RemovalOrderKey, nextDir: RemovalSortDir) {
     onChange(nextOrder, nextDir);
+  }
+
+  function handleApply() {
+    setOpen(false);
+  }
+
+  function handleClear() {
+    onChange(DEFAULT_REMOVAL_ORDER, DEFAULT_REMOVAL_DIR);
     setOpen(false);
   }
 
@@ -49,11 +57,17 @@ export function RemovalOrderControl({
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="rounded-2xl px-[22px] py-5 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Ordenar remoções</DialogTitle>
+            <DialogTitle className="text-base">Ordenar por</DialogTitle>
           </DialogHeader>
-          <RemovalOrderOptions order={order} dir={dir} onSelect={handleSelect} />
+          <RemovalOrderOptions
+            order={order}
+            dir={dir}
+            onSelect={handleSelect}
+            onApply={handleApply}
+            onClear={handleClear}
+          />
         </DialogContent>
       </Dialog>
     </>

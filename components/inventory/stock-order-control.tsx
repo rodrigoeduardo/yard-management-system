@@ -37,6 +37,14 @@ export function StockOrderControl({
 
   function handleSelect(nextOrder: StockOrderKey, nextDir: StockSortDir) {
     onChange(nextOrder, nextDir);
+  }
+
+  function handleApply() {
+    setOpen(false);
+  }
+
+  function handleClear() {
+    onChange(DEFAULT_STOCK_ORDER, DEFAULT_STOCK_DIR);
     setOpen(false);
   }
 
@@ -49,11 +57,17 @@ export function StockOrderControl({
         onClick={() => setOpen(true)}
       />
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="rounded-2xl px-[22px] py-5 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Ordenar estoque</DialogTitle>
+            <DialogTitle className="text-base">Ordenar por</DialogTitle>
           </DialogHeader>
-          <StockOrderOptions order={order} dir={dir} onSelect={handleSelect} />
+          <StockOrderOptions
+            order={order}
+            dir={dir}
+            onSelect={handleSelect}
+            onApply={handleApply}
+            onClear={handleClear}
+          />
         </DialogContent>
       </Dialog>
     </>

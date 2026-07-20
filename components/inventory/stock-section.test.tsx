@@ -101,16 +101,9 @@ describe("StockSection", () => {
     render(<StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
-    const nfWeightLabel = screen
-      .getAllByText("Peso da NF")
-      .find((el) => el.closest("fieldset"))!;
-    fireEvent.click(
-      nfWeightLabel.closest("div")!.querySelectorAll("button")[0],
-    );
+    fireEvent.click(screen.getByRole("radio", { name: "Peso da NF" }));
 
-    expect(push).toHaveBeenCalledWith(
-      "/inventory?stock_dir=asc&stock_order=nfWeight",
-    );
+    expect(push).toHaveBeenCalledWith("/inventory?stock_order=nfWeight");
   });
 
   it("pushes a stock_page URL update, preserving q/order, when navigating pages", () => {
