@@ -42,7 +42,7 @@ function loadToRow(load: LastLoadSummary): Row {
     key: "load",
     sortDate: load.entryDate,
     title: `Carga · NF ${load.notaFiscal}`,
-    meta: `${load.material} · ${formatEntryDateTime(load.entryDate)} · ${load.nfWeight} kg`,
+    meta: `${formatEntryDateTime(load.entryDate)} · ${load.material} · ${load.nfWeight} kg`,
   };
 }
 
