@@ -140,6 +140,49 @@ describe("LastMovementCard", () => {
     expect(rows[0]).toHaveTextContent("15/07/2026 · 21:00");
   });
 
+  it("orders load row meta fields as date, material, weight", () => {
+    render(
+      <LastMovementCard
+        removal={null}
+        load={{
+          notaFiscal: "145.982",
+          material: "Sucata de Alumínio",
+          entryDate: new Date("2026-07-17T15:00:00Z"),
+          nfWeight: "12480",
+        }}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    const meta = rows[0].querySelector(
+      "span.text-muted-foreground, span.text-xs",
+    );
+    expect(meta?.textContent).toBe(
+      "17/07/2026 · 12:00 · Sucata de Alumínio · 12480 kg",
+    );
+  });
+
+  it("orders removal row meta fields as date, item count, weight", () => {
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-16T12:00:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    const meta = rows[0].querySelector(
+      "span.text-muted-foreground, span.text-xs",
+    );
+    expect(meta?.textContent).toBe("16/07/2026 · 09:00 · 4 itens · 3240 kg");
+  });
+
   it("renders the NF using the accent-foreground token, matching the design's mono NF color", () => {
     render(
       <LastMovementCard
