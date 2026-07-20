@@ -7,6 +7,7 @@ import {
   parseRemovalSearchParams,
   REMOVAL_PAGE_SIZE,
   removalSearchHref,
+  removalStatusLabel,
 } from "./removal-query";
 
 describe("parseRemovalSearchParams", () => {
@@ -272,5 +273,33 @@ describe("removalSearchHref", () => {
 describe("REMOVAL_PAGE_SIZE", () => {
   it("is 20 rows per page", () => {
     expect(REMOVAL_PAGE_SIZE).toBe(20);
+  });
+});
+
+describe("removalStatusLabel", () => {
+  it("reflects the default order and direction, no filters", () => {
+    expect(
+      removalStatusLabel({ q: "", order: "exitDate", dir: "desc", page: 1 }),
+    ).toBe("Ordenado por Data de Saída (desc) · somente visualização");
+  });
+
+  it("reflects a changed order and direction", () => {
+    expect(
+      removalStatusLabel({ q: "", order: "itemCount", dir: "asc", page: 1 }),
+    ).toBe("Ordenado por Qtd. de Itens (asc) · somente visualização");
+  });
+
+  it("indicates active filters", () => {
+    expect(
+      removalStatusLabel({
+        q: "",
+        order: "exitDate",
+        dir: "desc",
+        page: 1,
+        dateFrom: "2026-01-01",
+      }),
+    ).toBe(
+      "Ordenado por Data de Saída (desc) · filtros ativos · somente visualização",
+    );
   });
 });

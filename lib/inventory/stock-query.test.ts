@@ -7,6 +7,7 @@ import {
   parseStockSearchParams,
   STOCK_PAGE_SIZE,
   stockSearchHref,
+  stockStatusLabel,
 } from "./stock-query";
 
 describe("parseStockSearchParams", () => {
@@ -296,5 +297,33 @@ describe("stockSearchHref", () => {
 describe("STOCK_PAGE_SIZE", () => {
   it("is 20 rows per page", () => {
     expect(STOCK_PAGE_SIZE).toBe(20);
+  });
+});
+
+describe("stockStatusLabel", () => {
+  it("reflects the default order and direction, no filters", () => {
+    expect(
+      stockStatusLabel({ q: "", order: "entryDate", dir: "desc", page: 1 }),
+    ).toBe("Ordenado por Data de Entrada (desc) · somente visualização");
+  });
+
+  it("reflects a changed order and direction", () => {
+    expect(
+      stockStatusLabel({ q: "", order: "nfWeight", dir: "asc", page: 1 }),
+    ).toBe("Ordenado por Peso da NF (asc) · somente visualização");
+  });
+
+  it("indicates active filters", () => {
+    expect(
+      stockStatusLabel({
+        q: "",
+        order: "entryDate",
+        dir: "desc",
+        page: 1,
+        weightMin: "10",
+      }),
+    ).toBe(
+      "Ordenado por Data de Entrada (desc) · filtros ativos · somente visualização",
+    );
   });
 });
