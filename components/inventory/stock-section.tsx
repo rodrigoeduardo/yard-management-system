@@ -7,6 +7,7 @@ import {
   STOCK_PAGE_SIZE,
   type StockQueryState,
 } from "@/lib/inventory/stock-query";
+import { cn } from "@/lib/utils";
 import { LoadDetailModal } from "./load-detail-modal";
 import { StockCard } from "./stock-card";
 import { StockFilterControl } from "./stock-filter-control";
@@ -27,7 +28,7 @@ export function StockSection({
 }) {
   const [selected, setSelected] = useState<StockRow | null>(null);
   const [open, setOpen] = useState(false);
-  const navigateStock = useStockQueryNav();
+  const { navigateStock, isPending } = useStockQueryNav();
 
   const totalPages = Math.max(1, Math.ceil(total / STOCK_PAGE_SIZE));
   const isSearching = query.q.trim().length > 0;
@@ -62,38 +63,50 @@ export function StockSection({
             })
           }
         />
+        {isPending ? (
+          <span role="status" className="text-xs text-muted-foreground">
+            Atualizando…
+          </span>
+        ) : null}
       </div>
 
-      {rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
-          {isSearching ? (
-            <p className="text-muted-foreground">
-              Nenhuma carga encontrada para essa busca.
-            </p>
-          ) : (
-            <>
-              <p className="text-muted-foreground">Nenhuma carga em estoque.</p>
-              <Link
-                href="/loads/new"
-                className={buttonVariants({ variant: "default" })}
-              >
-                Adicionar carga
-              </Link>
-            </>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col gap-[10px] md:hidden">
-            {rows.map((row) => (
-              <StockCard key={row.id} row={row} onClick={handleRowClick} />
-            ))}
+      <div
+        aria-busy={isPending}
+        className={cn("transition-opacity", isPending && "opacity-60")}
+      >
+        {rows.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+            {isSearching ? (
+              <p className="text-muted-foreground">
+                Nenhuma carga encontrada para essa busca.
+              </p>
+            ) : (
+              <>
+                <p className="text-muted-foreground">
+                  Nenhuma carga em estoque.
+                </p>
+                <Link
+                  href="/loads/new"
+                  className={buttonVariants({ variant: "default" })}
+                >
+                  Adicionar carga
+                </Link>
+              </>
+            )}
           </div>
-          <div className="hidden md:block">
-            <StockTable rows={rows} onRowClick={handleRowClick} />
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <div className="flex flex-col gap-[10px] md:hidden">
+              {rows.map((row) => (
+                <StockCard key={row.id} row={row} onClick={handleRowClick} />
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <StockTable rows={rows} onRowClick={handleRowClick} />
+            </div>
+          </>
+        )}
+      </div>
 
       <StockPagination
         page={query.page}
