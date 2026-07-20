@@ -125,6 +125,17 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
     (merged or `status:blocked`), print a run summary: issues claimed, PRs merged, PRs blocked (with
     reasons), total review rounds. Then stop.
 
+## Known risks
+
+- **Shared Supabase project.** Local `.env.local` and the GitHub Actions secrets point at the same
+  Supabase project. Two parallel executors' test runs, or a local run overlapping a CI run, hit the
+  same DB and can interfere. `--parallel` stays opt-in for this reason; if you see flaky
+  DB-dependent tests, suspect cross-run DB interference before suspecting the code. (Follow-up, not
+  in scope here: per-run data prefixes or a local Supabase stack for true isolation.)
+- **CI red with local green** after the worktree env fix (`scripts/lib/load-env.ts`) means real
+  env/schema drift, not a missing-env artifact — report it `BLOCKED` with the differing check output
+  instead of thrashing on it.
+
 ## Red flags — stop
 
 - Merging on approval alone, or with red/pending CI, or with conflicts / behind `main`.
