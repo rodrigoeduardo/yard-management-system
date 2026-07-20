@@ -6,6 +6,8 @@
  * this was copied from.
  */
 
+import { buildStatusLabel } from "./status-label";
+
 export const REMOVAL_PAGE_SIZE = 20;
 
 export const REMOVAL_ORDER_OPTIONS = [
@@ -124,6 +126,18 @@ export function countActiveRemovalFilters(query: RemovalQueryState): number {
 
 export function hasActiveRemovalFilters(query: RemovalQueryState): boolean {
   return countActiveRemovalFilters(query) > 0;
+}
+
+/** Dynamic status label reflecting the active order and filter state. */
+export function removalStatusLabel(query: RemovalQueryState): string {
+  const orderLabel =
+    REMOVAL_ORDER_OPTIONS.find((option) => option.key === query.order)
+      ?.label ?? query.order;
+  return buildStatusLabel(
+    orderLabel,
+    query.dir,
+    hasActiveRemovalFilters(query),
+  );
 }
 
 /**

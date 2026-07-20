@@ -5,6 +5,7 @@ import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import {
   STOCK_PAGE_SIZE,
+  stockStatusLabel,
   type StockQueryState,
 } from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,9 @@ export function StockSection({
         ) : (
           <>
             <div className="flex flex-col gap-[10px] md:hidden">
+              <span className="text-[11.5px] text-muted-foreground">
+                {stockStatusLabel(query)}
+              </span>
               {rows.map((row) => (
                 <StockCard key={row.id} row={row} onClick={handleRowClick} />
               ))}

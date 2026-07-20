@@ -5,6 +5,8 @@
  * without colliding. This is the pattern follow-up sections should copy.
  */
 
+import { buildStatusLabel } from "./status-label";
+
 export const STOCK_PAGE_SIZE = 20;
 
 export const STOCK_ORDER_OPTIONS = [
@@ -144,6 +146,14 @@ export function countActiveStockFilters(query: StockQueryState): number {
 
 export function hasActiveStockFilters(query: StockQueryState): boolean {
   return countActiveStockFilters(query) > 0;
+}
+
+/** Dynamic status label reflecting the active order and filter state. */
+export function stockStatusLabel(query: StockQueryState): string {
+  const orderLabel =
+    STOCK_ORDER_OPTIONS.find((option) => option.key === query.order)?.label ??
+    query.order;
+  return buildStatusLabel(orderLabel, query.dir, hasActiveStockFilters(query));
 }
 
 /**

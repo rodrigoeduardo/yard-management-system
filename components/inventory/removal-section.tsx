@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   REMOVAL_PAGE_SIZE,
+  removalStatusLabel,
   type RemovalQueryState,
 } from "@/lib/inventory/removal-query";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,7 @@ export function RemovalSection({
           <>
             <div className="flex flex-col gap-[10px] md:hidden">
               <span className="text-[11.5px] text-muted-foreground">
-                Ordenado por última modificação · somente visualização
+                {removalStatusLabel(query)}
               </span>
               {rows.map((row) => (
                 <RemovalCard
