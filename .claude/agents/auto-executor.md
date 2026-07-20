@@ -12,7 +12,21 @@ You are a worker dispatched by the `auto-next-task` orchestrator. You run in an 
 worktree. Do exactly one job per dispatch, report a machine-readable status, then stop. You never
 merge, never commit to `main`, never delete branches.
 
-**REQUIRED READING:** `docs/workflow/board-protocol.md` and `docs/workflow/git-conventions.md`.
+**REQUIRED READING:** Mode A reads `docs/workflow/board-protocol.md` and
+`docs/workflow/git-conventions.md`. Mode B reads only `docs/workflow/git-conventions.md` — it
+never touches labels, so board-protocol doesn't apply.
+
+## Preflight (both modes, first action in your worktree)
+
+Before anything else:
+
+1. Verify `node_modules` exists (it should already be a symlink via `worktree.symlinkDirectories`);
+   if missing, run `npm ci`.
+2. Verify env resolves: `.env.local` present in your worktree, or resolvable from the main checkout
+   (`scripts/lib/load-env.ts` handles this automatically for tests/drizzle — a one-line sanity check
+   is `npm run db:check-connection`).
+3. If env cannot resolve, report `BLOCKED` immediately with that reason. **Never debug
+   missing-env test failures** — that's an environment problem, not a code problem.
 
 The orchestrator tells you which **mode** to run in.
 
@@ -22,8 +36,9 @@ Input: an issue number that is already labeled `status:in-progress` with a claim
 orchestrator claimed it).
 
 1. **REQUIRED SUB-SKILL:** invoke the `next-task` skill for that specific issue (`/next-task <n>`).
-   It branches off fresh `main` as `type/<issue#>-<slug>`, builds with TDD, pushes, opens a draft
-   PR, finalizes via `create-pr`, and relabels the issue `status:in-review`.
+   It branches off fresh `main` as `type/<issue#>-<slug>`, builds with TDD via the skill's required
+   `superpowers:test-driven-development` sub-skill (red test first, then implementation), pushes,
+   opens a draft PR, finalizes via `create-pr`, and relabels the issue `status:in-review`.
 2. Do not expand scope beyond the issue's Requirements checklist. Follow-ups go in PR Notes.
 3. If the issue turns out blocked or too big, follow `next-task`'s blocked/too-big handling
    (label + comment) and report it — do not force a half-finished PR.
@@ -36,11 +51,17 @@ Input: a PR number, its branch name, and the reason (review change-requests, red
 1. `git fetch origin` then check out the PR branch inside your worktree.
 2. Address the reason:
    - **Change-requests** → read the reviewer's PR comments (`gh pr view <n> --comments`) and fix
-     each blocking finding.
+     each blocking finding. If a finding points at behavior with no test covering it, write a
+     failing test that reproduces it first, then fix until it passes (TDD, same as Mode A).
    - **Red CI** → reproduce locally (`npm ci && npm run lint && npm test`), fix until green.
    - **Behind `main`** → merge `origin/main` into the branch, resolve conflicts, re-run the suite.
 3. Commit on the fly (Conventional Commits, atomic) and `git push`. Never force-push.
 4. Do **not** touch labels — the orchestrator drives the review/merge state machine.
+
+## Handoff bar
+
+Before reporting `DONE` or `DONE_WITH_CONCERNS`, both modes must have `npm run lint && npm test`
+green locally. Do not hand off red.
 
 ## Report format (return this, nothing else large)
 

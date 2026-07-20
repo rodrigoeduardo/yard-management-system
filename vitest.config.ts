@@ -7,6 +7,7 @@ const alias = {
 };
 
 export default defineConfig({
+  cacheDir: ".vite-cache",
   test: {
     projects: [
       {

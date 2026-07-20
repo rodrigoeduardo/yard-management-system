@@ -15,6 +15,10 @@ yourself.
 > `ai-review:approved` + green CI + mergeable. That one human gate is broken **on purpose**. The
 > other human gate — promoting `status:proposed → status:ready` — is **preserved**: this skill only
 > ever consumes `status:ready` issues. Do not edit those docs; this note is the record of divergence.
+>
+> This skill also tiers review cost: trivial PRs skip AI review entirely (step 6), and fix-cycle
+> re-reviews are delta-only, not from-scratch (step 7). Neither changes what a full first review of
+> substantive code checks — they only cut redundant re-checking.
 
 **REQUIRED READING:** `docs/workflow/board-protocol.md`, `git-conventions.md`, `review-policy.md`.
 
@@ -78,23 +82,34 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
    On `BLOCKED`/`TOO_BIG` → the worker already labeled the issue; record it and move on.
    On `DONE pr=#<p>` → proceed to review that PR.
 
-6. **Request review.** `gh pr edit <p> --add-label "ai-review:requested"`, then dispatch an
-   `auto-reviewer` for PR `<p>`. Wait for `APPROVED` / `CHANGES_REQUESTED`.
+6. **Request review — unless trivial.** Check `gh pr diff <p> --name-only` and
+   `gh pr view <p> --json additions,deletions`. Skip the reviewer entirely when the diff touches
+   **only** docs/config (`*.md`, `.github/**`, `.claude/**`, dotfiles) **or** total changed lines
+   < ~30 with no files under `app/`, `lib/`, `drizzle/`. For a skipped PR: don't apply
+   `ai-review:requested`, treat the merge gate (step 8) as satisfied by green CI + mergeable alone,
+   and record "review skipped: trivial" for it in the run summary.
+   Otherwise: `gh pr edit <p> --add-label "ai-review:requested"`, dispatch an `auto-reviewer` for PR
+   `<p>` as a **first review**. Wait for `APPROVED` / `CHANGES_REQUESTED`.
 
 7. **Fix loop (cap = `--max-fix-cycles`, default 3).** A "round" = one AI review verdict on the PR.
    Derive the current round count from the PR timeline (count of `ai-review:*` verdicts / reviewer
    comments) so a restarted orchestrator resumes correctly — do not rely on memory.
    - `ai-review:changes-requested`, **or** `gh pr checks <p>` red, **or** PR behind `main`:
      dispatch an `auto-executor` (mode FIX) with the PR number, branch, and reason. On its `DONE`,
-     re-apply `ai-review:requested` and dispatch `auto-reviewer` again.
+     re-apply `ai-review:requested` and dispatch `auto-reviewer` again as a **delta re-review**,
+     passing it the previous round's blocking findings and the SHA it last reviewed (last
+     `ai-review:*` label event) so it diffs only what changed since then.
    - Rounds ≥ cap and still not clean → `gh pr edit <p> --add-label` is not enough: label the
      **issue** `status:blocked` and comment what remains, leave the PR+branch untouched for a human,
      stop working this PR.
 
 8. **Merge gate + merge.** Merge **only** when ALL hold:
-   - label `ai-review:approved` present,
-   - `gh pr checks <p>` — every check **green** (pending → poll a few times with a short wait, then
-     re-evaluate; still pending after the timeout → treat as not-ready, revisit next pass),
+   - label `ai-review:approved` present (or the PR was skip-reviewed as trivial in step 6),
+   - `gh pr checks <p>` — every check **green**. If checks are still running, don't poll in a loop:
+     run `gh pr checks <p> --watch --fail-fast` as a single **background** command with a ~10 min
+     timeout, and continue other bookkeeping (re-derive the claimable set, adopt other open PRs)
+     while it runs. React to its result when it completes; still pending/timed out → treat as
+     not-ready, revisit next pass,
    - PR **mergeable**, not behind `main` (`gh pr view <p> --json mergeable,mergeStateStatus`).
    Then:
    ```bash
@@ -109,6 +124,17 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
 10. **Terminate (drain once).** When no claimable issues remain AND every adopted PR is resolved
     (merged or `status:blocked`), print a run summary: issues claimed, PRs merged, PRs blocked (with
     reasons), total review rounds. Then stop.
+
+## Known risks
+
+- **Shared Supabase project.** Local `.env.local` and the GitHub Actions secrets point at the same
+  Supabase project. Two parallel executors' test runs, or a local run overlapping a CI run, hit the
+  same DB and can interfere. `--parallel` stays opt-in for this reason; if you see flaky
+  DB-dependent tests, suspect cross-run DB interference before suspecting the code. (Follow-up, not
+  in scope here: per-run data prefixes or a local Supabase stack for true isolation.)
+- **CI red with local green** after the worktree env fix (`scripts/lib/load-env.ts`) means real
+  env/schema drift, not a missing-env artifact — report it `BLOCKED` with the differing check output
+  instead of thrashing on it.
 
 ## Red flags — stop
 

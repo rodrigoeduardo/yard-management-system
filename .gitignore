@@ -41,6 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# worktree-local vitest cache (node_modules is symlinked and shared)
+.vite-cache
+
 .claude/worktrees
 
 tools/demo-video/*

@@ -1,9 +1,9 @@
 import { cleanup } from "@testing-library/react";
-import { config } from "dotenv";
 import { afterEach } from "vitest";
+import { loadEnv } from "./scripts/lib/load-env";
 import "@testing-library/jest-dom/vitest";
 
-config({ path: ".env.local" });
+loadEnv();
 
 afterEach(() => {
   cleanup();
