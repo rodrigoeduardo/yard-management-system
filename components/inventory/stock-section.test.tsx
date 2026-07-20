@@ -93,7 +93,9 @@ describe("StockSection", () => {
     });
     vi.advanceTimersByTime(300);
 
-    expect(push).toHaveBeenCalledWith("/inventory?stock_q=NF-2");
+    expect(push).toHaveBeenCalledWith("/inventory?stock_q=NF-2", {
+      scroll: false,
+    });
     vi.useRealTimers();
   });
 
@@ -103,7 +105,9 @@ describe("StockSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
     fireEvent.click(screen.getByRole("radio", { name: "Peso da NF" }));
 
-    expect(push).toHaveBeenCalledWith("/inventory?stock_order=nfWeight");
+    expect(push).toHaveBeenCalledWith("/inventory?stock_order=nfWeight", {
+      scroll: false,
+    });
   });
 
   it("pushes a stock_page URL update, preserving q/order, when navigating pages", () => {
@@ -122,6 +126,7 @@ describe("StockSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?stock_dir=asc&stock_order=itemCount&stock_page=2&stock_q=abc",
+      { scroll: false },
     );
   });
 
@@ -139,6 +144,7 @@ describe("StockSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?stock_date_from=2026-01-01&stock_weight_max=500",
+      { scroll: false },
     );
   });
 
@@ -163,6 +169,7 @@ describe("StockSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?stock_date_from=2026-01-01&stock_page=3&stock_weight_max=500",
+      { scroll: false },
     );
   });
 
@@ -186,6 +193,30 @@ describe("StockSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
-    expect(push).toHaveBeenCalledWith("/inventory?stock_q=abc");
+    expect(push).toHaveBeenCalledWith("/inventory?stock_q=abc", {
+      scroll: false,
+    });
+  });
+
+  it("keeps the previous rows rendered and marks the region busy while a navigation is pending", async () => {
+    vi.resetModules();
+    vi.doMock("./use-stock-query-nav", () => ({
+      useStockQueryNav: () => ({ navigateStock: push, isPending: true }),
+    }));
+    const { StockSection: PendingStockSection } = await import(
+      "./stock-section"
+    );
+
+    render(<PendingStockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Atualizando…");
+    // Stale rows stay mounted (no blank/loading swap) while pending.
+    expect(screen.getAllByText("NF-001", { exact: false }).length).toBeGreaterThan(
+      0,
+    );
+    const busyRegion = document.querySelector('[aria-busy="true"]');
+    expect(busyRegion).not.toBeNull();
+
+    vi.doUnmock("./use-stock-query-nav");
   });
 });

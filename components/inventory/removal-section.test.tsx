@@ -89,7 +89,9 @@ describe("RemovalSection", () => {
     });
     vi.advanceTimersByTime(300);
 
-    expect(push).toHaveBeenCalledWith("/inventory?rem_q=Joao");
+    expect(push).toHaveBeenCalledWith("/inventory?rem_q=Joao", {
+      scroll: false,
+    });
     vi.useRealTimers();
   });
 
@@ -99,7 +101,9 @@ describe("RemovalSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
     fireEvent.click(screen.getByRole("radio", { name: "Qtd. de Itens" }));
 
-    expect(push).toHaveBeenCalledWith("/inventory?rem_order=itemCount");
+    expect(push).toHaveBeenCalledWith("/inventory?rem_order=itemCount", {
+      scroll: false,
+    });
   });
 
   it("pushes a rem_page URL update, preserving q/order, when navigating pages", () => {
@@ -118,6 +122,7 @@ describe("RemovalSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_dir=asc&rem_order=itemCount&rem_page=2&rem_q=abc",
+      { scroll: false },
     );
   });
 
@@ -135,6 +140,7 @@ describe("RemovalSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_date_from=2026-01-01&rem_weight_max=500",
+      { scroll: false },
     );
   });
 
@@ -159,6 +165,7 @@ describe("RemovalSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_date_from=2026-01-01&rem_page=3&rem_weight_max=500",
+      { scroll: false },
     );
   });
 
@@ -182,7 +189,9 @@ describe("RemovalSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
     fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
 
-    expect(push).toHaveBeenCalledWith("/inventory?rem_q=abc");
+    expect(push).toHaveBeenCalledWith("/inventory?rem_q=abc", {
+      scroll: false,
+    });
   });
 
   it("does not render pagination for a single page", () => {
@@ -203,6 +212,29 @@ describe("RemovalSection", () => {
 
     expect(push).toHaveBeenCalledWith(
       "/inventory?rem_dir=asc&stock_page=4&stock_q=steel",
+      { scroll: false },
     );
+  });
+
+  it("keeps the previous rows rendered and marks the region busy while a navigation is pending", async () => {
+    vi.resetModules();
+    vi.doMock("./use-removal-query-nav", () => ({
+      useRemovalQueryNav: () => ({ navigateRemoval: push, isPending: true }),
+    }));
+    const { RemovalSection: PendingRemovalSection } = await import(
+      "./removal-section"
+    );
+
+    render(
+      <PendingRemovalSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Atualizando…");
+    // Stale rows stay mounted (no blank/loading swap) while pending.
+    expect(screen.getAllByText("João").length).toBeGreaterThan(0);
+    const busyRegion = document.querySelector('[aria-busy="true"]');
+    expect(busyRegion).not.toBeNull();
+
+    vi.doUnmock("./use-removal-query-nav");
   });
 });
