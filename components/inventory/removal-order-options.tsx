@@ -6,58 +6,43 @@ import {
   type RemovalOrderKey,
   type RemovalSortDir,
 } from "@/lib/inventory/removal-query";
+import { OrderOptionRows } from "./order-option-rows";
 
 /**
- * The list of orderable columns, each with an ascending/descending choice.
- * Shared by the mobile modal and the desktop collapse panel so both stay
- * in lockstep. Mirrors `StockOrderOptions`.
+ * The list of orderable columns rendered as a radio list (design `2c`),
+ * mirroring `StockOrderOptions`. Shared by the mobile modal and the
+ * desktop collapse panel.
  */
 export function RemovalOrderOptions({
   order,
   dir,
   onSelect,
+  onApply,
+  onClear,
 }: {
   order: RemovalOrderKey;
   dir: RemovalSortDir;
   onSelect: (order: RemovalOrderKey, dir: RemovalSortDir) => void;
+  onApply: () => void;
+  onClear: () => void;
 }) {
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="sr-only">Ordenar remoções por</legend>
-      {REMOVAL_ORDER_OPTIONS.map((option) => (
-        <div
-          key={option.key}
-          className="flex items-center justify-between gap-3"
-        >
-          <span className="text-sm font-medium text-foreground">
-            {option.label}
-          </span>
-          <div className="flex gap-1">
-            <Button
-              type="button"
-              size="sm"
-              variant={
-                order === option.key && dir === "asc" ? "default" : "outline"
-              }
-              aria-pressed={order === option.key && dir === "asc"}
-              onClick={() => onSelect(option.key, "asc")}
-            >
-              Crescente
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={
-                order === option.key && dir === "desc" ? "default" : "outline"
-              }
-              aria-pressed={order === option.key && dir === "desc"}
-              onClick={() => onSelect(option.key, "desc")}
-            >
-              Decrescente
-            </Button>
-          </div>
-        </div>
-      ))}
-    </fieldset>
+    <div className="flex flex-col gap-4">
+      <OrderOptionRows
+        legend="Ordenar remoções por"
+        options={REMOVAL_ORDER_OPTIONS}
+        order={order}
+        dir={dir}
+        onSelect={onSelect}
+      />
+      <div className="flex gap-2.5">
+        <Button type="button" variant="outline" className="flex-1" onClick={onClear}>
+          Limpar
+        </Button>
+        <Button type="button" className="flex-1" onClick={onApply}>
+          Aplicar
+        </Button>
+      </div>
+    </div>
   );
 }

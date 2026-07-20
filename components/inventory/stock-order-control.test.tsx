@@ -9,7 +9,7 @@ describe("StockOrderControl", () => {
     expect(screen.getByRole("button", { name: "Ordenar" })).toBeInTheDocument();
   });
 
-  it("opens a modal with order options when the trigger is clicked", () => {
+  it("opens a modal titled 'Ordenar por' with order options when the trigger is clicked", () => {
     render(<StockOrderControl order="entryDate" dir="desc" onChange={vi.fn()} />);
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -17,19 +17,40 @@ describe("StockOrderControl", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText("Peso da NF")).toBeInTheDocument();
+    expect(screen.getByText("Ordenar por")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Peso da NF" })).toBeInTheDocument();
   });
 
-  it("calls onChange and closes the modal when an option is picked", () => {
+  it("calls onChange instantly on selection but keeps the modal open", () => {
     const onChange = vi.fn();
     render(<StockOrderControl order="entryDate" dir="desc" onChange={onChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
-    fireEvent.click(
-      screen.getByText("Peso da NF").closest("div")!.querySelector("button")!,
-    );
+    fireEvent.click(screen.getByRole("radio", { name: "Peso da NF" }));
 
-    expect(onChange).toHaveBeenCalledWith("nfWeight", "asc");
+    expect(onChange).toHaveBeenCalledWith("nfWeight", "desc");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("closes the modal without changing state when Aplicar is clicked", () => {
+    const onChange = vi.fn();
+    render(<StockOrderControl order="entryDate" dir="desc" onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("resets order/direction to the section default and closes when Limpar is clicked", () => {
+    const onChange = vi.fn();
+    render(<StockOrderControl order="nfWeight" dir="asc" onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ordenar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Limpar" }));
+
+    expect(onChange).toHaveBeenCalledWith("entryDate", "desc");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
