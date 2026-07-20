@@ -42,3 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 .claude/worktrees
+
+# demo-video tooling (standalone subprojects, own deps/output)
+tools/demo-video/*/node_modules
+tools/demo-video/capture/test-results
+tools/demo-video/capture/clips
+tools/demo-video/remotion/public/clips
+tools/demo-video/remotion/out
