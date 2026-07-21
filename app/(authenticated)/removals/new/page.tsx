@@ -166,7 +166,10 @@ export default function NewRemovalPage() {
         buildRemovalReceipt(
           scannedItemsRef.current,
           result.removal.totalRemovedWeight,
-          result.removal.vehiclePlate,
+          // `vehicle_plate` is nullable in the schema (legacy rows only), but
+          // the removeItems Zod schema requires a non-empty trimmed string
+          // before insert, so a removal we just created always has one.
+          result.removal.vehiclePlate!,
         ),
       );
       scannedItemsRef.current = [];

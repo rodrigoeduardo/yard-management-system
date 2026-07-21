@@ -17,6 +17,7 @@ const ROW: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
+  vehiclePlate: "ABC1234",
   totalRemovedWeight: "100,00 kg",
   notasFiscais: "NF-001",
   itemCount: 3,
