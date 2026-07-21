@@ -50,6 +50,12 @@ export function RemovalReceiptView({
             <span className="text-muted-foreground">
               {notasFiscaisCount} {notasFiscaisLabel(notasFiscaisCount)}
             </span>
+            <span aria-hidden="true" className="text-muted-foreground">
+              ·
+            </span>
+            <span className="font-mono font-semibold text-foreground">
+              {receipt.vehiclePlate}
+            </span>
           </div>
         </div>
         <span className="flex items-center gap-2 rounded-[11px] bg-success px-3.5 py-[9px] text-[12.5px] font-semibold text-success-foreground">
@@ -90,6 +96,12 @@ export function RemovalReceiptView({
           </span>
           <span className="text-muted-foreground">
             {notasFiscaisCount} {notasFiscaisLabel(notasFiscaisCount)}
+          </span>
+          <span aria-hidden="true" className="text-muted-foreground">
+            ·
+          </span>
+          <span className="font-mono font-semibold">
+            {receipt.vehiclePlate}
           </span>
         </Badge>
       </div>

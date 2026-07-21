@@ -32,6 +32,7 @@ const receipt: RemovalReceipt = {
     },
   ],
   totalRemovedWeight: "15",
+  vehiclePlate: "ABC1234",
 };
 
 describe("RemovalReceiptView", () => {
@@ -89,6 +90,30 @@ describe("RemovalReceiptView", () => {
     );
 
     expect(screen.getAllByText("15 kg").length).toBeGreaterThan(0);
+  });
+
+  it("shows the vehicle plate", () => {
+    render(
+      <RemovalReceiptView
+        receipt={receipt}
+        onNewRemoval={vi.fn()}
+        onViewInventory={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText("ABC1234").length).toBeGreaterThan(0);
+  });
+
+  it("shows an em dash for a legacy removal without a vehicle plate", () => {
+    render(
+      <RemovalReceiptView
+        receipt={{ ...receipt, vehiclePlate: "—" }}
+        onNewRemoval={vi.fn()}
+        onViewInventory={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
 
   it("calls onNewRemoval when 'Nova Remoção' is clicked", () => {

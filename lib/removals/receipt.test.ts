@@ -20,7 +20,7 @@ describe("buildRemovalReceipt", () => {
     const b = makeItem("b", { identifier: "Item 2 - NF-100" });
     const c = makeItem("c", { identifier: "Item 1 - NF-200" });
 
-    const receipt = buildRemovalReceipt([a, b, c], "150.5");
+    const receipt = buildRemovalReceipt([a, b, c], "150.5", "ABC1234");
 
     expect(receipt).toEqual({
       itemCount: 3,
@@ -29,16 +29,23 @@ describe("buildRemovalReceipt", () => {
         { notaFiscal: "NF-200", items: [c] },
       ],
       totalRemovedWeight: "150.5",
+      vehiclePlate: "ABC1234",
     });
   });
 
   it("handles an empty item list", () => {
-    const receipt = buildRemovalReceipt([], "0");
+    const receipt = buildRemovalReceipt([], "0", "ABC1234");
 
     expect(receipt).toEqual({
       itemCount: 0,
       byNotaFiscal: [],
       totalRemovedWeight: "0",
+      vehiclePlate: "ABC1234",
     });
+  });
+
+  it("carries the vehicle plate through", () => {
+    const receipt = buildRemovalReceipt([], "0", "XYZ9999");
+    expect(receipt.vehiclePlate).toBe("XYZ9999");
   });
 });
