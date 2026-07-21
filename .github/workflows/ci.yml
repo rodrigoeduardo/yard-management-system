@@ -22,6 +22,11 @@ jobs:
       - run: npm run lint
       - run: npm test
 
+  # Runs against a disposable local Supabase stack (Docker, via the
+  # Supabase CLI) instead of the shared remote project — no remote
+  # credentials involved, and each run gets its own stack (the runner VM),
+  # so concurrent runs can't interfere with each other or with local runs.
+  # See scripts/setup-local-integration-stack.ts.
   integration:
     runs-on: ubuntu-latest
     steps:
@@ -31,14 +36,5 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run db:migrate
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - run: npm run test:integration:setup
       - run: npm run test:integration
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-          REGISTER_INVITE_CODE: ${{ secrets.REGISTER_INVITE_CODE }}

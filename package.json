@@ -9,10 +9,13 @@
     "lint": "eslint",
     "test": "vitest run --project=unit --project=component",
     "test:integration": "vitest run --project=integration",
+    "test:integration:setup": "tsx scripts/setup-local-integration-stack.ts",
     "test:all": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:check-connection": "tsx scripts/check-supabase-connection.ts"
+    "db:check-connection": "tsx scripts/check-supabase-connection.ts",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -53,6 +56,7 @@
     "jsdom": "^29.1.1",
     "jsqr": "^1.4.0",
     "pngjs": "^7.0.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
     "typescript": "^5",

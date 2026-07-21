@@ -56,9 +56,17 @@ export default defineConfig({
         test: {
           name: "integration",
           environment: "node",
-          setupFiles: ["./vitest.setup.ts"],
+          setupFiles: ["./vitest.setup.integration.ts"],
           include: integrationInclude,
           exclude: ["**/node_modules/**", ".claude/**"],
+          // Integration files share one Postgres instance (local stack or,
+          // previously, the remote project) and some assertions read
+          // unscoped aggregate state (e.g. dashboard stats). Running files
+          // in parallel here is a genuine cross-file race, not just slower
+          // against a remote DB — sequence them to keep the suite
+          // deterministic. Files stayed fast enough locally (~2s) that this
+          // costs only a couple of seconds.
+          fileParallelism: false,
         },
       },
     ],
