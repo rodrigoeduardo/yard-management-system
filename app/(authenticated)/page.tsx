@@ -47,7 +47,7 @@ export default async function Home() {
 
       <DashboardStats
         activeLoads={stats.activeLoads}
-        itemsInStock={stats.itemsInStock}
+        materialsInStock={stats.materialsInStock}
         remainingWeight={stats.remainingWeight}
       />
 

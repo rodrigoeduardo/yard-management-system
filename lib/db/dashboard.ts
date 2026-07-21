@@ -5,28 +5,40 @@ import { items, loads, materials, removalItems, removals } from "./schema";
 export type DashboardStats = {
   /** Count of loads that are not yet fully removed. */
   activeLoads: number;
-  /** Sum of item_count across all loads. */
-  itemsInStock: number;
+  /** Count of distinct materials with at least one `in_stock` item. */
+  materialsInStock: number;
   /** Sum of remaining_weight across all loads, as a decimal string. */
   remainingWeight: string;
 };
 
 /**
- * Read-only aggregate over `loads` for the home dashboard stat cards. A
- * load counts as active when it isn't finished (mirrors
+ * Read-only aggregate over `loads`/`items` for the home dashboard stat
+ * cards. A load counts as active when it isn't finished (mirrors
  * `lib/inventory/stock.ts#isLoadFinished`: item_count = 0 and
- * remaining_weight = 0).
+ * remaining_weight = 0). `materialsInStock` is queried separately (joining
+ * `items`) so its per-item fan-out can't skew the `loads`-only aggregates.
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const [row] = await db
+  const [loadsRow] = await db
     .select({
       activeLoads: sql<number>`count(*) filter (where ${loads.itemCount} > 0 or ${loads.remainingWeight} > 0)::int`,
-      itemsInStock: sql<number>`coalesce(sum(${loads.itemCount}), 0)::int`,
       remainingWeight: sql<string>`coalesce(sum(${loads.remainingWeight}), 0)::text`,
     })
     .from(loads);
 
-  return row;
+  const [materialsRow] = await db
+    .select({
+      materialsInStock: sql<number>`count(distinct ${loads.materialId})::int`,
+    })
+    .from(items)
+    .innerJoin(loads, eq(items.loadId, loads.id))
+    .where(eq(items.status, "in_stock"));
+
+  return {
+    activeLoads: loadsRow.activeLoads,
+    materialsInStock: materialsRow.materialsInStock,
+    remainingWeight: loadsRow.remainingWeight,
+  };
 }
 
 export type LastRemoval = {
