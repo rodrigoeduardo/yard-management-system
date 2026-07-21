@@ -83,22 +83,13 @@ describe("QrPrintView", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the mobile print button with the item count in the label", () => {
+  it("renders the print buttons with label-roll wording (no 'em 1 folha')", () => {
     render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
 
-    expect(
-      screen.getByRole("button", {
-        name: "Imprimir 2 etiquetas em 1 folha",
-      }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders the desktop print button without the item count in the label", () => {
-    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
-
-    expect(
-      screen.getByRole("button", { name: "Imprimir em 1 folha" }),
-    ).toBeInTheDocument();
+    const buttons = screen.getAllByRole("button", {
+      name: "Imprimir 2 etiquetas",
+    });
+    expect(buttons.length).toBe(2);
   });
 
   it("renders a 'Voltar ao estoque' link in both the mobile stack and the desktop header row", () => {
@@ -124,7 +115,7 @@ describe("QrPrintView", () => {
     expect(screen.getByText("12 t")).toBeInTheDocument();
   });
 
-  it("lays the grid mobile-first (2 cols) with md: 4 cols and print:grid-cols-3", () => {
+  it("lays the grid mobile-first (2 cols) with md: 4 cols and stacks one label per page in print", () => {
     const { container } = render(
       <QrPrintView summary={summary} qrCodes={qrCodes} />,
     );
@@ -132,6 +123,35 @@ describe("QrPrintView", () => {
     const grid = container.querySelector('[data-testid="qr-grid"]');
     expect(grid?.className).toMatch(/\bgrid-cols-2\b/);
     expect(grid?.className).toMatch(/\bmd:grid-cols-4\b/);
-    expect(grid?.className).toMatch(/\bprint:grid-cols-3\b/);
+    expect(grid?.className).toMatch(/\bprint:flex\b/);
+    expect(grid?.className).toMatch(/\bprint:flex-col\b/);
+  });
+
+  it("forces a page break after every tag so each prints on its own label", () => {
+    const { container } = render(
+      <QrPrintView summary={summary} qrCodes={qrCodes} />,
+    );
+
+    const cards = container.querySelectorAll('[data-testid="qr-grid"] > *');
+    expect(cards.length).toBe(2);
+    for (const card of cards) {
+      expect(card.className).toMatch(/\bprint:break-after-page\b/);
+    }
+  });
+
+  it("sizes each tag to the 100x50mm label with a scannable QR in print", () => {
+    const { container } = render(
+      <QrPrintView summary={summary} qrCodes={qrCodes} />,
+    );
+
+    const cards = container.querySelectorAll('[data-testid="qr-grid"] > *');
+    for (const card of cards) {
+      expect(card.className).toMatch(/print:w-\[100mm\]/);
+      expect(card.className).toMatch(/print:h-\[50mm\]/);
+      expect(card.className).toMatch(/print:flex-row/);
+    }
+
+    const img1 = screen.getByAltText("Item 1 - NF-123456");
+    expect(img1.className).toMatch(/print:w-\[40mm\]|print:w-\[4[0-9]mm\]/);
   });
 });

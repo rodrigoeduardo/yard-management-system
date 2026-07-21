@@ -59,7 +59,7 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
           Voltar ao estoque
         </Link>
         <PrintButton className="h-[46px] rounded-[12px] px-[22px] text-[13.5px]">
-          Imprimir em 1 folha
+          Imprimir {summary.itemCount} etiquetas
         </PrintButton>
       </div>
 
@@ -89,7 +89,7 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
 
         <div className="flex flex-col gap-2.5">
           <PrintButton className="h-[52px] rounded-[14px] text-[15px]">
-            Imprimir {summary.itemCount} etiquetas em 1 folha
+            Imprimir {summary.itemCount} etiquetas
           </PrintButton>
           <Link
             href="/inventory"
@@ -105,28 +105,30 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
 
       <div
         data-testid="qr-grid"
-        className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 print:grid-cols-3 print:gap-4"
+        className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 print:flex print:flex-col print:gap-0"
       >
         {qrCodes.map((qr) => (
           <Card
             key={qr.itemId}
-            className="flex flex-col items-center gap-2 break-inside-avoid rounded-[16px] p-3 md:gap-[9px] md:p-3.5"
+            className="flex flex-col items-center gap-2 break-inside-avoid rounded-[16px] p-3 md:gap-[9px] md:p-3.5 print:w-[100mm] print:h-[50mm] print:flex-row print:items-center print:justify-center print:gap-[4mm] print:rounded-none print:border-none print:p-[4mm] print:break-after-page"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qr.dataUrl}
               alt={qr.payload.identifier}
-              className="w-full max-w-48"
+              className="w-full max-w-48 print:w-[42mm] print:max-w-none print:shrink-0"
             />
-            <span className="text-center text-[13px] font-bold text-foreground md:text-[13.5px]">
-              {qr.payload.identifier}
-            </span>
-            <span className="text-center text-[11.5px] text-muted-foreground">
-              {qr.payload.material}
-            </span>
-            <span className="text-center font-mono text-xs font-semibold text-accent-foreground md:text-[12.5px]">
-              {qr.payload.weight} t
-            </span>
+            <div className="flex flex-col items-center gap-2 md:gap-[9px] print:items-start print:gap-1.5">
+              <span className="text-center text-[13px] font-bold text-foreground md:text-[13.5px] print:text-left">
+                {qr.payload.identifier}
+              </span>
+              <span className="text-center text-[11.5px] text-muted-foreground print:text-left">
+                {qr.payload.material}
+              </span>
+              <span className="text-center font-mono text-xs font-semibold text-accent-foreground md:text-[12.5px] print:text-left">
+                {qr.payload.weight} t
+              </span>
+            </div>
           </Card>
         ))}
       </div>
