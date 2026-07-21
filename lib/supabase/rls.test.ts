@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { db } from "@/lib/db";
+import { resolveMaterialId } from "@/lib/db/materials";
 import { createSupabaseServerClient } from "./server";
 
 function requireEnv(name: string): string {
@@ -41,24 +43,26 @@ describe("Row Level Security on core tables", () => {
   });
 
   it("rejects an anonymous write on loads", async () => {
+    const { id: materialId } = await resolveMaterialId(db, "steel");
     const { error } = await anonClient.from("loads").insert({
       nota_fiscal: `NF-RLS-${randomUUID()}`,
       entry_date: new Date().toISOString(),
       nf_weight: "1",
-      material: "steel",
+      material_id: materialId,
     });
 
     expect(error).not.toBeNull();
   });
 
   it("allows an authenticated write and read on loads", async () => {
+    const { id: materialId } = await resolveMaterialId(db, "steel");
     const { data, error } = await authedClient
       .from("loads")
       .insert({
         nota_fiscal: `NF-RLS-${randomUUID()}`,
         entry_date: new Date().toISOString(),
         nf_weight: "1",
-        material: "steel",
+        material_id: materialId,
       })
       .select()
       .single();

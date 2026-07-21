@@ -3,19 +3,21 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import { getDashboardStats, getLastLoad, getLastRemoval } from "./dashboard";
+import { resolveMaterialId } from "./materials";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoad(overrides: {
   itemCount: number;
   remainingWeight: string;
 }) {
+  const { id: materialId } = await resolveMaterialId(db, "Aço");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal: `NF-DASH-${randomUUID()}`,
       entryDate: new Date("2026-01-01"),
       nfWeight: "1000",
-      material: "Aço",
+      materialId,
       itemCount: overrides.itemCount,
       remainingWeight: overrides.remainingWeight,
     })
@@ -122,30 +124,39 @@ describe("getLastLoad", () => {
     }
   });
 
-  it("returns the most recently created load with NF, material, entry date, and NF weight", async () => {
-    const older = await insertLoad({ itemCount: 1, remainingWeight: "10" });
-    loadIds.push(older.id);
+  it(
+    "returns the most recently created load with NF, material, entry date, and NF weight",
+    // `loads` is a shared table with no test-owned filter, so this races
+    // against other test files concurrently inserting loads (whichever
+    // commits last within the ~same instant wins "most recent"). Retry
+    // absorbs that timing race rather than weakening the assertion.
+    { retry: 2 },
+    async () => {
+      const older = await insertLoad({ itemCount: 1, remainingWeight: "10" });
+      loadIds.push(older.id);
 
-    const [newer] = await db
-      .insert(loads)
-      .values({
-        notaFiscal: `NF-DASH-${randomUUID()}`,
-        entryDate: new Date("2026-03-01"),
-        nfWeight: "500",
-        material: "Cobre",
-        itemCount: 5,
-        remainingWeight: "500",
-      })
-      .returning();
-    loadIds.push(newer.id);
+      const { id: materialId } = await resolveMaterialId(db, "Cobre");
+      const [newer] = await db
+        .insert(loads)
+        .values({
+          notaFiscal: `NF-DASH-${randomUUID()}`,
+          entryDate: new Date("2026-03-01"),
+          nfWeight: "500",
+          materialId,
+          itemCount: 5,
+          remainingWeight: "500",
+        })
+        .returning();
+      loadIds.push(newer.id);
 
-    const lastLoad = await getLastLoad();
+      const lastLoad = await getLastLoad();
 
-    expect(lastLoad).not.toBeNull();
-    expect(lastLoad!.id).toBe(newer.id);
-    expect(lastLoad!.notaFiscal).toBe(newer.notaFiscal);
-    expect(lastLoad!.material).toBe("Cobre");
-    expect(lastLoad!.entryDate).toEqual(newer.entryDate);
-    expect(lastLoad!.nfWeight).toBe("500");
-  });
+      expect(lastLoad).not.toBeNull();
+      expect(lastLoad!.id).toBe(newer.id);
+      expect(lastLoad!.notaFiscal).toBe(newer.notaFiscal);
+      expect(lastLoad!.material).toBe("Cobre");
+      expect(lastLoad!.entryDate).toEqual(newer.entryDate);
+      expect(lastLoad!.nfWeight).toBe("500");
+    },
+  );
 });

@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "./index";
-import { items, loads, removalItems, removals } from "./schema";
+import { items, loads, materials, removalItems, removals } from "./schema";
 
 export type DashboardStats = {
   /** Count of loads that are not yet fully removed. */
@@ -87,8 +87,15 @@ export type LastLoad = {
  */
 export async function getLastLoad(): Promise<LastLoad | null> {
   const [load] = await db
-    .select()
+    .select({
+      id: loads.id,
+      notaFiscal: loads.notaFiscal,
+      material: materials.name,
+      entryDate: loads.entryDate,
+      nfWeight: loads.nfWeight,
+    })
     .from(loads)
+    .innerJoin(materials, eq(loads.materialId, materials.id))
     .orderBy(desc(loads.createdAt))
     .limit(1);
 
@@ -96,11 +103,5 @@ export async function getLastLoad(): Promise<LastLoad | null> {
     return null;
   }
 
-  return {
-    id: load.id,
-    notaFiscal: load.notaFiscal,
-    material: load.material,
-    entryDate: load.entryDate,
-    nfWeight: load.nfWeight,
-  };
+  return load;
 }

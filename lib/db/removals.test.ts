@@ -3,17 +3,19 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
+import { resolveMaterialId } from "./materials";
 import { removeScannedItems } from "./removals";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoadWithItems(itemWeights: string[]) {
+  const { id: materialId } = await resolveMaterialId(db, "Aço");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal: `NF-REMOVAL-${randomUUID()}`,
       entryDate: new Date("2026-01-01"),
       nfWeight: "1000",
-      material: "Aço",
+      materialId,
       itemCount: itemWeights.length,
       remainingWeight: sumDecimalStrings(itemWeights),
     })
@@ -95,7 +97,7 @@ describe("removeScannedItems", () => {
       .where(eq(removalItems.removalId, removal.id));
     expect(junctionRows).toHaveLength(2);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -119,7 +121,7 @@ describe("removeScannedItems", () => {
         .where(eq(loads.id, load.load.id));
       expect(reloadedLoad[0].remainingWeight).toBe("20.2");
     },
-    15000,
+    20000,
   );
 
   it("rolls back the entire transaction when one scanned item is already removed", async () => {

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
+import { resolveMaterialId } from "@/lib/db/materials";
 import { items, loads } from "@/lib/db/schema";
 import { fetchLoadItems } from "./load-items";
 
@@ -18,13 +19,14 @@ describe("fetchLoadItems", () => {
 
   it("returns the load's items for a known load id", async () => {
     const notaFiscal = `NF-FETCH-ITEMS-${randomUUID()}`;
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
     const [load] = await db
       .insert(loads)
       .values({
         notaFiscal,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
-        material: "Aço",
+        materialId,
         itemCount: 1,
         remainingWeight: "10",
       })
