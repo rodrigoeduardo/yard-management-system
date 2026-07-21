@@ -17,10 +17,10 @@ const ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
   entryDate: "01/01/2026",
-  nfWeight: "1.000,00 kg",
+  nfWeight: "1.000,00 t",
   material: "Sucata",
   itemCount: 4,
-  remainingWeight: "250,00 kg",
+  remainingWeight: "250,00 t",
   finished: false,
 };
 

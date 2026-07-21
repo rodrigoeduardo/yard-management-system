@@ -20,17 +20,17 @@ const REMOVAL: RemovalLogRow = {
 };
 
 describe("RemovalDetailModal", () => {
-  it("renders the total removed weight with the kg unit", () => {
+  it("renders the total removed weight with the t unit", () => {
     fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
 
     render(
       <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
     );
 
-    expect(screen.getByText("100 kg")).toBeInTheDocument();
+    expect(screen.getByText("100 t")).toBeInTheDocument();
   });
 
-  it("renders each item's weight with the kg unit", async () => {
+  it("renders each item's weight with the t unit", async () => {
     fetchRemovalItems.mockResolvedValue({
       success: true,
       items: [
@@ -48,7 +48,7 @@ describe("RemovalDetailModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("50 kg")).toBeInTheDocument();
+      expect(screen.getByText("50 t")).toBeInTheDocument();
     });
   });
 
@@ -118,7 +118,7 @@ describe("RemovalDetailModal", () => {
     const nfColumn = screen.getByText("NF-001");
     expect(nfColumn).toBeInTheDocument();
     expect(nfColumn.className).toContain("text-muted-foreground");
-    expect(screen.getByText("50 kg")).toBeInTheDocument();
+    expect(screen.getByText("50 t")).toBeInTheDocument();
   });
 
   it("renders the vehicle plate", () => {

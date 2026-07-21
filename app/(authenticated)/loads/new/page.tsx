@@ -220,7 +220,7 @@ export default function NewLoadPage() {
                 step="any"
                 inputMode="decimal"
                 mono
-                unit="kg"
+                unit="t"
                 placeholder="0"
                 value={nfWeight}
                 onChange={(e) => setNfWeight(e.target.value)}
@@ -345,7 +345,7 @@ export default function NewLoadPage() {
                     step="any"
                     inputMode="decimal"
                     mono
-                    unit="kg"
+                    unit="t"
                     placeholder="0"
                     aria-label={`Peso do item ${index + 1}`}
                     value={weight}
@@ -372,7 +372,7 @@ export default function NewLoadPage() {
                       Peso Restante (soma dos itens)
                     </span>
                     <span className="font-mono text-xl font-bold text-foreground">
-                      {remainingWeight} kg
+                      {remainingWeight} t
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -380,7 +380,7 @@ export default function NewLoadPage() {
                       Peso da Nota Fiscal
                     </span>
                     <span className="font-mono text-xl font-bold text-muted-foreground">
-                      {nfWeight || 0} kg
+                      {nfWeight || 0} t
                     </span>
                   </div>
                 </div>
@@ -431,7 +431,7 @@ export default function NewLoadPage() {
                   data-testid="pesos-remaining-weight"
                   className="font-mono text-[17px] font-bold text-foreground"
                 >
-                  {remainingWeight} kg
+                  {remainingWeight} t
                 </span>
               </div>
               <div className="flex items-baseline justify-between">
@@ -442,7 +442,7 @@ export default function NewLoadPage() {
                   data-testid="pesos-nf-weight"
                   className="font-mono text-[13px] text-muted-foreground"
                 >
-                  {nfWeight || 0} kg
+                  {nfWeight || 0} t
                 </span>
               </div>
               <div

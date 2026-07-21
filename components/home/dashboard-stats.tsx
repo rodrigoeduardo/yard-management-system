@@ -20,7 +20,7 @@ export function DashboardStats({
     <div className="grid grid-cols-3 gap-[10px] md:gap-4">
       <StatCard value={activeLoads} label="Cargas Ativas" />
       <StatCard value={itemsInStock} label="Itens no Pátio" />
-      <StatCard value={`${remainingWeight} kg`} label="Peso Restante" />
+      <StatCard value={`${remainingWeight} t`} label="Peso Restante" />
     </div>
   );
 }

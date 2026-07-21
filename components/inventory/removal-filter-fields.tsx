@@ -61,7 +61,7 @@ export function RemovalFilterFields({
       />
 
       <FilterRangeField
-        legend="Peso Total Removido (kg)"
+        legend="Peso Total Removido (t)"
         type="number"
         valueFrom={weightMin}
         valueTo={weightMax}

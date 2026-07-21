@@ -61,7 +61,7 @@ describe("NewRemovalPage scanned items list", () => {
     expect(await screen.findByText("NF-100")).toBeInTheDocument();
     expect(screen.getByText("Item 1")).toBeInTheDocument();
     expect(screen.getByText("Aço")).toBeInTheDocument();
-    expect(screen.getAllByText("10 kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
   });
 
   it("falls back to the identifier-embedded Nota Fiscal for legacy QR payloads without the distinct field", async () => {
@@ -133,7 +133,7 @@ describe("NewRemovalPage sticky total bar", () => {
       expect(ctas.length).toBeGreaterThan(0);
       for (const cta of ctas) expect(cta).not.toBeDisabled();
     });
-    expect(screen.getAllByText("10 kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
   });
 
   it("opens the review dialog when the CTA is clicked", async () => {
@@ -224,7 +224,7 @@ describe("NewRemovalPage review dialog", () => {
     expect(within(nf200Group).getByText(/Item 1 - NF-200/)).toBeInTheDocument();
 
     expect(within(dialog).getByText("Peso Total Removido")).toBeInTheDocument();
-    expect(within(dialog).getByText("15 kg")).toBeInTheDocument();
+    expect(within(dialog).getByText("15 t")).toBeInTheDocument();
   });
 
   it("closes the dialog without submitting when Cancelar is clicked", async () => {

@@ -91,7 +91,7 @@ export type StockPageParams = {
   /** Entry date range filter, `YYYY-MM-DD`, either bound optional. */
   dateFrom?: string;
   dateTo?: string;
-  /** Remaining weight range filter, kg, either bound optional. */
+  /** Remaining weight range filter, tonnes, either bound optional. */
   weightMin?: string;
   weightMax?: string;
   /** Omitted or `true` shows finished loads (default); `false` excludes them. */

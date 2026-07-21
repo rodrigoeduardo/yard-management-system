@@ -54,7 +54,7 @@ export type RemovalPageParams = {
   /** Exit date range filter, `YYYY-MM-DD`, either bound optional. */
   dateFrom?: string;
   dateTo?: string;
-  /** Total removed weight range filter, kg, either bound optional. */
+  /** Total removed weight range filter, tonnes, either bound optional. */
   weightMin?: string;
   weightMax?: string;
 };

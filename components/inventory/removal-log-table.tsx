@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatWeightKg } from "@/lib/format/weight";
+import { formatWeight } from "@/lib/format/weight";
 import { cn } from "@/lib/utils";
 
 export type RemovalLogRow = {
@@ -91,7 +91,7 @@ const columns: ColumnDef<RemovalLogRow>[] = [
     header: "Peso Total Removido",
     cell: ({ row }) => (
       <span className="font-mono font-bold text-accent-foreground">
-        {formatWeightKg(row.original.totalRemovedWeight)}
+        {formatWeight(row.original.totalRemovedWeight)}
       </span>
     ),
   },

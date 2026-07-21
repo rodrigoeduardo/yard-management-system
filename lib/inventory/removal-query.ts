@@ -30,7 +30,7 @@ export type RemovalQueryState = {
   /** Exit date range filter, each bound optional, `YYYY-MM-DD`. */
   dateFrom?: string;
   dateTo?: string;
-  /** Total removed weight range filter, each bound optional, kg as a numeric string. */
+  /** Total removed weight range filter, each bound optional, tonnes as a numeric string. */
   weightMin?: string;
   weightMax?: string;
 };

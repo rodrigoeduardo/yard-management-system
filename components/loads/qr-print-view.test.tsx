@@ -117,11 +117,11 @@ describe("QrPrintView", () => {
     const img1 = screen.getByAltText("Item 1 - NF-123456");
     expect(img1).toHaveAttribute("src", "data:image/png;base64,item1");
     expect(screen.getByText("Item 1 - NF-123456")).toBeInTheDocument();
-    expect(screen.getByText("10.5 kg")).toBeInTheDocument();
+    expect(screen.getByText("10.5 t")).toBeInTheDocument();
 
     const img2 = screen.getByAltText("Item 2 - NF-123456");
     expect(img2).toHaveAttribute("src", "data:image/png;base64,item2");
-    expect(screen.getByText("12 kg")).toBeInTheDocument();
+    expect(screen.getByText("12 t")).toBeInTheDocument();
   });
 
   it("lays the grid mobile-first (2 cols) with md: 4 cols and print:grid-cols-3", () => {

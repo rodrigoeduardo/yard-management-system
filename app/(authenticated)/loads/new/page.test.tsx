@@ -49,7 +49,7 @@ describe("NewLoadPage", () => {
       /\bfont-mono\b/,
     );
     expect(
-      within(screen.getByTestId("load-form-dados-panel")).getByText("kg"),
+      within(screen.getByTestId("load-form-dados-panel")).getByText("t"),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Material").className).not.toMatch(
       /\bfont-mono\b/,
@@ -299,7 +299,7 @@ describe("NewLoadPage", () => {
     expect(chip).toHaveTextContent("Aço");
   });
 
-  it("renders the weight inputs in a grid sized to itemCount (2 cols mobile / 4 cols md) with an Item N label and kg suffix", () => {
+  it("renders the weight inputs in a grid sized to itemCount (2 cols mobile / 4 cols md) with an Item N label and t suffix", () => {
     render(<NewLoadPage />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
@@ -317,7 +317,7 @@ describe("NewLoadPage", () => {
 
     const item1 = screen.getByLabelText("Peso do item 1");
     expect(item1.className).toMatch(/\bfont-mono\b/);
-    expect(item1.closest("div")?.textContent).toMatch(/kg/);
+    expect(item1.closest("div")?.textContent).toMatch(/\bt\b/);
   });
 
   it("shows a live Peso Restante vs Peso da NF summary with a fill-progress bar, recomputed on each keystroke", () => {
