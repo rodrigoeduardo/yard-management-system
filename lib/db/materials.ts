@@ -1,17 +1,10 @@
 import { and, eq, ne, sql } from "drizzle-orm";
+import { type Transaction, withAuditUser } from "./audit-context";
 import { db } from "./index";
 import { items, loads, materials } from "./schema";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-type TransactionCallback = Parameters<typeof db.transaction>[0];
-type Transaction = TransactionCallback extends (
-  tx: infer T,
-  ...args: never[]
-) => unknown
-  ? T
-  : never;
 
 /**
  * The subset of the drizzle client used by `resolveMaterialId` — satisfied
@@ -134,7 +127,10 @@ export async function getMaterialsWithInStockCounts(): Promise<
  * case-insensitively (unlike `resolveMaterialId`, which silently resolves
  * to the existing row). Used by the Materials page's "Add material" dialog.
  */
-export async function createMaterial(name: string): Promise<ResolvedMaterial> {
+export async function createMaterial(
+  name: string,
+  userId: string | null = null,
+): Promise<ResolvedMaterial> {
   const trimmed = name.trim();
 
   const [existing] = await db
@@ -146,10 +142,13 @@ export async function createMaterial(name: string): Promise<ResolvedMaterial> {
   }
 
   try {
-    const [created] = await db
-      .insert(materials)
-      .values({ name: trimmed })
-      .returning({ id: materials.id, name: materials.name });
+    const created = await withAuditUser(userId, async (tx) => {
+      const [row] = await tx
+        .insert(materials)
+        .values({ name: trimmed })
+        .returning({ id: materials.id, name: materials.name });
+      return row;
+    });
     return created;
   } catch (error) {
     // Another concurrent insert may have won the race against the
@@ -175,6 +174,7 @@ export async function createMaterial(name: string): Promise<ResolvedMaterial> {
 export async function renameMaterial(
   id: string,
   name: string,
+  userId: string | null = null,
 ): Promise<ResolvedMaterial> {
   const trimmed = name.trim();
 
@@ -192,11 +192,14 @@ export async function renameMaterial(
   }
 
   try {
-    const [updated] = await db
-      .update(materials)
-      .set({ name: trimmed, updatedAt: new Date() })
-      .where(eq(materials.id, id))
-      .returning({ id: materials.id, name: materials.name });
+    const updated = await withAuditUser(userId, async (tx) => {
+      const [row] = await tx
+        .update(materials)
+        .set({ name: trimmed, updatedAt: new Date() })
+        .where(eq(materials.id, id))
+        .returning({ id: materials.id, name: materials.name });
+      return row;
+    });
     if (!updated) {
       throw new Error(`Material not found: ${id}`);
     }

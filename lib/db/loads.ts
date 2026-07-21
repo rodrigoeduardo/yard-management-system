@@ -4,6 +4,7 @@ import {
   type StockOrderKey,
   type StockSortDir,
 } from "@/lib/inventory/stock-query";
+import { withAuditUser } from "./audit-context";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { resolveMaterialId } from "./materials";
@@ -19,10 +20,13 @@ export type CreateLoadData = {
   itemWeights: string[];
 };
 
-export async function insertLoadWithItems(data: CreateLoadData) {
+export async function insertLoadWithItems(
+  data: CreateLoadData,
+  userId: string | null = null,
+) {
   const remainingWeight = sumDecimalStrings(data.itemWeights);
 
-  return db.transaction(async (tx) => {
+  return withAuditUser(userId, async (tx) => {
     const material = await resolveMaterialId(tx, data.material);
 
     const [load] = await tx

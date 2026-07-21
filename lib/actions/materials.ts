@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import {
   createMaterial,
   MaterialNameConflictError,
@@ -22,7 +23,8 @@ export async function createMaterialAction(input: CreateMaterialInput) {
   }
 
   try {
-    const material = await createMaterial(parsed.data.name);
+    const userId = await getCurrentUserId();
+    const material = await createMaterial(parsed.data.name, userId);
     return { success: true as const, material };
   } catch (error) {
     if (error instanceof MaterialNameConflictError) {
@@ -52,7 +54,12 @@ export async function renameMaterialAction(input: RenameMaterialInput) {
   }
 
   try {
-    const material = await renameMaterial(parsed.data.id, parsed.data.name);
+    const userId = await getCurrentUserId();
+    const material = await renameMaterial(
+      parsed.data.id,
+      parsed.data.name,
+      userId,
+    );
     return { success: true as const, material };
   } catch (error) {
     if (error instanceof MaterialNameConflictError) {

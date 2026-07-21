@@ -254,13 +254,18 @@ describe("createMaterial", () => {
   it("propagates the original error instead of misreporting it as a name conflict when the insert fails for an unrelated reason", async () => {
     const name = `Rutênio-${randomUUID()}`;
     const dbError = new Error("connection reset by peer");
-    const insertSpy = vi.spyOn(db, "insert").mockImplementationOnce(() => {
-      throw dbError;
-    });
+    // The insert now runs inside `withAuditUser`'s transaction, so failing
+    // it directly means failing `db.transaction` itself (the transaction
+    // never gets a chance to run its callback's `tx.insert`).
+    const transactionSpy = vi
+      .spyOn(db, "transaction")
+      .mockImplementationOnce(() => {
+        throw dbError;
+      });
 
     await expect(createMaterial(name)).rejects.toBe(dbError);
 
-    insertSpy.mockRestore();
+    transactionSpy.mockRestore();
   });
 });
 
@@ -347,13 +352,18 @@ describe("renameMaterial", () => {
     createdMaterialIds.push(original.id);
     const newName = `Cádmio Renomeado-${randomUUID()}`;
     const dbError = new Error("connection reset by peer");
-    const updateSpy = vi.spyOn(db, "update").mockImplementationOnce(() => {
-      throw dbError;
-    });
+    // The update now runs inside `withAuditUser`'s transaction, so failing
+    // it directly means failing `db.transaction` itself (the transaction
+    // never gets a chance to run its callback's `tx.update`).
+    const transactionSpy = vi
+      .spyOn(db, "transaction")
+      .mockImplementationOnce(() => {
+        throw dbError;
+      });
 
     await expect(renameMaterial(original.id, newName)).rejects.toBe(dbError);
 
-    updateSpy.mockRestore();
+    transactionSpy.mockRestore();
   });
 });
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { removeScannedItems } from "@/lib/db/removals";
 import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
 
@@ -26,13 +27,17 @@ export async function removeItems(input: RemoveItemsInput) {
 
   // Validated above by the schema's refine — never null here.
   const exitDate = combineEntryDateTimeValue(parsed.data.exitDateTime)!;
+  const userId = await getCurrentUserId();
 
-  const removal = await removeScannedItems({
-    exitDate,
-    driver: parsed.data.driver,
-    vehiclePlate: parsed.data.vehiclePlate,
-    qrTokens: parsed.data.qrTokens,
-  });
+  const removal = await removeScannedItems(
+    {
+      exitDate,
+      driver: parsed.data.driver,
+      vehiclePlate: parsed.data.vehiclePlate,
+      qrTokens: parsed.data.qrTokens,
+    },
+    userId,
+  );
 
   return { success: true as const, removal };
 }
