@@ -55,6 +55,7 @@ export default function NewRemovalPage() {
     getCurrentEntryDateTimeValue(),
   );
   const [driver, setDriver] = useState("");
+  const [vehiclePlate, setVehiclePlate] = useState("");
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
   const [scanError, setScanError] = useState<string | undefined>();
   const [isScanning, setIsScanning] = useState(false);
@@ -148,6 +149,7 @@ export default function NewRemovalPage() {
       const result = await removeItems({
         exitDateTime,
         driver,
+        vehiclePlate,
         qrTokens: scannedItemsRef.current.map((item) => item.qrToken),
       });
 
@@ -164,6 +166,7 @@ export default function NewRemovalPage() {
         buildRemovalReceipt(
           scannedItemsRef.current,
           result.removal.totalRemovedWeight,
+          result.removal.vehiclePlate,
         ),
       );
       scannedItemsRef.current = [];
@@ -177,6 +180,7 @@ export default function NewRemovalPage() {
     stopScanning();
     setExitDateTime(getCurrentEntryDateTimeValue());
     setDriver("");
+    setVehiclePlate("");
     setFieldErrors({});
     setFormError(undefined);
     setScanError(undefined);
@@ -270,6 +274,27 @@ export default function NewRemovalPage() {
                 {fieldErrors.driver && (
                   <p role="alert" className="text-sm text-destructive">
                     {fieldErrors.driver}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="vehiclePlate"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Placa do veículo
+                </label>
+                <Input
+                  id="vehiclePlate"
+                  value={vehiclePlate}
+                  onChange={(e) => setVehiclePlate(e.target.value)}
+                  placeholder="Placa do veículo"
+                  required
+                />
+                {fieldErrors.vehiclePlate && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {fieldErrors.vehiclePlate}
                   </p>
                 )}
               </div>
@@ -470,6 +495,12 @@ export default function NewRemovalPage() {
                   </dt>
                   <dd className="text-[13.5px] font-semibold text-foreground">
                     {driver}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-0.5 rounded-input bg-secondary px-3 py-2.5">
+                  <dt className="text-[11px] text-muted-foreground">Placa</dt>
+                  <dd className="font-mono text-[13.5px] font-semibold text-foreground">
+                    {vehiclePlate}
                   </dd>
                 </div>
               </dl>

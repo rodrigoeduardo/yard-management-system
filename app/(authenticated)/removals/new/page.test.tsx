@@ -166,6 +166,9 @@ describe("NewRemovalPage review dialog", () => {
     fireEvent.change(screen.getByLabelText("Motorista"), {
       target: { value: "João Silva" },
     });
+    fireEvent.change(screen.getByLabelText("Placa do veículo"), {
+      target: { value: "ABC1234" },
+    });
 
     fireEvent.click(screen.getByText("Iniciar Escaneamento"));
     await waitFor(() => expect(scanCallback).toBeDefined());
@@ -208,6 +211,7 @@ describe("NewRemovalPage review dialog", () => {
       within(dialog).getByText("18/07/2026 · 14:35"),
     ).toBeInTheDocument();
     expect(within(dialog).getByText("João Silva")).toBeInTheDocument();
+    expect(within(dialog).getByText("ABC1234")).toBeInTheDocument();
 
     const nf100Group = within(dialog)
       .getByText("NF-100 · Aço")
@@ -237,7 +241,7 @@ describe("NewRemovalPage review dialog", () => {
   it("submits removeItems and shows the receipt when Confirmar is clicked", async () => {
     vi.mocked(removeItems).mockResolvedValue({
       success: true,
-      removal: { totalRemovedWeight: "15" },
+      removal: { totalRemovedWeight: "15", vehiclePlate: "ABC1234" },
     } as never);
 
     const dialog = await openReviewDialogWithTwoNotasFiscais();
@@ -247,6 +251,7 @@ describe("NewRemovalPage review dialog", () => {
     await waitFor(() => expect(removeItems).toHaveBeenCalledWith({
       exitDateTime: "2026-07-18T14:35",
       driver: "João Silva",
+      vehiclePlate: "ABC1234",
       qrTokens: [
         "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
         "6c2f7f3e-7c1b-5c9b-ac1b-3f3f7c1b5c9b",
@@ -257,6 +262,7 @@ describe("NewRemovalPage review dialog", () => {
       await screen.findByText("Remoção Concluída"),
     ).toBeInTheDocument();
     expect(screen.queryByText("Revisar Remoção")).not.toBeInTheDocument();
+    expect(screen.getAllByText("ABC1234").length).toBeGreaterThan(0);
   });
 
   it("activates the TopLoader and swaps Confirmar to Removendo… while the remove-items transition is pending", async () => {
@@ -317,7 +323,7 @@ describe("NewRemovalPage review dialog", () => {
 
     resolveRemoveItems({
       success: true,
-      removal: { totalRemovedWeight: "10" },
+      removal: { totalRemovedWeight: "10", vehiclePlate: "ABC1234" },
     });
 
     await waitFor(() => {
@@ -355,6 +361,54 @@ describe("NewRemovalPage form placeholders", () => {
       "placeholder",
       "Nome do motorista",
     );
+  });
+});
+
+describe("NewRemovalPage vehicle plate field", () => {
+  it("shows a required Placa do veículo field next to Motorista", () => {
+    render(<NewRemovalPage />);
+
+    expect(screen.getByLabelText("Placa do veículo")).toBeRequired();
+  });
+
+  it("shows the field error message when removeItems rejects the vehicle plate", async () => {
+    vi.mocked(removeItems).mockResolvedValue({
+      success: false,
+      error: {
+        fieldErrors: { vehiclePlate: ["required"] },
+        formErrors: [],
+      },
+    } as never);
+
+    render(<NewRemovalPage />);
+
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
+    });
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    const [cta] = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(1 item\)/,
+    });
+    fireEvent.click(cta);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Revisar Remoção",
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirmar" }),
+    );
+
+    expect(
+      await screen.findByText("Informe a placa do veículo."),
+    ).toBeInTheDocument();
   });
 });
 
