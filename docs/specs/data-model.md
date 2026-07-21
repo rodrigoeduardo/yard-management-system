@@ -4,9 +4,10 @@ Sketch — final columns/constraints are settled by database tasks on the board,
 
 ## Tables
 
-- **`loads`**: `id`, `nota_fiscal`, `entry_date`, `nf_weight`, `material`, `item_count`, `remaining_weight`, `created_at`, `updated_at`
+- **`loads`**: `id`, `nota_fiscal`, `entry_date`, `nf_weight`, `material_id` (FK → materials), `item_count`, `remaining_weight`, `created_at`, `updated_at`
+- **`materials`**: `id`, `name` (unique, not null)
 - **`items`**: `id`, `load_id` (FK → loads), `weight`, `status` (`in_stock` / `removed`), `qr_token` (UUID embedded in the QR code), `created_at`
-- **`removals`**: `id`, `exit_date`, `driver`, `total_removed_weight`, `created_at`
+- **`removals`**: `id`, `exit_date`, `driver`, `vehicle_plate` (nullable text; required at the form level for new removals), `total_removed_weight`, `created_at`
 - **`removal_items`**: `removal_id` (FK → removals), `item_id` (FK → items) — N:M junction
 - **`users`**: managed by Supabase Auth
 - **`audit_log`**: `id`, `table_name`, `record_id`, `action`, `user_id`, `old_data`, `new_data`, `created_at` — populated by triggers, never written by app code

@@ -9,11 +9,17 @@ Domain vocabulary. Code, docs, issues, and labels are in English; these Brazilia
 | Item | Item | One physical unit of a load, with its own weight and QR code. |
 | Remoção | Removal | An action that takes items out of the yard: one exit date + one driver, N scanned items, possibly from different loads. |
 | Motorista | Driver | Person transporting removed items; recorded per removal action. |
+| Placa do veículo | Vehicle Plate | License plate of the vehicle transporting removed items; recorded per removal action, required at the form level. |
+| Material | Material | A persisted entity (`name`) that categorizes a load's contents; selected or created inline on the load form. |
 | Peso da Nota Fiscal | NF Weight | Total weight stated on the invoice. Reference only — need not equal the sum of item weights. |
 | Peso Restante | Remaining Weight | Sum of the weights of a load's items still in stock. |
 | Peso Total Removido | Total Removed Weight | Sum of the weights of all items removed in one removal action. |
 | Estoque | Inventory / Stock | Everything currently in the yard, viewed per load. |
 | Pátio | Yard | The physical storage area. |
+
+## Units
+
+- Weight values are displayed with the unit label **"t"** (tonnes) throughout the UI. This is a display convention only — stored values are not numerically converted.
 
 ## UI language note
 
