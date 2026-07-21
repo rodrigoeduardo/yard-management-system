@@ -152,11 +152,13 @@
   }
 }
 
-/* QR label print output: minimal sheet margins, forced white background so
-   labels use the sheet efficiently and print without app chrome (issue #95). */
+/* QR label print output: one 100x50mm label per page (Elgin L42 Pro Full
+   thermal printer), forced white background so labels print without app
+   chrome (issue #95, adapted for label-roll printing in #217). */
 @media print {
   @page {
-    margin: 0.4in;
+    size: 100mm 50mm;
+    margin: 0;
   }
 
   html,
