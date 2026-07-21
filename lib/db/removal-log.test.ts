@@ -250,6 +250,33 @@ describe("removal log queries", () => {
     );
 
     it(
+      "includes the vehicle plate in each row",
+      async () => {
+        const marker = randomUUID();
+        const load = await insertLoadWithItems(["10"]);
+        loadIds.push(load.load.id);
+
+        const removal = await removeScannedItems({
+          exitDate: new Date("2026-02-01"),
+          driver: `Driver-Plate-${marker}`,
+          vehiclePlate: "ABC1234",
+          qrTokens: [load.items[0].qrToken],
+        });
+        removalIds.push(removal.id);
+
+        const result = await listRemovalsPage({
+          q: `Driver-Plate-${marker}`,
+          order: "exitDate",
+          dir: "desc",
+          page: 1,
+        });
+
+        expect(result.rows[0]?.vehiclePlate).toBe("ABC1234");
+      },
+      20000,
+    );
+
+    it(
       "returns an empty page (no error) when no row matches the search",
       async () => {
         const result = await listRemovalsPage({

@@ -120,6 +120,7 @@ export async function listRemovalsPage({
         id: removals.id,
         exitDate: removals.exitDate,
         driver: removals.driver,
+        vehiclePlate: removals.vehiclePlate,
         totalRemovedWeight: removals.totalRemovedWeight,
         createdAt: removals.createdAt,
         itemCount: itemCountExpr,

@@ -43,6 +43,7 @@ export default async function InventoryPage({
     id: removal.id,
     exitDate: formatEntryDateTime(removal.exitDate),
     driver: removal.driver,
+    vehiclePlate: removal.vehiclePlate ?? "—",
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais: (nfsByRemoval.get(removal.id) ?? []).join(", "),
     itemCount: removal.itemCount,

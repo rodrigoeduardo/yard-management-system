@@ -20,6 +20,7 @@ export type RemovalLogRow = {
   id: string;
   exitDate: string;
   driver: string;
+  vehiclePlate: string;
   totalRemovedWeight: string;
   notasFiscais: string;
   itemCount: number;
@@ -30,7 +31,14 @@ const HEADER_CLASS =
 
 const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
-const COLUMN_WIDTHS = ["w-[20%]", "w-[20%]", "w-[30%]", "w-[10%]", "w-[20%]"];
+const COLUMN_WIDTHS = [
+  "w-[15%]",
+  "w-[17%]",
+  "w-[13%]",
+  "w-[25%]",
+  "w-[10%]",
+  "w-[20%]",
+];
 
 const columns: ColumnDef<RemovalLogRow>[] = [
   {
@@ -49,6 +57,15 @@ const columns: ColumnDef<RemovalLogRow>[] = [
         title={row.original.driver}
       >
         {row.original.driver}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "vehiclePlate",
+    header: "Placa",
+    cell: ({ row }) => (
+      <span className="block truncate font-mono font-semibold">
+        {row.original.vehiclePlate}
       </span>
     ),
   },
