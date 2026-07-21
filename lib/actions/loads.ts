@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { insertLoadWithItems } from "@/lib/db/loads";
 import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
 
@@ -55,14 +56,18 @@ export async function createLoad(input: CreateLoadInput) {
 
   // Validated above by the schema's refine — never null here.
   const entryDate = combineEntryDateTimeValue(parsed.data.entryDateTime)!;
+  const userId = await getCurrentUserId();
 
-  const load = await insertLoadWithItems({
-    notaFiscal: parsed.data.notaFiscal,
-    entryDate,
-    nfWeight: parsed.data.nfWeight.toString(),
-    material: parsed.data.material,
-    itemWeights: parsed.data.itemWeights.map((weight) => weight.toString()),
-  });
+  const load = await insertLoadWithItems(
+    {
+      notaFiscal: parsed.data.notaFiscal,
+      entryDate,
+      nfWeight: parsed.data.nfWeight.toString(),
+      material: parsed.data.material,
+      itemWeights: parsed.data.itemWeights.map((weight) => weight.toString()),
+    },
+    userId,
+  );
 
   return { success: true as const, load };
 }

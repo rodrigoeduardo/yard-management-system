@@ -1,9 +1,25 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
 import { items, loads } from "@/lib/db/schema";
-import { createLoad } from "./loads";
+
+// `createLoad` now reads the acting user id via `next/headers` cookies
+// (lib/auth/current-user.ts) to attribute the audit_log row. Outside a real
+// Next.js request, `cookies()` throws — stub it to an empty store so these
+// tests exercise the unauthenticated path (user_id stays null), same as
+// app/login/actions.test.ts.
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    getAll: () => [],
+    set: () => {},
+  })),
+}));
+
+let createLoad: typeof import("./loads").createLoad;
+beforeAll(async () => {
+  ({ createLoad } = await import("./loads"));
+});
 
 describe("createLoad", () => {
   const createdLoadIds: string[] = [];

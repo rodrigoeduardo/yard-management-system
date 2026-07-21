@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
+import { withAuditUser } from "./audit-context";
 import { subtractDecimalStrings, sumDecimalStrings } from "./decimal";
-import { db } from "./index";
 import { items, loads, removalItems, removals } from "./schema";
 
 export type CreateRemovalData = {
@@ -10,8 +10,11 @@ export type CreateRemovalData = {
   qrTokens: string[];
 };
 
-export async function removeScannedItems(data: CreateRemovalData) {
-  return db.transaction(async (tx) => {
+export async function removeScannedItems(
+  data: CreateRemovalData,
+  userId: string | null = null,
+) {
+  return withAuditUser(userId, async (tx) => {
     const scannedItems = await tx
       .select()
       .from(items)
