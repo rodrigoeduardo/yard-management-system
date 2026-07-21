@@ -65,7 +65,7 @@ export function StockFilterFields({
       />
 
       <FilterRangeField
-        legend="Peso Restante (kg)"
+        legend="Peso Restante (t)"
         type="number"
         valueFrom={weightMin}
         valueTo={weightMax}

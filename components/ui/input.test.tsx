@@ -28,9 +28,9 @@ describe("Input", () => {
   });
 
   it("renders a unit suffix inside the field", () => {
-    render(<Input aria-label="Peso" mono unit="kg" />);
+    render(<Input aria-label="Peso" mono unit="t" />);
 
-    expect(screen.getByText("kg")).toBeInTheDocument();
+    expect(screen.getByText("t")).toBeInTheDocument();
     expect(screen.getByLabelText("Peso")).toBeInTheDocument();
   });
 

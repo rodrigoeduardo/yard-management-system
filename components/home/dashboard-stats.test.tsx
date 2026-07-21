@@ -20,7 +20,7 @@ describe("DashboardStats", () => {
     expect(itemsInStock.className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("Itens no Pátio")).toBeInTheDocument();
 
-    const remainingWeight = screen.getByText("2450.5 kg");
+    const remainingWeight = screen.getByText("2450.5 t");
     expect(remainingWeight.className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("Peso Restante")).toBeInTheDocument();
   });
@@ -28,7 +28,7 @@ describe("DashboardStats", () => {
   it("renders zero values sensibly", () => {
     render(<DashboardStats activeLoads={0} itemsInStock={0} remainingWeight="0" />);
 
-    expect(screen.getByText("0 kg")).toBeInTheDocument();
+    expect(screen.getByText("0 t")).toBeInTheDocument();
     expect(screen.getAllByText("0")).toHaveLength(2);
   });
 });

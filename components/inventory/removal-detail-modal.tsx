@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { fetchRemovalItems } from "@/lib/actions/removal-items";
 import type { RemovalItemDetail } from "@/lib/db/removal-items";
-import { formatWeightKg } from "@/lib/format/weight";
+import { formatWeight } from "@/lib/format/weight";
 import type { RemovalLogRow } from "./removal-log-table";
 
 export function RemovalDetailModal({
@@ -71,7 +71,7 @@ export function RemovalDetailModal({
                   Peso Total Removido
                 </dt>
                 <dd className="font-mono text-[15px] font-bold">
-                  {formatWeightKg(removal.totalRemovedWeight)}
+                  {formatWeight(removal.totalRemovedWeight)}
                 </dd>
               </div>
             </dl>
@@ -99,7 +99,7 @@ export function RemovalDetailModal({
                         {item.notaFiscal}
                       </span>
                       <span className="text-right font-mono font-semibold">
-                        {formatWeightKg(item.weight)}
+                        {formatWeight(item.weight)}
                       </span>
                     </li>
                   ))}

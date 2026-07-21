@@ -21,7 +21,7 @@ describe("RemovalCard", () => {
     expect(screen.getByText("João")).toBeInTheDocument();
     expect(screen.getByText("ABC1234")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
-    expect(screen.getByText("100 kg")).toBeInTheDocument();
+    expect(screen.getByText("100 t")).toBeInTheDocument();
     expect(screen.getByText(/3 itens removidos/)).toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe("RemovalCard", () => {
 
     expect(screen.getByText("02/01/2026").className).toMatch(/\bfont-mono\b/);
 
-    const weight = screen.getByText("100 kg");
+    const weight = screen.getByText("100 t");
     expect(weight.className).toMatch(/\bfont-mono\b/);
     expect(weight.className).toMatch(/\btext-accent-foreground\b/);
   });

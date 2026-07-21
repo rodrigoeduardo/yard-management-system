@@ -382,7 +382,7 @@ export default function NewRemovalPage() {
 
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-mono text-sm font-medium text-foreground">
-                          {item.weight} kg
+                          {item.weight} t
                         </span>
                         <Button
                           type="button"
@@ -422,7 +422,7 @@ export default function NewRemovalPage() {
                   Peso Total Removido
                 </span>
                 <span className="font-mono text-xl font-bold text-foreground">
-                  {totalRemovedWeight} kg
+                  {totalRemovedWeight} t
                 </span>
               </div>
               <Button
@@ -452,7 +452,7 @@ export default function NewRemovalPage() {
                 Peso Total Removido
               </span>
               <span className="font-mono text-lg font-bold text-foreground">
-                {totalRemovedWeight} kg
+                {totalRemovedWeight} t
               </span>
             </div>
             <Button
@@ -527,7 +527,7 @@ export default function NewRemovalPage() {
                             {item.identifier} — {item.material}
                           </span>
                           <span className="shrink-0 font-mono font-medium text-muted-foreground">
-                            {item.weight} kg
+                            {item.weight} t
                           </span>
                         </li>
                       ))}
@@ -541,7 +541,7 @@ export default function NewRemovalPage() {
                   Peso Total Removido
                 </span>
                 <span className="font-mono text-lg font-bold text-accent-foreground">
-                  {totalRemovedWeight} kg
+                  {totalRemovedWeight} t
                 </span>
               </div>
             </div>

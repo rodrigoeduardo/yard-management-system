@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatWeightKg } from "@/lib/format/weight";
+import { formatWeight } from "@/lib/format/weight";
 import type { RemovalReceipt } from "@/lib/removals/receipt";
 
 function itemsLabel(count: number): string {
@@ -125,7 +125,7 @@ export function RemovalReceiptView({
                 >
                   <span className="truncate">{item.identifier}</span>
                   <span className="shrink-0 font-mono font-medium text-muted-foreground">
-                    {formatWeightKg(item.weight)}
+                    {formatWeight(item.weight)}
                   </span>
                 </li>
               ))}
@@ -139,7 +139,7 @@ export function RemovalReceiptView({
           Peso Total Removido
         </span>
         <span className="font-mono text-lg font-bold text-accent-foreground">
-          {formatWeightKg(receipt.totalRemovedWeight)}
+          {formatWeight(receipt.totalRemovedWeight)}
         </span>
       </div>
 

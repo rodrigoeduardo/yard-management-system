@@ -60,7 +60,7 @@ describe("RemovalReceiptView", () => {
     expect(screen.getAllByText(/2 itens/).length).toBeGreaterThan(0);
   });
 
-  it("groups items per Nota Fiscal, each with its identifier, material and weight in kg", () => {
+  it("groups items per Nota Fiscal, each with its identifier, material and weight in t", () => {
     render(
       <RemovalReceiptView
         receipt={receipt}
@@ -72,15 +72,15 @@ describe("RemovalReceiptView", () => {
     expect(screen.getByText("NF-100")).toBeInTheDocument();
     expect(screen.getByText(/Item 1 - NF-100/)).toBeInTheDocument();
     expect(screen.getAllByText("Aço").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("10 kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
 
     expect(screen.getByText("NF-200")).toBeInTheDocument();
     expect(screen.getByText(/Item 1 - NF-200/)).toBeInTheDocument();
     expect(screen.getAllByText("Cobre").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("5 kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("5 t").length).toBeGreaterThan(0);
   });
 
-  it("shows the total removed weight in kg prominently", () => {
+  it("shows the total removed weight in t prominently", () => {
     render(
       <RemovalReceiptView
         receipt={receipt}
@@ -89,7 +89,7 @@ describe("RemovalReceiptView", () => {
       />,
     );
 
-    expect(screen.getAllByText("15 kg").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("15 t").length).toBeGreaterThan(0);
   });
 
   it("shows the vehicle plate", () => {

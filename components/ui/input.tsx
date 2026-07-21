@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 interface InputProps extends ComponentProps<"input"> {
   /** Use the mono (Spline Sans Mono) treatment for numeric fields. */
   mono?: boolean;
-  /** Unit label rendered inside the field, e.g. "kg". */
+  /** Unit label rendered inside the field, e.g. "t". */
   unit?: string;
 }
 

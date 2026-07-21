@@ -30,7 +30,7 @@ export type StockQueryState = {
   /** Entry date range filter, each bound optional, `YYYY-MM-DD`. */
   dateFrom?: string;
   dateTo?: string;
-  /** Remaining weight range filter, each bound optional, kg as a numeric string. */
+  /** Remaining weight range filter, each bound optional, tonnes as a numeric string. */
   weightMin?: string;
   weightMax?: string;
   /**

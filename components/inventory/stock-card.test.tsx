@@ -29,10 +29,10 @@ describe("StockCard", () => {
 
     expect(screen.getByText("NF 145.812")).toBeInTheDocument();
     expect(screen.getByText("01/01/2026")).toBeInTheDocument();
-    expect(screen.getByText("1000 kg")).toBeInTheDocument();
+    expect(screen.getByText("1000 t")).toBeInTheDocument();
     expect(screen.getByText("Material: Sucata")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getByText("250 kg")).toBeInTheDocument();
+    expect(screen.getByText("250 t")).toBeInTheDocument();
   });
 
   it("calls onClick when the card is activated", () => {
@@ -71,10 +71,10 @@ describe("StockCard", () => {
     render(<StockCard row={FINISHED_ROW} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0 kg").className).toMatch(
+    expect(screen.getByText("0 t").className).toMatch(
       /\btext-success-foreground\b/,
     );
-    expect(screen.getByText("1000 kg").className).not.toMatch(
+    expect(screen.getByText("1000 t").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });

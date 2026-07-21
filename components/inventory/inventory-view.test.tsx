@@ -19,10 +19,10 @@ const STOCK_ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
   entryDate: "01/01/2026",
-  nfWeight: "1.000,00 kg",
+  nfWeight: "1.000,00 t",
   material: "Sucata",
   itemCount: 4,
-  remainingWeight: "250,00 kg",
+  remainingWeight: "250,00 t",
   finished: false,
 };
 
@@ -31,7 +31,7 @@ const REMOVAL_ROW: RemovalLogRow = {
   exitDate: "02/01/2026",
   driver: "João",
   vehiclePlate: "ABC1234",
-  totalRemovedWeight: "100,00 kg",
+  totalRemovedWeight: "100,00 t",
   notasFiscais: "NF-001",
   itemCount: 3,
 };
