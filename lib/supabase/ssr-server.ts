@@ -73,6 +73,11 @@ export function createSupabaseSsrServerClient(cookieStore: SsrCookieStore) {
   const publishableKey = requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
 
   return createServerClient(url, publishableKey, {
+    cookieOptions: {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    },
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => writeSsrCookies(cookieStore, cookiesToSet),
