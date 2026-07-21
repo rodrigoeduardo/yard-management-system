@@ -32,10 +32,10 @@ const HEADER_CLASS =
 const CELL_CLASS = "px-5 py-3.5 text-[13.5px]";
 
 const COLUMN_WIDTHS = [
-  "w-[15%]",
+  "w-[19%]",
   "w-[17%]",
   "w-[13%]",
-  "w-[25%]",
+  "w-[21%]",
   "w-[10%]",
   "w-[20%]",
 ];
@@ -45,7 +45,9 @@ const columns: ColumnDef<RemovalLogRow>[] = [
     accessorKey: "exitDate",
     header: "Data de Saída",
     cell: ({ row }) => (
-      <span className="font-mono font-bold">{row.original.exitDate}</span>
+      <span className="block whitespace-nowrap font-mono font-bold">
+        {row.original.exitDate}
+      </span>
     ),
   },
   {
