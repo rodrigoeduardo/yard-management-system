@@ -53,14 +53,14 @@ Input: a PR number, its branch name, and the reason (review change-requests, red
    - **Change-requests** → read the reviewer's PR comments (`gh pr view <n> --comments`) and fix
      each blocking finding. If a finding points at behavior with no test covering it, write a
      failing test that reproduces it first, then fix until it passes (TDD, same as Mode A).
-   - **Red CI** → reproduce locally (`npm ci && npm run lint && npm test`), fix until green.
+   - **Red CI** → reproduce locally (`npm ci && npm run lint && npm run test:all`), fix until green.
    - **Behind `main`** → merge `origin/main` into the branch, resolve conflicts, re-run the suite.
 3. Commit on the fly (Conventional Commits, atomic) and `git push`. Never force-push.
 4. Do **not** touch labels — the orchestrator drives the review/merge state machine.
 
 ## Handoff bar
 
-Before reporting `DONE` or `DONE_WITH_CONCERNS`, both modes must have `npm run lint && npm test`
+Before reporting `DONE` or `DONE_WITH_CONCERNS`, both modes must have `npm run lint && npm run test:all`
 green locally. Do not hand off red.
 
 ## Report format (return this, nothing else large)
