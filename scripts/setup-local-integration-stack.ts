@@ -1,0 +1,102 @@
+/**
+ * Single documented command that gets `npm run test:integration` ready to
+ * run against a local, disposable Supabase stack instead of the shared
+ * remote project:
+ *
+ *   1. Starts the local stack (`supabase start`) if it isn't already up.
+ *   2. Applies Drizzle migrations against it.
+ *   3. Seeds (creates or resets) a fixed local test auth user.
+ *   4. Writes `.env.test.local` (gitignored) with the connection details,
+ *      which `vitest.setup.integration.ts` loads for the `integration`
+ *      vitest project.
+ *
+ * Usage: `npm run test:integration:setup` (then `npm run test:integration`).
+ * Requires Docker running locally; in CI the `integration` job in
+ * `.github/workflows/ci.yml` runs the same command.
+ */
+import { execFileSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { createClient } from "@supabase/supabase-js";
+import {
+  buildTestEnvFileContents,
+  LOCAL_TEST_USER_EMAIL,
+  LOCAL_TEST_USER_PASSWORD,
+  pickServiceKey,
+  type LocalSupabaseStatus,
+} from "./lib/local-supabase";
+
+function readStatus(): LocalSupabaseStatus {
+  const raw = execFileSync("npx", ["supabase", "status", "-o", "json"], {
+    encoding: "utf8",
+  });
+  return JSON.parse(raw) as LocalSupabaseStatus;
+}
+
+function ensureStackRunning(): LocalSupabaseStatus {
+  try {
+    return readStatus();
+  } catch {
+    console.log(
+      "Local Supabase stack not running — starting it (`supabase start`)...",
+    );
+    execFileSync("npx", ["supabase", "start"], { stdio: "inherit" });
+    return readStatus();
+  }
+}
+
+function migrate(dbUrl: string): void {
+  execFileSync("npx", ["drizzle-kit", "migrate"], {
+    stdio: "inherit",
+    env: { ...process.env, SUPABASE_DB_URL: dbUrl },
+  });
+}
+
+async function seedTestUser(apiUrl: string, serviceKey: string): Promise<void> {
+  const admin = createClient(apiUrl, serviceKey);
+  const { data: existing, error: listError } = await admin.auth.admin.listUsers();
+  if (listError) {
+    throw new Error(`Failed to list local Supabase users: ${listError.message}`);
+  }
+
+  const found = existing.users.find((user) => user.email === LOCAL_TEST_USER_EMAIL);
+  if (found) {
+    const { error } = await admin.auth.admin.updateUserById(found.id, {
+      password: LOCAL_TEST_USER_PASSWORD,
+      email_confirm: true,
+    });
+    if (error) {
+      throw new Error(`Failed to reset local test user: ${error.message}`);
+    }
+    return;
+  }
+
+  const { error } = await admin.auth.admin.createUser({
+    email: LOCAL_TEST_USER_EMAIL,
+    password: LOCAL_TEST_USER_PASSWORD,
+    email_confirm: true,
+  });
+  if (error) {
+    throw new Error(`Failed to create local test user: ${error.message}`);
+  }
+}
+
+async function main(): Promise<void> {
+  const status = ensureStackRunning();
+
+  migrate(status.DB_URL);
+  await seedTestUser(status.API_URL, pickServiceKey(status));
+
+  writeFileSync(".env.test.local", buildTestEnvFileContents(status));
+
+  console.log("\nLocal Supabase stack ready for integration tests.");
+  console.log(`  API_URL: ${status.API_URL}`);
+  console.log(`  DB_URL:  ${status.DB_URL}`);
+  console.log(
+    "  Wrote .env.test.local (gitignored) — run `npm run test:integration` next.",
+  );
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
