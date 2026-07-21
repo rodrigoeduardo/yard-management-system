@@ -91,6 +91,7 @@ describe("getLastRemoval", () => {
       .values({
         exitDate: new Date("2026-02-01"),
         driver: "Maria Souza",
+        vehiclePlate: "ABC1234",
         totalRemovedWeight: "20",
       })
       .returning();
@@ -110,7 +111,40 @@ describe("getLastRemoval", () => {
     expect(lastRemoval!.driver).toBe("Maria Souza");
     expect(lastRemoval!.itemCount).toBe(2);
     expect(lastRemoval!.totalRemovedWeight).toBe("20");
+    expect(lastRemoval!.vehiclePlate).toBe("ABC1234");
     expect(lastRemoval!.notasFiscais).toEqual([load.notaFiscal]);
+  });
+
+  it("returns null for the vehicle plate on a legacy removal with no plate recorded", async () => {
+    const load = await insertLoad({ itemCount: 1, remainingWeight: "10" });
+    loadIds.push(load.id);
+
+    const insertedItems = await db
+      .insert(items)
+      .values([{ loadId: load.id, weight: "10" }])
+      .returning();
+
+    const [removal] = await db
+      .insert(removals)
+      .values({
+        exitDate: new Date("2026-02-02"),
+        driver: "Maria Souza",
+        totalRemovedWeight: "10",
+      })
+      .returning();
+    removalIds.push(removal.id);
+
+    await db.insert(removalItems).values(
+      insertedItems.map((item) => ({
+        removalId: removal.id,
+        itemId: item.id,
+      })),
+    );
+
+    const lastRemoval = await getLastRemoval();
+
+    expect(lastRemoval).not.toBeNull();
+    expect(lastRemoval!.vehiclePlate).toBeNull();
   });
 });
 

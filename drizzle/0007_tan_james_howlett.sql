@@ -1,0 +1,1 @@
+ALTER TABLE "removals" ADD COLUMN "vehicle_plate" text;

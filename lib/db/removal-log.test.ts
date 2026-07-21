@@ -60,6 +60,7 @@ describe("removal log queries", () => {
       const older = await removeScannedItems({
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
+        vehiclePlate: "AAA1111",
         qrTokens: [load.items[0].qrToken],
       });
       removalIds.push(older.id);
@@ -67,6 +68,7 @@ describe("removal log queries", () => {
       const newer = await removeScannedItems({
         exitDate: new Date("2026-02-02"),
         driver: "Driver B",
+        vehiclePlate: "BBB2222",
         qrTokens: [load.items[1].qrToken],
       });
       removalIds.push(newer.id);
@@ -88,6 +90,7 @@ describe("removal log queries", () => {
       const removal = await removeScannedItems({
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
+        vehiclePlate: "AAA1111",
         qrTokens: [loadA.items[0].qrToken, loadB.items[0].qrToken],
       });
       removalIds.push(removal.id);
@@ -113,11 +116,13 @@ describe("removal log queries", () => {
       const removalA = await removeScannedItems({
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
+        vehiclePlate: "AAA1111",
         qrTokens: [loadA.items[0].qrToken],
       });
       const removalB = await removeScannedItems({
         exitDate: new Date("2026-02-02"),
         driver: "Driver B",
+        vehiclePlate: "BBB2222",
         qrTokens: [loadB.items[0].qrToken],
       });
       removalIds.push(removalA.id, removalB.id);
@@ -140,11 +145,13 @@ describe("removal log queries", () => {
         const byDriver = await removeScannedItems({
           exitDate: new Date("2026-02-01"),
           driver: `Motorista-${marker}`,
+          vehiclePlate: "AAA1111",
           qrTokens: [loadDriver.items[0].qrToken],
         });
         const byNf = await removeScannedItems({
           exitDate: new Date("2026-02-02"),
           driver: "Outro Motorista",
+          vehiclePlate: "BBB2222",
           qrTokens: [loadNf.items[0].qrToken],
         });
         removalIds.push(byDriver.id, byNf.id);
@@ -181,11 +188,13 @@ describe("removal log queries", () => {
         const light = await removeScannedItems({
           exitDate: new Date("2026-03-01"),
           driver: `Driver-Order-${marker}-LIGHT`,
+          vehiclePlate: "AAA1111",
           qrTokens: [loadA.items[0].qrToken],
         });
         const heavy = await removeScannedItems({
           exitDate: new Date("2026-03-02"),
           driver: `Driver-Order-${marker}-HEAVY`,
+          vehiclePlate: "BBB2222",
           qrTokens: [loadA.items[1].qrToken, loadB.items[0].qrToken],
         });
         removalIds.push(light.id, heavy.id);
@@ -221,6 +230,7 @@ describe("removal log queries", () => {
           const removal = await removeScannedItems({
             exitDate: new Date(2026, 3, i + 1),
             driver: `Driver-Page-${marker}`,
+            vehiclePlate: "AAA1111",
             qrTokens: [load.items[0].qrToken],
           });
           removalIds.push(removal.id);
@@ -245,6 +255,33 @@ describe("removal log queries", () => {
         });
         expect(pageTwo.rows).toHaveLength(1);
         expect(pageTwo.total).toBe(3);
+      },
+      20000,
+    );
+
+    it(
+      "includes the vehicle plate in each row",
+      async () => {
+        const marker = randomUUID();
+        const load = await insertLoadWithItems(["10"]);
+        loadIds.push(load.load.id);
+
+        const removal = await removeScannedItems({
+          exitDate: new Date("2026-02-01"),
+          driver: `Driver-Plate-${marker}`,
+          vehiclePlate: "ABC1234",
+          qrTokens: [load.items[0].qrToken],
+        });
+        removalIds.push(removal.id);
+
+        const result = await listRemovalsPage({
+          q: `Driver-Plate-${marker}`,
+          order: "exitDate",
+          dir: "desc",
+          page: 1,
+        });
+
+        expect(result.rows[0]?.vehiclePlate).toBe("ABC1234");
       },
       20000,
     );
@@ -280,16 +317,19 @@ describe("removal log queries", () => {
         const early = await removeScannedItems({
           exitDate: new Date("2026-04-01T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
+          vehiclePlate: "AAA1111",
           qrTokens: [loadEarlyLight.items[0].qrToken],
         });
         const mid = await removeScannedItems({
           exitDate: new Date("2026-04-15T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
+          vehiclePlate: "BBB2222",
           qrTokens: [loadMidHeavy.items[0].qrToken],
         });
         const late = await removeScannedItems({
           exitDate: new Date("2026-04-30T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
+          vehiclePlate: "CCC3333",
           qrTokens: [loadLateLight.items[0].qrToken],
         });
         removalIds.push(early.id, mid.id, late.id);

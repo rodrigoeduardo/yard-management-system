@@ -6,6 +6,7 @@ export type LastRemovalSummary = {
   exitDate: Date;
   itemCount: number;
   totalRemovedWeight: string;
+  vehiclePlate: string;
   notasFiscais: string[];
 };
 
@@ -32,7 +33,7 @@ function removalToRow(removal: LastRemovalSummary): Row {
     key: "removal",
     sortDate: removal.exitDate,
     title: `Remoção · ${removal.driver}`,
-    meta: `${formatEntryDateTime(removal.exitDate)} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} kg`,
+    meta: `${formatEntryDateTime(removal.exitDate)} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} kg · ${removal.vehiclePlate}`,
     nf: nf || undefined,
   };
 }

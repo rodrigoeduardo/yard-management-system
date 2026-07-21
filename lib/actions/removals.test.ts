@@ -55,6 +55,7 @@ describe("removeItems", () => {
       const result = await removeItems({
         exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
+        vehiclePlate: "ABC1234",
         qrTokens: [load.items[0].qrToken],
       });
 
@@ -71,6 +72,7 @@ describe("removeItems", () => {
     const result = await removeItems({
       exitDateTime: "2026-02-01T14:35",
       driver: "John Doe",
+      vehiclePlate: "ABC1234",
       qrTokens: [],
     });
 
@@ -81,6 +83,7 @@ describe("removeItems", () => {
     const result = await removeItems({
       exitDateTime: "2026-02-01T14:35",
       driver: "",
+      vehiclePlate: "ABC1234",
       qrTokens: [randomUUID()],
     });
 
@@ -91,6 +94,7 @@ describe("removeItems", () => {
     const result = await removeItems({
       exitDateTime: "2026-02-30T14:35",
       driver: "John Doe",
+      vehiclePlate: "ABC1234",
       qrTokens: [randomUUID()],
     });
 
@@ -106,6 +110,7 @@ describe("removeItems", () => {
       const result = await removeItems({
         exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
+        vehiclePlate: "ABC1234",
         qrTokens: [load.items[0].qrToken],
       });
 
@@ -115,6 +120,50 @@ describe("removeItems", () => {
 
       expect(result.removal.exitDate.getUTCHours()).toBe(17);
       expect(result.removal.exitDate.getUTCMinutes()).toBe(35);
+    },
+    20000,
+  );
+
+  it("rejects an empty vehicle plate", async () => {
+    const result = await removeItems({
+      exitDateTime: "2026-02-01T14:35",
+      driver: "John Doe",
+      vehiclePlate: "",
+      qrTokens: [randomUUID()],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a whitespace-only vehicle plate", async () => {
+    const result = await removeItems({
+      exitDateTime: "2026-02-01T14:35",
+      driver: "John Doe",
+      vehiclePlate: "   ",
+      qrTokens: [randomUUID()],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it(
+    "persists the vehicle plate trimmed of surrounding whitespace",
+    async () => {
+      const load = await insertLoadWithItems(["10"]);
+      loadIds.push(load.load.id);
+
+      const result = await removeItems({
+        exitDateTime: "2026-02-01T14:35",
+        driver: "Vehicle Plate Test Driver",
+        vehiclePlate: "  ABC1234  ",
+        qrTokens: [load.items[0].qrToken],
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) throw new Error("expected success");
+      removalIds.push(result.removal.id);
+
+      expect(result.removal.vehiclePlate).toBe("ABC1234");
     },
     20000,
   );

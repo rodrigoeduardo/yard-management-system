@@ -7,6 +7,7 @@ const ROW: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
+  vehiclePlate: "ABC1234",
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
@@ -18,9 +19,16 @@ describe("RemovalCard", () => {
 
     expect(screen.getByText("02/01/2026")).toBeInTheDocument();
     expect(screen.getByText("João")).toBeInTheDocument();
+    expect(screen.getByText("ABC1234")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
     expect(screen.getByText("100 kg")).toBeInTheDocument();
     expect(screen.getByText(/3 itens removidos/)).toBeInTheDocument();
+  });
+
+  it("renders an em dash for a legacy removal without a vehicle plate", () => {
+    render(<RemovalCard row={{ ...ROW, vehiclePlate: "—" }} />);
+
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("renders the exit date and the removed weight with the mono font, weight in accent color", () => {

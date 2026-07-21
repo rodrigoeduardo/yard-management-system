@@ -11,6 +11,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-16T12:00:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977", "145.812"],
         }}
         load={{
@@ -45,6 +46,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-02-01T12:00:00Z"),
           itemCount: 3,
           totalRemovedWeight: "45.5",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["NF-001", "NF-002"],
         }}
         load={null}
@@ -92,6 +94,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-18T02:30:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977"],
         }}
         load={null}
@@ -110,6 +113,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-16T15:45:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977"],
         }}
         load={null}
@@ -129,6 +133,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-16T00:00:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977"],
         }}
         load={null}
@@ -162,7 +167,7 @@ describe("LastMovementCard", () => {
     );
   });
 
-  it("orders removal row meta fields as date, item count, weight", () => {
+  it("orders removal row meta fields as date, item count, weight, plate", () => {
     render(
       <LastMovementCard
         removal={{
@@ -170,6 +175,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-16T12:00:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977"],
         }}
         load={null}
@@ -180,7 +186,31 @@ describe("LastMovementCard", () => {
     const meta = rows[0].querySelector(
       "span.text-muted-foreground, span.text-xs",
     );
-    expect(meta?.textContent).toBe("16/07/2026 · 09:00 · 4 itens · 3240 kg");
+    expect(meta?.textContent).toBe(
+      "16/07/2026 · 09:00 · 4 itens · 3240 kg · ABC1234",
+    );
+  });
+
+  it("renders an em dash in the meta for a legacy removal without a vehicle plate", () => {
+    render(
+      <LastMovementCard
+        removal={{
+          driver: "João Batista",
+          exitDate: new Date("2026-07-16T12:00:00Z"),
+          itemCount: 4,
+          totalRemovedWeight: "3240",
+          vehiclePlate: "—",
+          notasFiscais: ["145.977"],
+        }}
+        load={null}
+      />,
+    );
+
+    const rows = screen.getAllByRole("listitem");
+    const meta = rows[0].querySelector(
+      "span.text-muted-foreground, span.text-xs",
+    );
+    expect(meta?.textContent).toBe("16/07/2026 · 09:00 · 4 itens · 3240 kg · —");
   });
 
   it("renders the NF using the accent-foreground token, matching the design's mono NF color", () => {
@@ -191,6 +221,7 @@ describe("LastMovementCard", () => {
           exitDate: new Date("2026-07-16T12:00:00Z"),
           itemCount: 4,
           totalRemovedWeight: "3240",
+          vehiclePlate: "ABC1234",
           notasFiscais: ["145.977"],
         }}
         load={null}

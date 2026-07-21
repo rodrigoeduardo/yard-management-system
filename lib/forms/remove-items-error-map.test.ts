@@ -30,6 +30,14 @@ describe("mapRemoveItemsFieldErrors", () => {
     expect(messages.qrTokens).toBe("Escaneie ao menos um item.");
   });
 
+  it("maps a vehicle plate field error to a Portuguese message", () => {
+    const messages = mapRemoveItemsFieldErrors({
+      vehiclePlate: ["String must contain at least 1 character(s)"],
+    });
+
+    expect(messages.vehiclePlate).toBe("Informe a placa do veículo.");
+  });
+
   it("returns an empty object when there are no field errors", () => {
     expect(mapRemoveItemsFieldErrors({})).toEqual({});
   });

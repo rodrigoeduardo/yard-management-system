@@ -47,7 +47,7 @@ export function RemovalDetailModal({
               </DialogTitle>
             </DialogHeader>
 
-            <dl className="grid grid-cols-3 gap-3.5">
+            <dl className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
               <div className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">
                   Data de Saída
@@ -59,6 +59,12 @@ export function RemovalDetailModal({
               <div className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">Motorista</dt>
                 <dd className="text-[15px] font-bold">{removal.driver}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-xs text-muted-foreground">Placa</dt>
+                <dd className="font-mono text-[15px] font-bold">
+                  {removal.vehiclePlate}
+                </dd>
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">

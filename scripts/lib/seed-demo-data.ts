@@ -33,6 +33,11 @@ export function buildSeedDriver(prefix: string, index: number): string {
   return `${prefix}DRIVER-${pad(index)}`;
 }
 
+/** Deterministic, marker-prefixed vehicle plate for the removal at this 1-indexed position. */
+export function buildSeedVehiclePlate(prefix: string, index: number): string {
+  return `${prefix}PLATE-${pad(index)}`;
+}
+
 /** Item count within the 15-18 typical range from business-rules.md. */
 export function seedItemCount(index: number): number {
   return 15 + (index % 4);
@@ -163,6 +168,7 @@ export async function seedDemoData(
     await removeScannedItems({
       exitDate: seedEntryDate(-i, now), // exits after entries, spread across days
       driver,
+      vehiclePlate: buildSeedVehiclePlate(prefix, i),
       qrTokens: [availableItem.qrToken],
     });
     removalsCreated += 1;

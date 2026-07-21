@@ -6,6 +6,7 @@ const ROW: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
+  vehiclePlate: "ABC1234",
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
@@ -17,9 +18,22 @@ describe("RemovalLogTable", () => {
 
     expect(screen.getByText("02/01/2026")).toBeInTheDocument();
     expect(screen.getByText("João")).toBeInTheDocument();
+    expect(screen.getByText("ABC1234")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("100 kg")).toBeInTheDocument();
+  });
+
+  it("renders a Placa column header", () => {
+    render(<RemovalLogTable rows={[ROW]} />);
+
+    expect(screen.getByText("Placa")).toBeInTheDocument();
+  });
+
+  it("renders an em dash for a legacy removal without a vehicle plate", () => {
+    render(<RemovalLogTable rows={[{ ...ROW, vehiclePlate: "—" }]} />);
+
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("renders numeric columns with the mono font, the total weight in accent color", () => {
@@ -75,6 +89,7 @@ describe("RemovalLogTable", () => {
     const headers = [
       "Data de Saída",
       "Motorista",
+      "Placa",
       "Notas Fiscais",
       "Itens",
       "Peso Total Removido",

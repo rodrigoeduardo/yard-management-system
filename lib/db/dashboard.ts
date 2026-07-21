@@ -33,6 +33,7 @@ export type LastRemoval = {
   id: string;
   exitDate: Date;
   driver: string;
+  vehiclePlate: string | null;
   itemCount: number;
   totalRemovedWeight: string;
   notasFiscais: string[];
@@ -67,6 +68,7 @@ export async function getLastRemoval(): Promise<LastRemoval | null> {
     id: removal.id,
     exitDate: removal.exitDate,
     driver: removal.driver,
+    vehiclePlate: removal.vehiclePlate,
     itemCount: nfRows.length,
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais,

@@ -6,6 +6,7 @@ import { items, loads, removalItems, removals } from "./schema";
 export type CreateRemovalData = {
   exitDate: Date;
   driver: string;
+  vehiclePlate: string;
   qrTokens: string[];
 };
 
@@ -32,6 +33,7 @@ export async function removeScannedItems(data: CreateRemovalData) {
       .values({
         exitDate: data.exitDate,
         driver: data.driver,
+        vehiclePlate: data.vehiclePlate,
         totalRemovedWeight,
       })
       .returning();

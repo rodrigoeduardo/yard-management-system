@@ -43,6 +43,13 @@ export function RemovalCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-[6px]">
+        <span className="text-[10.5px] text-muted-foreground">Placa:</span>
+        <span className="font-mono text-[11px] font-semibold text-foreground">
+          {row.vehiclePlate}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-[6px]">
         <span className="text-[10.5px] text-muted-foreground">
           Notas Fiscais:
         </span>

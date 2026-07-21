@@ -9,6 +9,7 @@ export type RemoveItemsFieldMessages = Partial<
 const FIELD_MESSAGES: Record<keyof RemoveItemsInput, string> = {
   exitDateTime: "Informe uma data e hora de saída válidas.",
   driver: "Informe o motorista.",
+  vehiclePlate: "Informe a placa do veículo.",
   qrTokens: "Escaneie ao menos um item.",
 };
 
