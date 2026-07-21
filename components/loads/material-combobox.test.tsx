@@ -131,4 +131,27 @@ describe("MaterialCombobox", () => {
 
     expect(screen.getByRole("combobox")).toHaveValue("Cobre");
   });
+
+  it("caps the visible options list at 15 items", () => {
+    const manyMaterials = Array.from({ length: 30 }, (_, i) => ({
+      id: `mat-${i}`,
+      name: `Material ${i}`,
+    }));
+    const onChange = vi.fn();
+    render(
+      <MaterialCombobox
+        id="material"
+        materials={manyMaterials}
+        value=""
+        displayValue=""
+        onChange={onChange}
+      />,
+    );
+    const field = screen.getByRole("combobox");
+
+    fireEvent.focus(field);
+
+    const list = screen.getByRole("listbox");
+    expect(within(list).getAllByRole("option")).toHaveLength(15);
+  });
 });

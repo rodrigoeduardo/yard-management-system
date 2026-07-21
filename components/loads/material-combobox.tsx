@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import {
   Command,
   CommandEmpty,
@@ -12,6 +13,8 @@ import { Popover, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export type MaterialOption = { id: string; name: string };
+
+const MAX_VISIBLE_OPTIONS = 15;
 
 type MaterialComboboxProps = {
   id: string;
@@ -53,10 +56,28 @@ export function MaterialCombobox({
 
   const trimmedQuery = query.trim();
   const filtered = useMemo(
-    () => filterMaterials(materials, trimmedQuery),
+    () => filterMaterials(materials, trimmedQuery).slice(0, MAX_VISIBLE_OPTIONS),
     [materials, trimmedQuery],
   );
   const showCreateOption = trimmedQuery !== "";
+
+  function handleOpenChange(
+    nextOpen: boolean,
+    eventDetails: PopoverPrimitive.Root.ChangeEventDetails,
+  ) {
+    // The input isn't a base-ui Popover.Trigger, so it's never registered as
+    // the popover's reference element. Without that registration, base-ui's
+    // outside-press dismiss logic treats every click as "outside" — including
+    // the very click on the input that opens it — closing it immediately.
+    if (
+      !nextOpen &&
+      eventDetails.reason === "outside-press" &&
+      inputRef.current?.contains(eventDetails.event.target as Node)
+    ) {
+      return;
+    }
+    setOpen(nextOpen);
+  }
 
   function handleInputChange(newValue: string) {
     setQuery(newValue);
@@ -78,7 +99,7 @@ export function MaterialCombobox({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <Input
         id={id}
         ref={inputRef}
