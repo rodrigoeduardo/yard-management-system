@@ -13,6 +13,7 @@ const REMOVAL: RemovalLogRow = {
   id: "r1",
   exitDate: "02/01/2026",
   driver: "João",
+  vehiclePlate: "ABC1234",
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 1,
@@ -118,6 +119,30 @@ describe("RemovalDetailModal", () => {
     expect(nfColumn).toBeInTheDocument();
     expect(nfColumn.className).toContain("text-muted-foreground");
     expect(screen.getByText("50 kg")).toBeInTheDocument();
+  });
+
+  it("renders the vehicle plate", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    expect(screen.getByText("ABC1234")).toBeInTheDocument();
+  });
+
+  it("renders an em dash for a legacy removal without a vehicle plate", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal
+        removal={{ ...REMOVAL, vehiclePlate: "—" }}
+        open
+        onOpenChange={() => {}}
+      />,
+    );
+
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("widens the dialog to 600px on desktop widths", () => {
