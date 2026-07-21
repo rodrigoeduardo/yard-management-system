@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
+import { resolveMaterialId } from "@/lib/db/materials";
 import { items, loads } from "@/lib/db/schema";
 import { checkItemStatus } from "./item-status";
 
@@ -17,13 +18,14 @@ describe("checkItemStatus", () => {
   });
 
   it("returns the item's status for a known qr_token", async () => {
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
     const [load] = await db
       .insert(loads)
       .values({
         notaFiscal: `NF-CHECK-STATUS-${randomUUID()}`,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
-        material: "Aço",
+        materialId,
         itemCount: 1,
         remainingWeight: "10",
       })

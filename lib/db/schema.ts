@@ -8,15 +8,35 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+export const materials = pgTable(
+  "materials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("materials_name_lower_idx").on(sql`lower(${table.name})`),
+  ],
+);
 
 export const loads = pgTable("loads", {
   id: uuid("id").primaryKey().defaultRandom(),
   notaFiscal: text("nota_fiscal").notNull(),
   entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
   nfWeight: numeric("nf_weight").notNull(),
-  material: text("material").notNull(),
+  materialId: uuid("material_id")
+    .notNull()
+    .references(() => materials.id),
   itemCount: integer("item_count").notNull().default(0),
   remainingWeight: numeric("remaining_weight").notNull().default("0"),
   createdAt: timestamp("created_at", { withTimezone: true })

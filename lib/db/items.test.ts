@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import { getItemStatusByQrToken } from "./items";
+import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
 describe("getItemStatusByQrToken", () => {
@@ -17,13 +18,14 @@ describe("getItemStatusByQrToken", () => {
   });
 
   async function insertItem(status: "in_stock" | "removed") {
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
     const [load] = await db
       .insert(loads)
       .values({
         notaFiscal: `NF-ITEM-STATUS-${randomUUID()}`,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
-        material: "Aço",
+        materialId,
         itemCount: 1,
         remainingWeight: "10",
       })

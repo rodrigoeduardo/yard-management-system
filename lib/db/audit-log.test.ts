@@ -2,16 +2,18 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
+import { resolveMaterialId } from "./materials";
 import { auditLog, items, loads, removals } from "./schema";
 
 async function insertLoad() {
+  const { id: materialId } = await resolveMaterialId(db, "steel");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal: `NF-AUDIT-${randomUUID()}`,
       entryDate: new Date(),
       nfWeight: "100",
-      material: "steel",
+      materialId,
     })
     .returning();
   return load;
@@ -59,9 +61,10 @@ describe("audit_log triggers", () => {
     const load = await insertLoad();
     createdLoadIds.push(load.id);
 
+    const { id: newMaterialId } = await resolveMaterialId(db, "aluminum");
     await db
       .update(loads)
-      .set({ material: "aluminum" })
+      .set({ materialId: newMaterialId })
       .where(eq(loads.id, load.id));
 
     const rows = await db
@@ -72,12 +75,12 @@ describe("audit_log triggers", () => {
     expect(rows).toHaveLength(2);
     const updateRow = rows.find((r) => r.action === "UPDATE")!;
     expect(updateRow).toBeDefined();
-    expect((updateRow.oldData as { material: string }).material).toBe(
-      "steel",
-    );
-    expect((updateRow.newData as { material: string }).material).toBe(
-      "aluminum",
-    );
+    expect(
+      (updateRow.oldData as { material_id: string }).material_id,
+    ).toBe(load.materialId);
+    expect(
+      (updateRow.newData as { material_id: string }).material_id,
+    ).toBe(newMaterialId);
   });
 
   it("records a DELETE with old_data populated and new_data null", async () => {
@@ -93,8 +96,8 @@ describe("audit_log triggers", () => {
     expect(rows).toHaveLength(2);
     const deleteRow = rows.find((r) => r.action === "DELETE")!;
     expect(deleteRow).toBeDefined();
-    expect((deleteRow.oldData as { material: string }).material).toBe(
-      "steel",
+    expect((deleteRow.oldData as { material_id: string }).material_id).toBe(
+      load.materialId,
     );
     expect(deleteRow.newData).toBeNull();
   });

@@ -2,18 +2,20 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
+import { resolveMaterialId } from "./materials";
 import { getRemovalItems } from "./removal-items";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoadWithItems(itemWeights: string[]) {
   const notaFiscal = `NF-REMOVAL-ITEMS-${randomUUID()}`;
+  const { id: materialId } = await resolveMaterialId(db, "Aço");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal,
       entryDate: new Date("2026-01-01"),
       nfWeight: "1000",
-      material: "Aço",
+      materialId,
       itemCount: itemWeights.length,
       remainingWeight: "0",
     })

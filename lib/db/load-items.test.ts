@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import { getLoadItems } from "./load-items";
+import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
 describe("getLoadItems", () => {
@@ -18,13 +19,14 @@ describe("getLoadItems", () => {
 
   it("returns each item's identifier, weight and status, oldest first", async () => {
     const notaFiscal = `NF-LOAD-ITEMS-${randomUUID()}`;
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
     const [load] = await db
       .insert(loads)
       .values({
         notaFiscal,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
-        material: "Aço",
+        materialId,
         itemCount: 2,
         remainingWeight: "15",
       })
@@ -49,13 +51,14 @@ describe("getLoadItems", () => {
   });
 
   it("returns an empty array for a load with no items", async () => {
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
     const [load] = await db
       .insert(loads)
       .values({
         notaFiscal: `NF-LOAD-ITEMS-EMPTY-${randomUUID()}`,
         entryDate: new Date("2026-01-01"),
         nfWeight: "0",
-        material: "Aço",
+        materialId,
         itemCount: 0,
         remainingWeight: "0",
       })

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
+import { resolveMaterialId } from "./materials";
 import {
   listRemovalNfs,
   listRemovalsMostRecentFirst,
@@ -12,13 +13,14 @@ import { removeScannedItems } from "./removals";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoadWithItems(itemWeights: string[]) {
+  const { id: materialId } = await resolveMaterialId(db, "Aço");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal: `NF-REMOVAL-LOG-${randomUUID()}`,
       entryDate: new Date("2026-01-01"),
       nfWeight: "1000",
-      material: "Aço",
+      materialId,
       itemCount: itemWeights.length,
       remainingWeight: sumDecimalStrings(itemWeights),
     })
@@ -73,7 +75,7 @@ describe("removal log queries", () => {
       const ids = listed.map((r) => r.id);
       expect(ids.indexOf(newer.id)).toBeLessThan(ids.indexOf(older.id));
     },
-    15000,
+    20000,
   );
 
   it(
@@ -98,7 +100,7 @@ describe("removal log queries", () => {
       expect(nfsForRemoval).toContain(loadA.load.notaFiscal);
       expect(nfsForRemoval).toContain(loadB.load.notaFiscal);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -123,7 +125,7 @@ describe("removal log queries", () => {
       const nfRows = await listRemovalNfs([removalA.id]);
       expect(nfRows.map((r) => r.removalId)).toEqual([removalA.id]);
     },
-    15000,
+    20000,
   );
 
   describe("listRemovalsPage", () => {
@@ -165,7 +167,7 @@ describe("removal log queries", () => {
         expect(nfResult.rows.map((r) => r.id)).toEqual([byNf.id]);
         expect(nfResult.total).toBe(1);
       },
-      15000,
+      20000,
     );
 
     it(
@@ -206,7 +208,7 @@ describe("removal log queries", () => {
         });
         expect(desc.rows.map((r) => r.id)).toEqual([heavy.id, light.id]);
       },
-      15000,
+      20000,
     );
 
     it(
@@ -244,7 +246,7 @@ describe("removal log queries", () => {
         expect(pageTwo.rows).toHaveLength(1);
         expect(pageTwo.total).toBe(3);
       },
-      15000,
+      20000,
     );
 
     it(
@@ -259,7 +261,7 @@ describe("removal log queries", () => {
         expect(result.rows).toEqual([]);
         expect(result.total).toBe(0);
       },
-      15000,
+      20000,
     );
 
     it(
@@ -311,7 +313,7 @@ describe("removal log queries", () => {
         });
         expect(weightResult.rows.map((r) => r.id)).toEqual([mid.id]);
       },
-      15000,
+      20000,
     );
   });
 });

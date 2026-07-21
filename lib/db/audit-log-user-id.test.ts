@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { createSupabaseServerClient } from "../supabase/server";
 import { db } from "./index";
+import { resolveMaterialId } from "./materials";
 import { auditLog, loads } from "./schema";
 
 function requireEnv(name: string): string {
@@ -43,13 +44,14 @@ describe("audit_log.user_id", () => {
     });
 
     it("writes the session's user id on a mutation by an authenticated client", async () => {
+      const { id: materialId } = await resolveMaterialId(db, "steel");
       const { data: inserted, error } = await authedClient
         .from("loads")
         .insert({
           nota_fiscal: `NF-AUDIT-USER-${randomUUID()}`,
           entry_date: new Date().toISOString(),
           nf_weight: "1",
-          material: "steel",
+          material_id: materialId,
         })
         .select()
         .single();
@@ -70,13 +72,14 @@ describe("audit_log.user_id", () => {
 
   describe("no auth session", () => {
     it("writes user_id = NULL and does not error", async () => {
+      const { id: materialId } = await resolveMaterialId(db, "steel");
       const [load] = await db
         .insert(loads)
         .values({
           notaFiscal: `NF-AUDIT-NOUSER-${randomUUID()}`,
           entryDate: new Date(),
           nfWeight: "1",
-          material: "steel",
+          materialId,
         })
         .returning();
       createdLoadIds.push(load.id);

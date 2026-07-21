@@ -6,13 +6,15 @@ import {
 } from "@/lib/inventory/stock-query";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
-import { items, loads } from "./schema";
+import { resolveMaterialId } from "./materials";
+import { items, loads, materials } from "./schema";
 import { buildStockFilterConditions } from "./stock-filters";
 
 export type CreateLoadData = {
   notaFiscal: string;
   entryDate: Date;
   nfWeight: string;
+  /** An existing material's id, or a name to find-or-create — see `resolveMaterialId`. */
   material: string;
   itemWeights: string[];
 };
@@ -21,13 +23,15 @@ export async function insertLoadWithItems(data: CreateLoadData) {
   const remainingWeight = sumDecimalStrings(data.itemWeights);
 
   return db.transaction(async (tx) => {
+    const material = await resolveMaterialId(tx, data.material);
+
     const [load] = await tx
       .insert(loads)
       .values({
         notaFiscal: data.notaFiscal,
         entryDate: data.entryDate,
         nfWeight: data.nfWeight,
-        material: data.material,
+        materialId: material.id,
         itemCount: data.itemWeights.length,
         remainingWeight,
       })
@@ -40,12 +44,26 @@ export async function insertLoadWithItems(data: CreateLoadData) {
       })),
     );
 
-    return load;
+    return { ...load, material: material.name };
   });
 }
 
 export async function getLoadWithItems(loadId: string) {
-  const [load] = await db.select().from(loads).where(eq(loads.id, loadId));
+  const [load] = await db
+    .select({
+      id: loads.id,
+      notaFiscal: loads.notaFiscal,
+      entryDate: loads.entryDate,
+      nfWeight: loads.nfWeight,
+      material: materials.name,
+      itemCount: loads.itemCount,
+      remainingWeight: loads.remainingWeight,
+      createdAt: loads.createdAt,
+      updatedAt: loads.updatedAt,
+    })
+    .from(loads)
+    .innerJoin(materials, eq(loads.materialId, materials.id))
+    .where(eq(loads.id, loadId));
   const loadItems = await db
     .select()
     .from(items)
@@ -80,8 +98,12 @@ export type StockPageParams = {
   showFinished?: boolean;
 };
 
+export type StockRow = Omit<typeof loads.$inferSelect, "materialId"> & {
+  material: string;
+};
+
 export type StockPageResult = {
-  rows: (typeof loads.$inferSelect)[];
+  rows: StockRow[];
   total: number;
 };
 
@@ -106,7 +128,7 @@ export async function listStockPage({
   const searchCondition = trimmed
     ? or(
         ilike(loads.notaFiscal, `%${trimmed}%`),
-        ilike(loads.material, `%${trimmed}%`),
+        ilike(materials.name, `%${trimmed}%`),
       )
     : undefined;
 
@@ -127,10 +149,23 @@ export async function listStockPage({
   const column = STOCK_ORDER_COLUMNS[order];
   const direction = dir === "asc" ? asc : desc;
 
+  const selectColumns = {
+    id: loads.id,
+    notaFiscal: loads.notaFiscal,
+    entryDate: loads.entryDate,
+    nfWeight: loads.nfWeight,
+    material: materials.name,
+    itemCount: loads.itemCount,
+    remainingWeight: loads.remainingWeight,
+    createdAt: loads.createdAt,
+    updatedAt: loads.updatedAt,
+  };
+
   const [rows, countRows] = await Promise.all([
     db
-      .select()
+      .select(selectColumns)
       .from(loads)
+      .innerJoin(materials, eq(loads.materialId, materials.id))
       .where(whereClause)
       .orderBy(direction(column), desc(loads.id))
       .limit(pageSize)
@@ -138,6 +173,7 @@ export async function listStockPage({
     db
       .select({ count: sql<number>`count(*)::int` })
       .from(loads)
+      .innerJoin(materials, eq(loads.materialId, materials.id))
       .where(whereClause),
   ]);
 

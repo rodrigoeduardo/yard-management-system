@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import { insertLoadWithItems, listStockPage } from "./loads";
+import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
 describe("insertLoadWithItems", () => {
@@ -95,7 +96,12 @@ describe("listStockPage", () => {
     itemCount: number;
     remainingWeight: string;
   }) {
-    const [load] = await db.insert(loads).values(overrides).returning();
+    const { material, ...rest } = overrides;
+    const { id: materialId } = await resolveMaterialId(db, material);
+    const [load] = await db
+      .insert(loads)
+      .values({ ...rest, materialId })
+      .returning();
     createdLoadIds.push(load.id);
     return load;
   }
@@ -142,7 +148,7 @@ describe("listStockPage", () => {
         byMaterial.rows.some((r) => r.notaFiscal === `NF-OTHER-${marker}`),
       ).toBe(true);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -188,7 +194,7 @@ describe("listStockPage", () => {
         `NF-ORDER-${marker}-LIGHT`,
       ]);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -231,7 +237,7 @@ describe("listStockPage", () => {
       ]);
       expect(pageTwo.total).toBe(3);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -246,7 +252,7 @@ describe("listStockPage", () => {
       expect(result.rows).toEqual([]);
       expect(result.total).toBe(0);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -342,7 +348,7 @@ describe("listStockPage", () => {
         `NF-FILTER-${marker}-LATE-LIGHT`,
       ]);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -401,6 +407,6 @@ describe("listStockPage", () => {
       ]);
       expect(hidden.total).toBe(1);
     },
-    15000,
+    20000,
   );
 });

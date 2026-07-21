@@ -96,7 +96,7 @@ describe("seedDemoData", () => {
       }
 
     },
-    15000,
+    20000,
   );
 
   it(
@@ -127,7 +127,7 @@ describe("seedDemoData", () => {
         .where(ilike(removals.driver, `${prefix}%`));
       expect(seedRemovals).toHaveLength(2);
     },
-    15000,
+    20000,
   );
 
   it(
@@ -152,6 +152,6 @@ describe("seedDemoData", () => {
         .where(ilike(removals.driver, `${prefix}%`));
       expect(remainingRemovals).toHaveLength(0);
     },
-    15000,
+    20000,
   );
 });

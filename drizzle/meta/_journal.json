@@ -36,6 +36,13 @@
       "when": 1784304960720,
       "tag": "0004_audit_log_user_id",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784597468741,
+      "tag": "0005_materials_table",
+      "breakpoints": true
     }
   ]
 }

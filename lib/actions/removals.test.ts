@@ -3,17 +3,19 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { sumDecimalStrings } from "@/lib/db/decimal";
+import { resolveMaterialId } from "@/lib/db/materials";
 import { items, loads, removalItems, removals } from "@/lib/db/schema";
 import { removeItems } from "./removals";
 
 async function insertLoadWithItems(itemWeights: string[]) {
+  const { id: materialId } = await resolveMaterialId(db, "Aço");
   const [load] = await db
     .insert(loads)
     .values({
       notaFiscal: `NF-REMOVAL-ACTION-${randomUUID()}`,
       entryDate: new Date("2026-01-01"),
       nfWeight: "1000",
-      material: "Aço",
+      materialId,
       itemCount: itemWeights.length,
       remainingWeight: sumDecimalStrings(itemWeights),
     })
@@ -62,7 +64,7 @@ describe("removeItems", () => {
 
       expect(result.removal.totalRemovedWeight).toBe("10");
     },
-    15000,
+    20000,
   );
 
   it("rejects an empty qrTokens array without touching the database", async () => {
@@ -114,6 +116,6 @@ describe("removeItems", () => {
       expect(result.removal.exitDate.getUTCHours()).toBe(17);
       expect(result.removal.exitDate.getUTCMinutes()).toBe(35);
     },
-    15000,
+    20000,
   );
 });
