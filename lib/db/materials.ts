@@ -86,6 +86,20 @@ export class MaterialNameConflictError extends Error {
   }
 }
 
+export type MaterialOption = { id: string; name: string };
+
+/**
+ * All persisted materials (id + name only), ordered by name. Used to
+ * populate the load-intake material combobox — lighter than
+ * `getMaterialsWithInStockCounts`, which also joins for stock counts.
+ */
+export async function listMaterials(): Promise<MaterialOption[]> {
+  return db
+    .select({ id: materials.id, name: materials.name })
+    .from(materials)
+    .orderBy(materials.name);
+}
+
 export type MaterialWithInStockCount = {
   id: string;
   name: string;
