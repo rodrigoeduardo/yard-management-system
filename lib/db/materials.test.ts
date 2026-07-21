@@ -6,6 +6,7 @@ import { insertLoadWithItems } from "./loads";
 import {
   createMaterial,
   getMaterialsWithInStockCounts,
+  listMaterials,
   MaterialNameConflictError,
   renameMaterial,
   resolveMaterialId,
@@ -353,5 +354,32 @@ describe("renameMaterial", () => {
     await expect(renameMaterial(original.id, newName)).rejects.toBe(dbError);
 
     updateSpy.mockRestore();
+  });
+});
+
+describe("listMaterials", () => {
+  const createdMaterialIds: string[] = [];
+
+  afterEach(async () => {
+    while (createdMaterialIds.length > 0) {
+      const id = createdMaterialIds.pop()!;
+      await db.delete(materials).where(eq(materials.id, id));
+    }
+  });
+
+  it("returns every persisted material as an id/name pair, ordered by name", async () => {
+    const suffix = randomUUID();
+    const b = await createMaterial(`Zinco-${suffix}`);
+    const a = await createMaterial(`Alumínio-${suffix}`);
+    createdMaterialIds.push(a.id, b.id);
+
+    const rows = await listMaterials();
+
+    const aIndex = rows.findIndex((r) => r.id === a.id);
+    const bIndex = rows.findIndex((r) => r.id === b.id);
+    expect(aIndex).toBeGreaterThanOrEqual(0);
+    expect(bIndex).toBeGreaterThanOrEqual(0);
+    expect(aIndex).toBeLessThan(bIndex);
+    expect(rows[aIndex]).toEqual({ id: a.id, name: `Alumínio-${suffix}` });
   });
 });

@@ -12,7 +12,9 @@ import { describe, expect, it } from "vitest";
 const pages = [
   { name: "dashboard", file: "page.tsx" },
   { name: "inventory (Estoque)", file: "inventory/page.tsx" },
-  { name: "loads/new", file: "loads/new/page.tsx" },
+  // loads/new is a thin server component that delegates rendering (and the
+  // desktop container class) to the NewLoadForm client component.
+  { name: "loads/new", file: "../../components/loads/new-load-form.tsx" },
   { name: "removals/new", file: "removals/new/page.tsx" },
 ];
 

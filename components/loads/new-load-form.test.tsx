@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TopLoader } from "@/components/ui/top-loader";
-import NewLoadPage from "./page";
+import { NewLoadForm } from "./new-load-form";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -16,6 +16,11 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/actions/loads", () => ({
   createLoad: vi.fn(),
 }));
+
+const MATERIALS = [
+  { id: "mat-aco", name: "Aço" },
+  { id: "mat-alu", name: "Alumínio" },
+];
 
 function fillDadosAndContinue() {
   fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
@@ -35,9 +40,9 @@ function fillDadosAndContinue() {
   );
 }
 
-describe("NewLoadPage", () => {
+describe("NewLoadForm", () => {
   it("renders the NF-data fields with mono/unit treatment", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     expect(screen.getByLabelText("Nota Fiscal").className).toMatch(
       /\bfont-mono\b/,
@@ -57,7 +62,7 @@ describe("NewLoadPage", () => {
   });
 
   it("renders the item count as a +/- stepper starting at 1, clamped to 1..20", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     const group = screen.getByRole("group", { name: "Quantidade de Itens" });
     expect(group).toHaveTextContent("1");
@@ -78,13 +83,13 @@ describe("NewLoadPage", () => {
   });
 
   it("renders one per-item weight field by default", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     expect(screen.getAllByLabelText(/Peso do item \d+/).length).toBe(1);
   });
 
   it("generates one weight field per item when the stepper count changes", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
@@ -97,7 +102,7 @@ describe("NewLoadPage", () => {
   });
 
   it("shrinks the weight fields back down when the item count decreases", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
@@ -114,7 +119,7 @@ describe("NewLoadPage", () => {
   });
 
   it("mobile base: shows Etapa 1 with a sticky Continuar CTA that advances to the weights step", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     const dadosPanel = screen.getByTestId("load-form-dados-panel");
     const pesosPanel = screen.getByTestId("load-form-pesos-panel");
@@ -143,7 +148,7 @@ describe("NewLoadPage", () => {
     vi.useFakeTimers();
     vi.setSystemTime(now);
 
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     expect(screen.getByLabelText("Data e hora de entrada")).toHaveValue(
       "2026-07-17T14:05",
@@ -153,7 +158,7 @@ describe("NewLoadPage", () => {
   });
 
   it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Peso da Nota Fiscal, and Material are all valid", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     const cta = screen.getByRole("button", { name: "Continuar para pesos" });
     expect(cta).toBeDisabled();
@@ -181,7 +186,7 @@ describe("NewLoadPage", () => {
   });
 
   it("treats Data e hora de entrada as required, even though it defaults to now", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-123" },
@@ -207,7 +212,7 @@ describe("NewLoadPage", () => {
   });
 
   it("gives etapa-1 and etapa-2 inputs Portuguese placeholders and a decimal numeric keyboard on weight fields", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
 
     expect(screen.getByLabelText("Nota Fiscal")).toHaveAttribute(
       "placeholder",
@@ -244,7 +249,7 @@ describe("NewLoadPage", () => {
       },
     });
 
-    const { container } = render(<NewLoadPage />);
+    const { container } = render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
     });
@@ -291,7 +296,7 @@ describe("NewLoadPage", () => {
   });
 
   it("shows an NF context chip with the NF number and material above the weights grid", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
     fillDadosAndContinue();
 
     const chip = screen.getByTestId("pesos-nf-chip");
@@ -300,7 +305,7 @@ describe("NewLoadPage", () => {
   });
 
   it("renders the weight inputs in a grid sized to itemCount (2 cols mobile / 4 cols md) with an Item N label and t suffix", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
     });
@@ -321,7 +326,7 @@ describe("NewLoadPage", () => {
   });
 
   it("shows a live Peso Restante vs Peso da NF summary with a fill-progress bar, recomputed on each keystroke", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
     });
@@ -356,7 +361,7 @@ describe("NewLoadPage", () => {
   });
 
   it("disables the primary CTA until all weights are entered, and labels it with the item count", () => {
-    render(<NewLoadPage />);
+    render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
     });
@@ -393,7 +398,7 @@ describe("NewLoadPage", () => {
     render(
       <>
         <TopLoader />
-        <NewLoadPage />
+        <NewLoadForm materials={MATERIALS} />
       </>,
     );
     fillDadosAndContinue();
