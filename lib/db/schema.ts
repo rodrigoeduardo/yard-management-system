@@ -78,6 +78,7 @@ export const removals = pgTable("removals", {
   id: uuid("id").primaryKey().defaultRandom(),
   exitDate: timestamp("exit_date", { withTimezone: true }).notNull(),
   driver: text("driver").notNull(),
+  vehiclePlate: text("vehicle_plate"),
   totalRemovedWeight: numeric("total_removed_weight").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

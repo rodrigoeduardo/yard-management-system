@@ -56,6 +56,7 @@ describe("removeScannedItems", () => {
     const removal = await removeScannedItems({
       exitDate: new Date("2026-02-01"),
       driver: "John Doe",
+      vehiclePlate: "ABC1234",
       qrTokens: [
         loadA.items[0].qrToken,
         loadB.items[0].qrToken,
@@ -109,6 +110,7 @@ describe("removeScannedItems", () => {
       const removal = await removeScannedItems({
         exitDate: new Date("2026-02-01"),
         driver: "John Doe",
+        vehiclePlate: "ABC1234",
         qrTokens: [load.items[0].qrToken],
       });
       removalIds.push(removal.id);
@@ -125,6 +127,12 @@ describe("removeScannedItems", () => {
   );
 
   it("rolls back the entire transaction when one scanned item is already removed", async () => {
+    // Unique per-run driver name: `removals.driver` is a shared, unfiltered
+    // table, and this test asserts that *no* removal row exists for this
+    // driver after the rollback. A hardcoded name (e.g. "John Doe") can
+    // collide with unrelated concurrently-running test files inserting rows
+    // with the same literal driver, causing a spurious failure.
+    const uniqueDriver = `Rollback Test Driver ${randomUUID()}`;
     const load = await insertLoadWithItems(["10", "20"]);
     loadIds.push(load.load.id);
 
@@ -136,7 +144,8 @@ describe("removeScannedItems", () => {
     await expect(
       removeScannedItems({
         exitDate: new Date("2026-02-01"),
-        driver: "John Doe",
+        driver: uniqueDriver,
+        vehiclePlate: "ABC1234",
         qrTokens: [load.items[0].qrToken, load.items[1].qrToken],
       }),
     ).rejects.toThrow();
@@ -157,7 +166,28 @@ describe("removeScannedItems", () => {
     const removalRows = await db
       .select()
       .from(removals)
-      .where(eq(removals.driver, "John Doe"));
+      .where(eq(removals.driver, uniqueDriver));
     expect(removalRows).toHaveLength(0);
+  });
+
+  it("persists the vehicle plate on the removal row", async () => {
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Vehicle Plate Test Driver",
+      vehiclePlate: "ABC1234",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    expect(removal.vehiclePlate).toBe("ABC1234");
+
+    const reloaded = await db
+      .select()
+      .from(removals)
+      .where(eq(removals.id, removal.id));
+    expect(reloaded[0].vehiclePlate).toBe("ABC1234");
   });
 });
