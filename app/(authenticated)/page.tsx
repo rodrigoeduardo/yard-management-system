@@ -60,6 +60,7 @@ export default async function Home() {
             exitDate: lastRemoval.exitDate,
             itemCount: lastRemoval.itemCount,
             totalRemovedWeight: lastRemoval.totalRemovedWeight,
+            vehiclePlate: lastRemoval.vehiclePlate ?? "—",
             notasFiscais: lastRemoval.notasFiscais,
           }
         }
