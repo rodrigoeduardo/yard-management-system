@@ -22,6 +22,12 @@ export const APP_NAV_ITEMS: AppNavItem[] = [
     matchPrefix: "/removals",
   },
   { href: "/inventory", mobileLabel: "Estoque", desktopLabel: "Estoque", matchPrefix: "/inventory" },
+  {
+    href: "/materials",
+    mobileLabel: "Materiais",
+    desktopLabel: "Materiais",
+    matchPrefix: "/materials",
+  },
 ];
 
 /** Whether `pathname` falls under the given nav item's section. */
