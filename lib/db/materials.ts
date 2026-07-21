@@ -137,10 +137,19 @@ export async function createMaterial(name: string): Promise<ResolvedMaterial> {
       .values({ name: trimmed })
       .returning({ id: materials.id, name: materials.name });
     return created;
-  } catch {
+  } catch (error) {
     // Another concurrent insert may have won the race against the
-    // case-insensitive unique index.
-    throw new MaterialNameConflictError(trimmed);
+    // case-insensitive unique index — only report a name conflict if a
+    // matching row is actually there; otherwise this was some other
+    // failure (e.g. a transient DB error) and should propagate as-is.
+    const [existingAfterRace] = await db
+      .select({ id: materials.id })
+      .from(materials)
+      .where(sql`lower(${materials.name}) = lower(${trimmed})`);
+    if (existingAfterRace) {
+      throw new MaterialNameConflictError(trimmed);
+    }
+    throw error;
   }
 }
 
@@ -183,7 +192,21 @@ export async function renameMaterial(
       throw error;
     }
     // Another concurrent update may have won the race against the
-    // case-insensitive unique index.
-    throw new MaterialNameConflictError(trimmed);
+    // case-insensitive unique index — only report a name conflict if a
+    // matching row is actually there; otherwise this was some other
+    // failure (e.g. a transient DB error) and should propagate as-is.
+    const [conflictAfterRace] = await db
+      .select({ id: materials.id })
+      .from(materials)
+      .where(
+        and(
+          sql`lower(${materials.name}) = lower(${trimmed})`,
+          ne(materials.id, id),
+        ),
+      );
+    if (conflictAfterRace) {
+      throw new MaterialNameConflictError(trimmed);
+    }
+    throw error;
   }
 }

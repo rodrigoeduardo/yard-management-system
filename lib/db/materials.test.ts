@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { db } from "./index";
 import { insertLoadWithItems } from "./loads";
 import {
@@ -249,6 +249,18 @@ describe("createMaterial", () => {
       MaterialNameConflictError,
     );
   });
+
+  it("propagates the original error instead of misreporting it as a name conflict when the insert fails for an unrelated reason", async () => {
+    const name = `Rutênio-${randomUUID()}`;
+    const dbError = new Error("connection reset by peer");
+    const insertSpy = vi.spyOn(db, "insert").mockImplementationOnce(() => {
+      throw dbError;
+    });
+
+    await expect(createMaterial(name)).rejects.toBe(dbError);
+
+    insertSpy.mockRestore();
+  });
 });
 
 describe("renameMaterial", () => {
@@ -327,5 +339,19 @@ describe("renameMaterial", () => {
 
     await db.delete(items).where(eq(items.loadId, load.id));
     await db.delete(loads).where(eq(loads.id, load.id));
+  });
+
+  it("propagates the original error instead of misreporting it as a name conflict when the update fails for an unrelated reason", async () => {
+    const original = await createMaterial(`Cádmio-${randomUUID()}`);
+    createdMaterialIds.push(original.id);
+    const newName = `Cádmio Renomeado-${randomUUID()}`;
+    const dbError = new Error("connection reset by peer");
+    const updateSpy = vi.spyOn(db, "update").mockImplementationOnce(() => {
+      throw dbError;
+    });
+
+    await expect(renameMaterial(original.id, newName)).rejects.toBe(dbError);
+
+    updateSpy.mockRestore();
   });
 });
