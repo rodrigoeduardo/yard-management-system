@@ -18,12 +18,11 @@ export async function getRemovalItems(
       id: items.id,
       weight: items.weight,
       loadId: items.loadId,
-      createdAt: items.createdAt,
     })
     .from(removalItems)
     .innerJoin(items, eq(removalItems.itemId, items.id))
     .where(eq(removalItems.removalId, removalId))
-    .orderBy(asc(items.createdAt));
+    .orderBy(asc(items.sequence));
 
   if (removedItems.length === 0) {
     return [];
@@ -40,7 +39,7 @@ export async function getRemovalItems(
       .select({ id: items.id, loadId: items.loadId })
       .from(items)
       .where(inArray(items.loadId, loadIds))
-      .orderBy(asc(items.createdAt)),
+      .orderBy(asc(items.sequence)),
   ]);
 
   const notaFiscalByLoadId = new Map(

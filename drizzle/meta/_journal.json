@@ -43,6 +43,13 @@
       "when": 1784597468741,
       "tag": "0005_materials_table",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784599666618,
+      "tag": "0006_items_sequence",
+      "breakpoints": true
     }
   ]
 }

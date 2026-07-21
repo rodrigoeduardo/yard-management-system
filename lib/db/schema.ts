@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigserial,
   check,
   integer,
   jsonb,
@@ -62,6 +63,11 @@ export const items = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // Monotonically increasing insertion order. `createdAt` alone is not a
+    // stable sort key: items inserted in the same batch INSERT can share the
+    // same `now()` timestamp, so queries that need insertion order (e.g.
+    // numbering an item within its load) order by this column instead.
+    sequence: bigserial("sequence", { mode: "number" }).notNull().unique(),
   },
   (table) => [
     check("items_status_check", sql`${table.status} in ('in_stock', 'removed')`),
