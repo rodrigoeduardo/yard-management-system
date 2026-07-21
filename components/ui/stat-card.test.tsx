@@ -1,6 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { StatCard } from "./stat-card";
+
+vi.mock("@/components/ui/top-loader", () => ({
+  LinkLoaderReporter: () => <span data-testid="link-loader-reporter" />,
+}));
 
 describe("StatCard", () => {
   it("renders a large mono numeric value and a muted label", () => {
@@ -32,5 +36,22 @@ describe("StatCard", () => {
     const link = screen.getByRole("link", { name: /cargas ativas/i });
     expect(link).toHaveAttribute("href", "/inventory");
     expect(link.querySelector("svg")).toBeInTheDocument();
+  });
+
+  it("reports link navigation to the top loader when href is given", () => {
+    render(<StatCard value="12" label="Cargas Ativas" href="/inventory" />);
+
+    const link = screen.getByRole("link", { name: /cargas ativas/i });
+    expect(
+      link.querySelector('[data-testid="link-loader-reporter"]'),
+    ).toBeInTheDocument();
+  });
+
+  it("does not report to the top loader when no href is given", () => {
+    render(<StatCard value="12" label="Cargas Ativas" />);
+
+    expect(
+      screen.queryByTestId("link-loader-reporter"),
+    ).not.toBeInTheDocument();
   });
 });

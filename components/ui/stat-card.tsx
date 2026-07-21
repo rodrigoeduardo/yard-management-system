@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { LinkLoaderReporter } from "@/components/ui/top-loader";
 
 interface StatCardProps {
   value: string | number;
@@ -48,6 +49,7 @@ function StatCard({ value, label, href, className }: StatCardProps) {
           className,
         )}
       >
+        <LinkLoaderReporter />
         {content}
       </Link>
     );
