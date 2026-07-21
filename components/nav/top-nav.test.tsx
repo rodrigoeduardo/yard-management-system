@@ -10,7 +10,7 @@ vi.mock("@/app/login/actions", () => ({ logout }));
 import { TopNav } from "./top-nav";
 
 describe("TopNav", () => {
-  it("renders the logo and the four desktop nav links", () => {
+  it("renders the logo and the five desktop nav links", () => {
     usePathname.mockReturnValue("/");
     render(<TopNav initials="RS" />);
 
@@ -27,6 +27,10 @@ describe("TopNav", () => {
     expect(screen.getByRole("link", { name: "Estoque" })).toHaveAttribute(
       "href",
       "/inventory",
+    );
+    expect(screen.getByRole("link", { name: "Materiais" })).toHaveAttribute(
+      "href",
+      "/materials",
     );
   });
 

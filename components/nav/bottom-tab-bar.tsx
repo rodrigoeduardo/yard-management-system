@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, PackageMinus, PackagePlus, Warehouse } from "lucide-react";
+import { Boxes, Home, PackageMinus, PackagePlus, Warehouse } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
@@ -14,6 +14,7 @@ const ICONS: Record<string, ComponentType<{ className?: string; strokeWidth?: nu
   "/loads/new": PackagePlus,
   "/removals/new": PackageMinus,
   "/inventory": Warehouse,
+  "/materials": Boxes,
 };
 
 /**
@@ -26,7 +27,7 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card/[0.94] px-2.5 pt-2 pb-[22px] backdrop-blur md:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/[0.94] px-2.5 pt-2 pb-[22px] backdrop-blur md:hidden print:hidden"
     >
       {APP_NAV_ITEMS.map((item) => {
         const Icon = ICONS[item.href];

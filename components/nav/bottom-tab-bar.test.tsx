@@ -7,7 +7,7 @@ vi.mock("next/navigation", () => ({ usePathname }));
 import { BottomTabBar } from "./bottom-tab-bar";
 
 describe("BottomTabBar", () => {
-  it("renders the four mobile nav labels", () => {
+  it("renders the five mobile nav labels", () => {
     usePathname.mockReturnValue("/");
     render(<BottomTabBar />);
 
@@ -15,6 +15,7 @@ describe("BottomTabBar", () => {
     expect(screen.getByText("Carga")).toBeInTheDocument();
     expect(screen.getByText("Remoção")).toBeInTheDocument();
     expect(screen.getByText("Estoque")).toBeInTheDocument();
+    expect(screen.getByText("Materiais")).toBeInTheDocument();
   });
 
   it("links each item to its route", () => {
@@ -28,6 +29,10 @@ describe("BottomTabBar", () => {
     expect(screen.getByRole("link", { name: /Remoção/ })).toHaveAttribute(
       "href",
       "/removals/new",
+    );
+    expect(screen.getByRole("link", { name: /Materiais/ })).toHaveAttribute(
+      "href",
+      "/materials",
     );
   });
 

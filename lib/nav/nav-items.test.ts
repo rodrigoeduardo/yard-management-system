@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { APP_NAV_ITEMS, isNavItemActive } from "./nav-items";
 
 describe("APP_NAV_ITEMS", () => {
-  it("has exactly four items, in Início / Carga / Remoção / Estoque order", () => {
+  it("has exactly five items, in Início / Carga / Remoção / Estoque / Materiais order", () => {
     expect(APP_NAV_ITEMS.map((item) => item.mobileLabel)).toEqual([
       "Início",
       "Carga",
       "Remoção",
       "Estoque",
+      "Materiais",
     ]);
   });
 
@@ -17,6 +18,7 @@ describe("APP_NAV_ITEMS", () => {
       "Nova Carga",
       "Nova Remoção",
       "Estoque",
+      "Materiais",
     ]);
   });
 
@@ -26,12 +28,13 @@ describe("APP_NAV_ITEMS", () => {
       "/loads/new",
       "/removals/new",
       "/inventory",
+      "/materials",
     ]);
   });
 });
 
 describe("isNavItemActive", () => {
-  const [home, loads, removals, inventory] = APP_NAV_ITEMS;
+  const [home, loads, removals, inventory, materialsItem] = APP_NAV_ITEMS;
 
   it("marks Início active only on the exact root path", () => {
     expect(isNavItemActive("/", home)).toBe(true);
@@ -56,5 +59,13 @@ describe("isNavItemActive", () => {
 
   it("marks Estoque active on /inventory", () => {
     expect(isNavItemActive("/inventory", inventory)).toBe(true);
+  });
+
+  it("marks Materiais active on /materials", () => {
+    expect(isNavItemActive("/materials", materialsItem)).toBe(true);
+  });
+
+  it("does not mark Materiais active on unrelated routes", () => {
+    expect(isNavItemActive("/inventory", materialsItem)).toBe(false);
   });
 });
