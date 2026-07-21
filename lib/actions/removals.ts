@@ -8,6 +8,7 @@ const removeItemsSchema = z
   .object({
     exitDateTime: z.string().min(1),
     driver: z.string().min(1),
+    vehiclePlate: z.string().trim().min(1),
     qrTokens: z.array(z.uuid()).min(1),
   })
   .refine((data) => combineEntryDateTimeValue(data.exitDateTime) !== null, {
@@ -29,6 +30,7 @@ export async function removeItems(input: RemoveItemsInput) {
   const removal = await removeScannedItems({
     exitDate,
     driver: parsed.data.driver,
+    vehiclePlate: parsed.data.vehiclePlate,
     qrTokens: parsed.data.qrTokens,
   });
 
