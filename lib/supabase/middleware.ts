@@ -29,6 +29,11 @@ export async function updateSession(
     requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
     requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
     {
+      cookieOptions: {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
