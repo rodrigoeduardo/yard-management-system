@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import { getDashboardStats, getLastLoad, getLastRemoval } from "./dashboard";
 import { resolveMaterialId } from "./materials";
-import { items, loads, removalItems, removals } from "./schema";
+import { items, loads, materials, removalItems, removals } from "./schema";
 
 async function insertLoad(overrides: {
   itemCount: number;
@@ -35,7 +35,7 @@ describe("getDashboardStats", () => {
     }
   });
 
-  it("counts non-finished loads and sums item count and remaining weight, excluding finished loads from the active count", async () => {
+  it("counts non-finished loads and sums remaining weight, excluding finished loads from the active count", async () => {
     const active1 = await insertLoad({ itemCount: 3, remainingWeight: "30" });
     const active2 = await insertLoad({ itemCount: 2, remainingWeight: "15.5" });
     const finished = await insertLoad({ itemCount: 0, remainingWeight: "0" });
@@ -44,7 +44,6 @@ describe("getDashboardStats", () => {
     const stats = await getDashboardStats();
 
     expect(stats.activeLoads).toBeGreaterThanOrEqual(2);
-    expect(stats.itemsInStock).toBeGreaterThanOrEqual(5);
     expect(Number(stats.remainingWeight)).toBeGreaterThanOrEqual(45.5);
   });
 
@@ -52,8 +51,98 @@ describe("getDashboardStats", () => {
     // Sanity check: shape/typing holds even for an empty delta.
     const stats = await getDashboardStats();
     expect(typeof stats.activeLoads).toBe("number");
-    expect(typeof stats.itemsInStock).toBe("number");
+    expect(typeof stats.materialsInStock).toBe("number");
     expect(typeof stats.remainingWeight).toBe("string");
+  });
+});
+
+describe("getDashboardStats materialsInStock", () => {
+  const materialIds: string[] = [];
+  const loadIds: string[] = [];
+
+  afterEach(async () => {
+    while (loadIds.length > 0) {
+      const id = loadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+    while (materialIds.length > 0) {
+      const id = materialIds.pop()!;
+      await db.delete(materials).where(eq(materials.id, id));
+    }
+  });
+
+  async function insertMaterialWithLoad(materialName: string) {
+    const [material] = await db
+      .insert(materials)
+      .values({ name: `${materialName}-${randomUUID()}` })
+      .returning();
+    materialIds.push(material.id);
+
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal: `NF-DASH-${randomUUID()}`,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "1000",
+        materialId: material.id,
+        itemCount: 1,
+        remainingWeight: "10",
+      })
+      .returning();
+    loadIds.push(load.id);
+
+    return { material, load };
+  }
+
+  // `materials`/`loads`/`items` are shared tables with no test-owned filter,
+  // so a before/after delta races against other test files concurrently
+  // inserting rows (mirrors the retry rationale on `getLastLoad`'s test
+  // above). Retry absorbs that timing race rather than weakening the
+  // assertion.
+  it(
+    "counts a distinct material only once even with multiple in-stock items",
+    { retry: 2 },
+    async () => {
+      const before = await getDashboardStats();
+
+      const { load } = await insertMaterialWithLoad("Aço Dashboard");
+      await db.insert(items).values([
+        { loadId: load.id, weight: "5", status: "in_stock" },
+        { loadId: load.id, weight: "5", status: "in_stock" },
+      ]);
+
+      const after = await getDashboardStats();
+
+      expect(after.materialsInStock).toBe(before.materialsInStock + 1);
+    },
+  );
+
+  it(
+    "excludes materials whose items are all removed",
+    { retry: 2 },
+    async () => {
+      const before = await getDashboardStats();
+
+      const { load } = await insertMaterialWithLoad("Cobre Dashboard");
+      await db.insert(items).values([
+        { loadId: load.id, weight: "5", status: "removed" },
+      ]);
+
+      const after = await getDashboardStats();
+
+      expect(after.materialsInStock).toBe(before.materialsInStock);
+    },
+  );
+
+  it("excludes materials with no items at all", { retry: 2 }, async () => {
+    const before = await getDashboardStats();
+
+    await insertMaterialWithLoad("Alumínio Dashboard");
+
+    const after = await getDashboardStats();
+
+    expect(after.materialsInStock).toBe(before.materialsInStock);
   });
 });
 

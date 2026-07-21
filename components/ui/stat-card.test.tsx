@@ -19,4 +19,18 @@ describe("StatCard", () => {
 
     expect(screen.getByText("12").closest('[data-slot="card"]')).toBeInTheDocument();
   });
+
+  it("renders as a plain, non-interactive card when no href is given", () => {
+    render(<StatCard value="12" label="Cargas Ativas" />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("renders as an accessible link to href when given, with a chevron affordance", () => {
+    render(<StatCard value="12" label="Cargas Ativas" href="/inventory" />);
+
+    const link = screen.getByRole("link", { name: /cargas ativas/i });
+    expect(link).toHaveAttribute("href", "/inventory");
+    expect(link.querySelector("svg")).toBeInTheDocument();
+  });
 });

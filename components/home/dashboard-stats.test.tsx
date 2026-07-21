@@ -7,7 +7,7 @@ describe("DashboardStats", () => {
     render(
       <DashboardStats
         activeLoads={4}
-        itemsInStock={128}
+        materialsInStock={12}
         remainingWeight="2450.5"
       />,
     );
@@ -16,9 +16,9 @@ describe("DashboardStats", () => {
     expect(activeLoads.className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("Cargas Ativas")).toBeInTheDocument();
 
-    const itemsInStock = screen.getByText("128");
-    expect(itemsInStock.className).toMatch(/\bfont-mono\b/);
-    expect(screen.getByText("Itens no Pátio")).toBeInTheDocument();
+    const materialsInStock = screen.getByText("12");
+    expect(materialsInStock.className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("Materiais no Pátio")).toBeInTheDocument();
 
     const remainingWeight = screen.getByText("2450.5 t");
     expect(remainingWeight.className).toMatch(/\bfont-mono\b/);
@@ -26,9 +26,38 @@ describe("DashboardStats", () => {
   });
 
   it("renders zero values sensibly", () => {
-    render(<DashboardStats activeLoads={0} itemsInStock={0} remainingWeight="0" />);
+    render(
+      <DashboardStats activeLoads={0} materialsInStock={0} remainingWeight="0" />,
+    );
 
     expect(screen.getByText("0 t")).toBeInTheDocument();
     expect(screen.getAllByText("0")).toHaveLength(2);
+  });
+
+  it("links the Cargas Ativas card to /inventory", () => {
+    render(
+      <DashboardStats activeLoads={4} materialsInStock={12} remainingWeight="2450.5" />,
+    );
+
+    const link = screen.getByRole("link", { name: /cargas ativas/i });
+    expect(link).toHaveAttribute("href", "/inventory");
+  });
+
+  it("links the Materiais no Pátio card to /materials", () => {
+    render(
+      <DashboardStats activeLoads={4} materialsInStock={12} remainingWeight="2450.5" />,
+    );
+
+    const link = screen.getByRole("link", { name: /materiais no pátio/i });
+    expect(link).toHaveAttribute("href", "/materials");
+  });
+
+  it("does not link the Peso Restante card", () => {
+    render(
+      <DashboardStats activeLoads={4} materialsInStock={12} remainingWeight="2450.5" />,
+    );
+
+    const pesoRestante = screen.getByText("Peso Restante");
+    expect(pesoRestante.closest("a")).toBeNull();
   });
 });
