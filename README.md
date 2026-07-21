@@ -28,6 +28,17 @@ anything else that opens a direct Postgres connection. See `.env.example` for th
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+### Testing
+
+- `npm test` — fast unit + component tests, no DB required.
+- `npm run test:integration` — DB-touching tests. Requires the local Supabase stack
+  (Docker required): run `npm run test:integration:setup` once per session (starts
+  `supabase start` if needed, applies Drizzle migrations, seeds a fixed local test
+  auth user, and writes the connection details to gitignored `.env.test.local`),
+  then `npm run test:integration`. This never touches the remote/production Supabase
+  project. `npm run supabase:stop` tears the local stack down when you're done.
+- `npm run test:all` — everything above in one run.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

@@ -127,11 +127,13 @@ STOP marker convention: an open issue whose title is exactly `AUTO-STOP`. Its pr
 
 ## Known risks
 
-- **Shared Supabase project.** Local `.env.local` and the GitHub Actions secrets point at the same
-  Supabase project. Two parallel executors' test runs, or a local run overlapping a CI run, hit the
-  same DB and can interfere. `--parallel` stays opt-in for this reason; if you see flaky
-  DB-dependent tests, suspect cross-run DB interference before suspecting the code. (Follow-up, not
-  in scope here: per-run data prefixes or a local Supabase stack for true isolation.)
+- **Shared local Supabase stack.** CI's `integration` job now runs against a disposable local
+  Supabase stack (Docker, per runner VM) instead of the shared remote project (#237), so separate CI
+  runs can no longer interfere with each other or with local runs. What remains: the local stack
+  binds fixed ports (`supabase/config.toml`), so two executors running `npm run test:integration`
+  concurrently *on the same machine* still share one stack. If you see flaky DB-dependent tests in
+  that situation, suspect cross-run interference on the shared local stack before suspecting the
+  code.
 - **CI red with local green** after the worktree env fix (`scripts/lib/load-env.ts`) means real
   env/schema drift, not a missing-env artifact — report it `BLOCKED` with the differing check output
   instead of thrashing on it.
