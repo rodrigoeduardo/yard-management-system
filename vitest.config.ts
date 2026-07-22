@@ -16,6 +16,7 @@ const integrationInclude = [
   "app/login/actions.test.ts",
   "app/register/actions.test.ts",
   "scripts/lib/seed-demo-data.test.ts",
+  "scripts/lib/demo-dataset.test.ts",
   // Not in the issue's original list, but genuinely DB-touching (inserts a
   // real load via lib/db/loads before decoding its generated QR codes) —
   // leaving it in `unit` would break the "no DB env vars" requirement.

@@ -39,6 +39,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
   project. `npm run supabase:stop` tears the local stack down when you're done.
 - `npm run test:all` — everything above in one run.
 
+### Demo dataset
+
+`npm run seed:demo` (or `npx tsx scripts/seed-demo-dataset.ts`) seeds a fixed,
+realistic PT-BR demo dataset against the database `SUPABASE_DB_URL` points
+at — several materials, open loads with items (typically 15-18, varying
+weights), removals spanning items from multiple loads, and one finished
+load (renders green in Estoque). It's idempotent: re-running it against the
+same database never duplicates rows or errors, so it's safe to run against a
+fresh local Supabase stack (after `npm run test:integration:setup`) or a
+shared dev database alike. See `scripts/seed-demo-dataset.ts` and
+`docs/adr/0003-nightly-demo-reset.md` (the nightly demo reset job reuses the
+same script).
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

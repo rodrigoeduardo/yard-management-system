@@ -11,6 +11,7 @@
     "test:integration": "vitest run --project=integration",
     "test:integration:setup": "tsx scripts/setup-local-integration-stack.ts",
     "test:all": "vitest run",
+    "seed:demo": "tsx scripts/seed-demo-dataset.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:check-connection": "tsx scripts/check-supabase-connection.ts",
