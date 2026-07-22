@@ -5,6 +5,7 @@ Web app for yard inventory control: loads identified by Nota Fiscal (NF), items 
 ## Read before working
 
 - **Any task**: read the relevant files under `docs/specs/` — [overview](docs/specs/overview.md), [business rules](docs/specs/business-rules.md), [architecture](docs/specs/architecture.md), [data model](docs/specs/data-model.md), [glossary](docs/specs/glossary.md). Business rules are the source of truth.
+- **Client fork work**: read [`docs/workflow/client-forks.md`](docs/workflow/client-forks.md) — duplicate procedure, sync flow, config-first customization rules, fork-safety rule.
 
 ## Language
 
