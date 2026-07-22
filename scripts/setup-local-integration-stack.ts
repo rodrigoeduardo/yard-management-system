@@ -5,7 +5,8 @@
  *
  *   1. Starts the local stack (`supabase start`) if it isn't already up.
  *   2. Applies Drizzle migrations against it.
- *   3. Seeds (creates or resets) a fixed local test auth user.
+ *   3. Seeds (creates or resets) fixed local test auth users — the regular
+ *      test user and the DEMO_MODE seeded demo user.
  *   4. Writes `.env.test.local` (gitignored) with the connection details,
  *      which `vitest.setup.integration.ts` loads for the `integration`
  *      vitest project.
@@ -19,6 +20,8 @@ import { writeFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import {
   buildTestEnvFileContents,
+  LOCAL_DEMO_USER_EMAIL,
+  LOCAL_DEMO_USER_PASSWORD,
   LOCAL_TEST_USER_EMAIL,
   LOCAL_TEST_USER_PASSWORD,
   pickServiceKey,
@@ -51,40 +54,49 @@ function migrate(dbUrl: string): void {
   });
 }
 
-async function seedTestUser(apiUrl: string, serviceKey: string): Promise<void> {
-  const admin = createClient(apiUrl, serviceKey);
+async function seedUser(
+  admin: ReturnType<typeof createClient>,
+  email: string,
+  password: string,
+): Promise<void> {
   const { data: existing, error: listError } = await admin.auth.admin.listUsers();
   if (listError) {
     throw new Error(`Failed to list local Supabase users: ${listError.message}`);
   }
 
-  const found = existing.users.find((user) => user.email === LOCAL_TEST_USER_EMAIL);
+  const found = existing.users.find((user) => user.email === email);
   if (found) {
     const { error } = await admin.auth.admin.updateUserById(found.id, {
-      password: LOCAL_TEST_USER_PASSWORD,
+      password,
       email_confirm: true,
     });
     if (error) {
-      throw new Error(`Failed to reset local test user: ${error.message}`);
+      throw new Error(`Failed to reset local user ${email}: ${error.message}`);
     }
     return;
   }
 
   const { error } = await admin.auth.admin.createUser({
-    email: LOCAL_TEST_USER_EMAIL,
-    password: LOCAL_TEST_USER_PASSWORD,
+    email,
+    password,
     email_confirm: true,
   });
   if (error) {
-    throw new Error(`Failed to create local test user: ${error.message}`);
+    throw new Error(`Failed to create local user ${email}: ${error.message}`);
   }
+}
+
+async function seedTestUsers(apiUrl: string, serviceKey: string): Promise<void> {
+  const admin = createClient(apiUrl, serviceKey);
+  await seedUser(admin, LOCAL_TEST_USER_EMAIL, LOCAL_TEST_USER_PASSWORD);
+  await seedUser(admin, LOCAL_DEMO_USER_EMAIL, LOCAL_DEMO_USER_PASSWORD);
 }
 
 async function main(): Promise<void> {
   const status = ensureStackRunning();
 
   migrate(status.DB_URL);
-  await seedTestUser(status.API_URL, pickServiceKey(status));
+  await seedTestUsers(status.API_URL, pickServiceKey(status));
 
   writeFileSync(".env.test.local", buildTestEnvFileContents(status));
 

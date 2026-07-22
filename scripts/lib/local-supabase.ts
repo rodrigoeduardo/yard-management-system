@@ -20,6 +20,8 @@ export type LocalSupabaseStatus = {
 export const LOCAL_TEST_USER_EMAIL = "integration-test@yard.local";
 export const LOCAL_TEST_USER_PASSWORD = "integration-test-password";
 export const LOCAL_REGISTER_INVITE_CODE = "LOCAL-INTEGRATION-TEST";
+export const LOCAL_DEMO_USER_EMAIL = "demo-integration-test@yard.local";
+export const LOCAL_DEMO_USER_PASSWORD = "demo-integration-test-password";
 
 /**
  * The Supabase CLI reports the publishable key under different field names
@@ -63,6 +65,8 @@ export function buildTestEnvFileContents(status: LocalSupabaseStatus): string {
     `TEST_USER_EMAIL=${LOCAL_TEST_USER_EMAIL}`,
     `TEST_USER_PASSWORD=${LOCAL_TEST_USER_PASSWORD}`,
     `REGISTER_INVITE_CODE=${LOCAL_REGISTER_INVITE_CODE}`,
+    `DEMO_USER_EMAIL=${LOCAL_DEMO_USER_EMAIL}`,
+    `DEMO_USER_PASSWORD=${LOCAL_DEMO_USER_PASSWORD}`,
     "",
   ].join("\n");
 }
