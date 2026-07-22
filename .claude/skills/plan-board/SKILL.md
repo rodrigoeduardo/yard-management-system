@@ -1,22 +1,22 @@
 ---
 name: plan-board
-description: Use when the user wants to populate or refresh the kanban board from specs — decomposing docs/specs into GitHub issues, planning tasks, proposing follow-ups from PR notes, or reconciling the board after spec changes.
+description: Use when the user wants to populate or refresh the board from specs — decomposing specs into GitHub issues, planning tasks, proposing follow-ups from PR notes, or reconciling the board after spec changes.
 ---
 
 # Plan Board (planner)
 
-Decompose `docs/specs/` into small, testable board issues. Issues are **proposed only** — the human promotes them to `status:ready`.
+Decompose the specs (`raw.config.yml` → `specs_dir`, default `docs/specs/`) into small, testable board issues. Issues are **proposed only** — promotion to `status:ready` follows the promote gate (`gates.promote`, default human).
 
-**REQUIRED READING:** `docs/workflow/board-protocol.md` (labels, lifecycle). Follow it exactly.
+**REQUIRED READING:** `docs/workflow/board-protocol.md` (labels, lifecycle, gates). Follow it exactly.
 
 ## Procedure
 
 1. **Read inputs**
-   - Entire `docs/specs/` tree.
+   - Entire specs tree (`specs_dir`).
    - Open issues: `gh issue list --state open --limit 200 --json number,title,labels,body` — never propose duplicates.
    - Notes sections of recently merged PRs (`gh pr list --state merged --limit 20 --json number,body`) — follow-ups become proposals.
 
-2. **Decompose** per area (`area:*` labels in board-protocol.md). Each task must be:
+2. **Decompose** per area (`labels.areas` in `raw.config.yml`). Each task must be:
    - completable in one builder session;
    - objectively verifiable (checkbox acceptance criteria, input → expected outcome);
    - explicit about dependencies and human-only actions.
@@ -42,12 +42,6 @@ Decompose `docs/specs/` into small, testable board issues. Issues are **proposed
    Body must contain every template section: Goal, Pre-requisites (`Depends on #N` one per line), Requirements, Human actions, Out of scope, References.
 
    Add `--label "human-action-needed"` whenever the issue's "Human actions" section is anything other than "None" (see board-protocol.md). The human removes the label once those steps are done.
-
-   Then add each created issue to the board (works even if the project's auto-add workflow is off):
-
-   ```bash
-   gh project item-add 2 --owner rodrigoeduardo --url <issue-url>
-   ```
 
 6. Commit the draft file.
 

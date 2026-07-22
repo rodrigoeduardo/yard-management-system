@@ -5,9 +5,9 @@ description: Use when asked to pick up work from the board — "grab the next ta
 
 # Next Task (builder)
 
-Claim one ready board issue, build it with TDD, deliver a PR. **One task per invocation.** Human merges — never merge, never commit to `main`.
+Claim one ready board issue, build it with TDD, deliver a PR. **One task per invocation.** Never merge, never commit to the default branch — the merge gate (`raw.config.yml` → `gates.merge`) is not yours.
 
-**REQUIRED READING:** `docs/workflow/board-protocol.md` and `docs/workflow/git-conventions.md`. Follow both exactly.
+**REQUIRED READING:** `docs/workflow/board-protocol.md` and `docs/workflow/git-conventions.md`. Follow both exactly. Read `raw.config.yml` for commands and bindings (missing file = documented defaults).
 
 ## Procedure
 
@@ -28,13 +28,13 @@ Claim one ready board issue, build it with TDD, deliver a PR. **One task per inv
    Existing claim comment from another session → skip to next issue, unless stale (>24h, no pushes to its branch): comment a takeover, then claim.
 
 4. **Build.**
-   - Branch off fresh `main`: `type/<issue#>-<slug>` (e.g. `feat/23-load-creation-form`).
-   - **REQUIRED SUB-SKILL:** superpowers:test-driven-development.
+   - Branch off the fresh default branch: `type/<issue#>-<slug>` (e.g. `feat/23-user-signup-form`).
+   - **REQUIRED SUB-SKILL:** the TDD skill bound in `raw.config.yml` (`bindings.tdd`, default `superpowers:test-driven-development`).
    - Commit on the fly per git-conventions.md; push early; open a **draft PR** after first push.
    - Scope = the issue's Requirements checklist. Respect "Out of scope". Follow-ups go in PR Notes, never in the diff.
 
 5. **Deliver.**
-   - **REQUIRED SUB-SKILL:** superpowers:verification-before-completion.
+   - **REQUIRED SUB-SKILL:** the verification skill bound in `raw.config.yml` (`bindings.verification`, default `superpowers:verification-before-completion`). Run the configured `commands.lint` and `commands.test_all` — green before handoff.
    - Use the `create-pr` skill to finalize (template, ready state).
    - `gh issue edit <n> --remove-label "status:in-progress" --add-label "status:in-review"`
    - Stop.
@@ -49,4 +49,4 @@ Claim one ready board issue, build it with TDD, deliver a PR. **One task per inv
 - Claiming while own PRs have unaddressed change-requests
 - Working two issues in one invocation
 - Expanding scope beyond the Requirements checklist
-- Merging, or committing to `main`
+- Merging, or committing to the default branch

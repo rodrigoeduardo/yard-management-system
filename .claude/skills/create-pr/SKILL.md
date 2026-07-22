@@ -11,7 +11,7 @@ Turn the current branch into a template-compliant PR. Draft-first: a draft PR sh
 
 ## Procedure
 
-1. **Inspect reality first**: `git log main..HEAD --oneline` and `git diff main...HEAD --stat`. The PR body is written from actual commits/diff — never from memory.
+1. **Inspect reality first**: `git log <default-branch>..HEAD --oneline` and `git diff <default-branch>...HEAD --stat` (default branch via `gh repo view --json defaultBranchRef`). The PR body is written from actual commits/diff — never from memory.
 
 2. **Read the template at runtime**: `.github/pull_request_template.md`. Fill **every** section:
    - **Summary** — the why across all commits; must contain `Closes #N` when tied to a board issue.
@@ -24,7 +24,7 @@ Turn the current branch into a template-compliant PR. Draft-first: a draft PR sh
 3. **Create or finalize**:
    ```bash
    # no PR yet:
-   gh pr create --draft --base main --title "type(scope): description" --body-file <body>
+   gh pr create --draft --base <default-branch> --title "type(scope): description" --body-file <body>
    # all Requirements covered:
    gh pr ready <n>
    ```
@@ -35,5 +35,5 @@ Turn the current branch into a template-compliant PR. Draft-first: a draft PR sh
 ## Rules
 
 - Never mark ready with unchecked Requirements coverage.
-- Never force-push. Base is `main` unless the human specified otherwise.
+- Never force-push. Base is the repo default branch unless the human specified otherwise.
 - Don't invent links or tickets — only reference what exists.

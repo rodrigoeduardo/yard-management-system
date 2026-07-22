@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: Use when a human asks for an AI review of a pull request — "/review-pr 42", "review this PR" — or when a dispatcher finds a PR labeled ai-review:requested. Never self-trigger on unlabeled PRs.
+description: Use when asked for an AI review of a pull request — "/review-pr 42", "review this PR" — or when a dispatcher finds a PR labeled ai-review:requested. Never self-trigger on unlabeled PRs.
 ---
 
 # Review PR (AI reviewer)
 
-Review a PR against its issue's acceptance criteria and the specs. Human-triggered only.
+Review a PR against its issue's acceptance criteria and the specs. Runs only on request (human, label, or orchestrator dispatch).
 
-**REQUIRED READING:** `docs/workflow/review-policy.md` (verdict semantics, supplement vs replace modes).
+**REQUIRED READING:** `docs/workflow/review-policy.md` (verdict semantics, supplement vs replace modes). Read `raw.config.yml` for `specs_dir` (default `docs/specs`).
 
 ## Procedure
 
@@ -17,11 +17,11 @@ Review a PR against its issue's acceptance criteria and the specs. Human-trigger
    gh pr diff <n>
    gh issue view <issue-from-Closes-#N> --json title,body
    ```
-   Plus the `docs/specs/` sections the issue references, and `docs/workflow/board-protocol.md`.
+   Plus the spec sections the issue references (under `specs_dir`), and `docs/workflow/board-protocol.md`.
 
 2. **Review against, in priority order**:
    1. Issue Requirements checklist — is each criterion actually met by the diff (not just claimed)?
-   2. Business-rule correctness (`docs/specs/business-rules.md`, `data-model.md` invariants).
+   2. Spec correctness — business rules and invariants in the referenced spec sections.
    3. Scope — diff contains nothing beyond the issue's scope ("Out of scope" respected).
    4. Tests — criteria covered by tests, tests meaningful.
    5. Conventions — git-conventions.md, template compliance.
@@ -38,7 +38,7 @@ Review a PR against its issue's acceptance criteria and the specs. Human-trigger
 
 ## Rules
 
-- Never run on a PR without a human request (label or explicit ask).
+- Never run on a PR without a request (label, explicit ask, or orchestrator dispatch).
 - Never apply or remove `ai-review:final` — human-only label.
 - Never merge. Verdict is the end of this skill's job.
 - Verify claims in "Requirements coverage" against the actual diff — evidence, not assertions.

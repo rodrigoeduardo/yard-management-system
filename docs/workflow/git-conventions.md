@@ -19,22 +19,22 @@ type(scope): short imperative description
 ```
 
 - `type`: `feat` | `fix` | `refactor` | `style` | `chore` | `docs` | `test` | `config`
-- `scope` (optional): the area or component touched — e.g. `(load-intake)`, `(db)`, `(qr-print)`
+- `scope` (optional): the area or component touched — e.g. `(auth)`, `(db)`, `(billing)`
 - Description: lowercase, imperative mood ("add", "fix", "handle" — not "added"/"fixes"), no trailing period
 - Body only when the **why** isn't obvious from the diff. Explain intent, don't restate the diff.
 
 Examples:
 
 ```
-feat(load-intake): add per-item weight fields generated from item count
-fix(qr-print): keep batch layout on a single page for 20 items
+feat(auth): add password reset request form
+fix(billing): round invoice totals to two decimals
 docs(workflow): clarify stale-claim takeover rule
 ```
 
 ## Branches
 
-- Never commit directly to `main`.
-- Naming: `type/<issue-number>-<kebab-slug>` when tied to a board issue — e.g. `feat/23-load-creation-form`, `fix/31-qr-print-layout`. Without an issue: `type/<kebab-slug>`.
+- Never commit directly to the default branch (`main` below; substitute yours).
+- Naming: `type/<issue-number>-<kebab-slug>` when tied to a board issue — e.g. `feat/23-user-signup-form`, `fix/31-invoice-rounding`. Without an issue: `type/<kebab-slug>`.
 - Branch off fresh `main`.
 
 ## Pushes and PRs
