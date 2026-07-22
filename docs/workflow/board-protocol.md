@@ -22,7 +22,7 @@ A **closed** issue is done (normally auto-closed by PR merge via `Closes #N`).
 
 ### Area (one or more)
 
-`area:<name>` labels scope issues to a domain area. The set is project-specific — defined in `raw.config.yml` under `labels.areas` (e.g. `area:setup`, `area:auth`, `area:billing`). `/configure` can create them.
+`area:<name>` labels scope issues to a domain area. The set is project-specific — defined in `raw.config.yml` under `labels.areas` (e.g. `area:setup`, `area:auth`, `area:billing`). `/configure` can create them. This repo's set additionally includes `area:demo` (demo mode: shared demo user, banner, demo deployment) and `area:landing` (landing page repo, tracked here but built externally).
 
 ### Human action (on issues)
 
