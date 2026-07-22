@@ -79,6 +79,52 @@ describe("audit_log.user_id", () => {
     });
   });
 
+  describe("demo user session (DEMO_MODE)", () => {
+    const authedClient = createSupabaseServerClient();
+    let userId: string;
+
+    beforeAll(async () => {
+      const { data, error } = await authedClient.auth.signInWithPassword({
+        email: requireEnv("DEMO_USER_EMAIL"),
+        password: requireEnv("DEMO_USER_PASSWORD"),
+      });
+      if (error || !data.user) {
+        throw new Error(`Demo user sign-in failed: ${error?.message}`);
+      }
+      userId = data.user.id;
+    });
+
+    afterAll(async () => {
+      await authedClient.auth.signOut();
+    });
+
+    it("writes the demo user's id on a mutation, same as any other authenticated user", async () => {
+      const { id: materialId } = await resolveMaterialId(db, "steel");
+      const { data: inserted, error } = await authedClient
+        .from("loads")
+        .insert({
+          nota_fiscal: `NF-AUDIT-DEMO-${randomUUID()}`,
+          entry_date: new Date().toISOString(),
+          nf_weight: "1",
+          material_id: materialId,
+        })
+        .select()
+        .single();
+
+      expect(error).toBeNull();
+      expect(inserted).not.toBeNull();
+      createdLoadIds.push(inserted!.id);
+
+      const rows = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.recordId, inserted!.id));
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].userId).toBe(userId);
+    });
+  });
+
   describe("app mutations via withAuditUser (lib/db/audit-context.ts)", () => {
     const authedClient = createSupabaseServerClient();
     let userId: string;
