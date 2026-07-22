@@ -33,9 +33,18 @@ Source of truth for application behavior. Translated and expanded from the origi
 
 ## Registration (`auth`)
 
+- Applies only when `DEMO_MODE` is not set — see [Demo Mode](#demo-mode) below for the flag-enabled deployment.
 - Signup is closed to outsiders: `/register` requires a shared invite code (env var `REGISTER_INVITE_CODE`), checked with a constant-time comparison. A wrong or missing code shows a Portuguese error and creates no account.
 - There is no admin UI or approval queue — access is granted or revoked by rotating the invite code.
 - On a valid code, the account is created with `user_metadata.display_name` set from the name field. If email confirmation is enabled on the Supabase project, the user sees a confirmation notice instead of landing directly in the app.
+
+## Demo Mode (`auth`, `demo`)
+
+- Enabled by the `DEMO_MODE` env flag (off by default; see [ADR 0002](../adr/0002-demo-mode-flag.md)). All auth code stays intact — demo mode only changes how a session is established, not the auth mechanism itself.
+- Every visitor is transparently auto-logged in as a single seeded demo user, with credentials read from env — no login form is shown.
+- `/login` and `/register` both redirect straight into the app; there is no self-service signup while `DEMO_MODE` is set.
+- A persistent banner is shown on every page, in Portuguese, stating: this is a demonstration environment, data is shared with other visitors, the dataset resets nightly, and a CTA link (env-configured) back to the landing page / contact.
+- The dataset resets nightly: a scheduled job truncates the demo data (loads, items, removals, removal items, materials, and the audit log) and reseeds it with realistic PT-BR sample data (see [ADR 0003](../adr/0003-nightly-demo-reset.md)). The seed script is idempotent and doubles as local dev seed data.
 
 ## Inventory View (`inventory-view`)
 

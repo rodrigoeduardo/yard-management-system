@@ -24,7 +24,7 @@ commands:
 # Domain area labels (area:*) used on issues. Define your own; these are examples.
 # /configure can create them on GitHub for you.
 labels:
-  areas: [setup, database, auth, load-intake, inventory-view, load-removal, audit, qrcode, deploy]
+  areas: [setup, database, auth, load-intake, inventory-view, load-removal, audit, qrcode, deploy, demo, landing]
 
 # Where the planner (/plan-board) reads specs from.
 specs_dir: docs/specs
