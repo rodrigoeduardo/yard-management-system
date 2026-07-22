@@ -16,6 +16,7 @@ Domain vocabulary. Code, docs, issues, and labels are in English; these Brazilia
 | Peso Total Removido | Total Removed Weight | Sum of the weights of all items removed in one removal action. |
 | Estoque | Inventory / Stock | Everything currently in the yard, viewed per load. |
 | Pátio | Yard | The physical storage area. |
+| Demonstração (Demo) | Demo | Public, no-login deployment of the generic app; all visitors share one demo user and dataset, reset nightly (see ADR 0002/0003). |
 
 ## Units
 
