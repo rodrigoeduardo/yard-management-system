@@ -37,6 +37,24 @@ The production URL must serve `/login` (or redirect there via the auth middlewar
 
 Production URL: https://yard-management-system-eight.vercel.app/
 
+## Demo deployment
+
+A separate Vercel project serves the public demo at
+[yms-demo.rodrigoeduardo.com](https://yms-demo.rodrigoeduardo.com/), backed by its own Supabase
+project (`DEMO_MODE` — see [ADR 0002](../adr/0002-demo-mode-flag.md)). It uses the same build
+configuration as production, plus:
+
+| Variable | Purpose |
+|---|---|
+| `DEMO_MODE` | Must be the literal string `"true"` — flips the app into auto-session demo mode (`lib/supabase/middleware.ts`) |
+| `DEMO_USER_EMAIL` | Credentials for the seeded demo user the middleware auto-signs visitors in as |
+| `DEMO_USER_PASSWORD` | — |
+| `DEMO_CONTACT_URL` | Optional. CTA link in the demo banner; left unset until the landing page (#254) ships — the banner degrades gracefully with no link |
+
+The nightly data reset (`reset_demo_data()`, scheduled via `pg_cron`) is a separate manual step —
+see [demo-reset-scheduling.md](./demo-reset-scheduling.md), including the migration-applied
+prerequisite check.
+
 ## Known gap — database migrations
 
 Vercel's default build runs `next build` only; it does **not** run Drizzle migrations (`npm run db:migrate`). Schema changes must be applied to production Supabase separately. Automating this (a migration step in the deploy pipeline) is out of scope for the initial deploy — tracked as a follow-up.

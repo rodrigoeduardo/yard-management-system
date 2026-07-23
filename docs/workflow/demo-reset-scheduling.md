@@ -17,6 +17,21 @@ In one transaction: truncates `loads`, `items`, `removals`, `removal_items`, `ma
 statements — so the existing `audit_log` triggers fire normally and the reseed leaves a fresh,
 non-empty audit trail (the audit feature still demos well right after a reset).
 
+## Prerequisite: apply migration 0008 to the demo project
+
+`cron.schedule` only stores a command string — Postgres does not validate that
+`reset_demo_data()` exists until the job actually fires. Confirm the migration is applied
+*before* scheduling, or the job will silently fail every night:
+
+```sql
+select proname from pg_proc where proname = 'reset_demo_data';
+```
+
+If that returns no rows, apply `drizzle/0008_demo_reset_function.sql` to the demo project first
+(via the Supabase SQL editor, `psql`, or the MCP `apply_migration` tool) — the demo project's
+migration history is not guaranteed to track `drizzle/meta/_journal.json` 1:1 (e.g. if its schema
+was seeded from a snapshot rather than a full migration run).
+
 ## Prerequisite: enable the `pg_cron` extension
 
 Do this once, on the demo Supabase project only (Dashboard → Database → Extensions → enable
