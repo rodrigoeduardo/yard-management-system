@@ -26,3 +26,16 @@ describe("root layout fonts", () => {
     expect(htmlBlock).toMatch(/\.variable/);
   });
 });
+
+describe("root layout demo banner (#252)", () => {
+  it("imports DemoBanner and isDemoModeEnabled", () => {
+    expect(source).toMatch(/import\s*\{\s*DemoBanner\s*\}\s*from\s*"@\/components\/demo\/demo-banner"/);
+    expect(source).toMatch(
+      /import\s*\{\s*isDemoModeEnabled\s*\}\s*from\s*"@\/lib\/supabase\/middleware"/,
+    );
+  });
+
+  it("renders DemoBanner in the body, wired to demo mode and the configured contact URL", () => {
+    expect(source).toMatch(/<DemoBanner\s+demoMode=\{isDemoModeEnabled\(\)\}\s+contactUrl=\{process\.env\.DEMO_CONTACT_URL\}\s*\/>/);
+  });
+});

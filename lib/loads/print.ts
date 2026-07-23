@@ -5,6 +5,15 @@ export function isValidLoadId(id: string): boolean {
   return z.uuid().safeParse(id).success;
 }
 
+/**
+ * Whether `pathname` is the QR-codes print page for a load
+ * (`/loads/<id>/print`). Used to keep the demo banner (#252) off the
+ * printable output.
+ */
+export function isQrPrintRoute(pathname: string): boolean {
+  return /^\/loads\/[^/]+\/print$/.test(pathname);
+}
+
 export type LoadSummary = {
   notaFiscal: string;
   material: string;
