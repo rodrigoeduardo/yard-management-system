@@ -58,8 +58,59 @@ git fetch upstream
 git merge upstream/main
 ```
 
-Run this on a dedicated sync branch first if the merge is likely to be nontrivial, then open a
-PR into the client's `main` for review before landing it, same as any other change.
+Run this on a dedicated sync branch first if the merge is likely to be nontrivial (see "Working on
+a sync branch" below), then open a PR into the client's `main` for review before landing it, same
+as any other change.
+
+### What happens after `git merge upstream/main`
+
+The merge command above either succeeds cleanly or stops with conflicts — handle each case, then
+push.
+
+- **Fast-forward.** If the client's `main` (or sync branch) has no commits of its own since the
+  last sync, Git just moves the branch pointer forward — no new merge commit, no conflicts
+  possible. This is the common case for a client repo with no direct commits to `main` outside of
+  merges from upstream.
+- **Real merge, no conflicts.** If the client branch has its own commits (client-specific files,
+  config changes) that don't overlap with what changed upstream, Git creates a merge commit
+  automatically. Nothing further to resolve, but review the merge commit's diff before pushing —
+  a clean auto-merge can still combine changes in a way that's syntactically fine but semantically
+  wrong (e.g. a config file merged line-by-line when it should have been reconciled as a whole).
+- **Conflicts.** Git stops mid-merge and leaves the working tree with conflict markers. Resolve
+  each file per "On conflicts" below, then:
+
+  ```bash
+  git add <resolved files>
+  git commit   # completes the merge commit; Git pre-fills a merge commit message
+  ```
+
+  Do not `git merge --abort` and try to hand-edit around the conflict instead — resolve it in the
+  merge itself so the merge commit records how upstream and client history were reconciled.
+
+Either way, the merge (or fast-forward) only updates the local branch. Push it to `origin` (the
+client repo) to actually land it — merging locally and forgetting to push is the most common way
+a sync silently doesn't happen:
+
+```bash
+git push origin <branch>
+```
+
+#### Working on a sync branch
+
+For anything beyond a trivial fast-forward, don't run the sync directly on `main`:
+
+```bash
+git checkout -b sync/upstream-YYYY-MM-DD
+git fetch upstream
+git merge upstream/main
+# resolve conflicts if any, as above
+git push origin sync/upstream-YYYY-MM-DD
+```
+
+Then open a PR from that branch into the client's `main`, same review process as any other
+change. This gives conflict resolutions (and any semantic issues in an automatic merge) a review
+pass before they land, and keeps `main` deployable if a sync turns out to need more work than
+expected.
 
 ### On conflicts
 
