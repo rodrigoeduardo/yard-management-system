@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildTestEnvFileContents,
+  LOCAL_DEMO_USER_EMAIL,
+  LOCAL_DEMO_USER_PASSWORD,
   LOCAL_REGISTER_INVITE_CODE,
   LOCAL_TEST_USER_EMAIL,
   LOCAL_TEST_USER_PASSWORD,
@@ -79,5 +81,7 @@ describe("buildTestEnvFileContents", () => {
     expect(contents).toContain(
       `REGISTER_INVITE_CODE=${LOCAL_REGISTER_INVITE_CODE}`,
     );
+    expect(contents).toContain(`DEMO_USER_EMAIL=${LOCAL_DEMO_USER_EMAIL}`);
+    expect(contents).toContain(`DEMO_USER_PASSWORD=${LOCAL_DEMO_USER_PASSWORD}`);
   });
 });

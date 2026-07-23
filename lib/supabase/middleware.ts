@@ -16,6 +16,16 @@ function requireEnv(name: string): string {
 }
 
 /**
+ * DEMO_MODE (off by default — see ADR 0002) switches the deployment into
+ * demo behavior: every visitor is transparently signed in as a single
+ * seeded demo user and never sees auth UI. All existing auth code paths
+ * stay intact; this flag is the only divergence point.
+ */
+export function isDemoModeEnabled(): boolean {
+  return process.env.DEMO_MODE === "true";
+}
+
+/**
  * Refreshes the Supabase session cookie and redirects unauthenticated
  * requests to /login. Must run before any protected route renders — the
  * refreshed cookie is what downstream Server Components/Actions read.
@@ -54,6 +64,31 @@ export async function updateSession(
   } = await supabase.auth.getUser();
 
   const isPublic = isPublicPath(request.nextUrl.pathname);
+  const demoMode = isDemoModeEnabled();
+
+  if (demoMode) {
+    // No login/register UI in demo mode — both routes just redirect into
+    // the app, regardless of session state.
+    if (isPublic) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    if (!user) {
+      // First request from a visitor with no session yet: transparently
+      // establish one as the seeded demo user. The `cookies.setAll` hook
+      // wired above writes the session cookie onto `response`, so this
+      // request completes already authenticated — no redirect needed.
+      const { error } = await supabase.auth.signInWithPassword({
+        email: requireEnv("DEMO_USER_EMAIL"),
+        password: requireEnv("DEMO_USER_PASSWORD"),
+      });
+      if (error) {
+        throw new Error(`Demo user sign-in failed: ${error.message}`);
+      }
+    }
+
+    return response;
+  }
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));

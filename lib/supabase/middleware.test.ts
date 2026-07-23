@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isPublicPath, updateSession } from "./middleware";
 
 describe("isPublicPath", () => {
@@ -93,5 +93,118 @@ describe("updateSession for an authenticated user", () => {
     const response = await updateSessionWithAuth(request);
 
     expect(response.status).not.toBe(307);
+  });
+});
+
+describe("updateSession in DEMO_MODE", () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetModules();
+    vi.doUnmock("@supabase/ssr");
+    process.env.DEMO_MODE = "true";
+    process.env.DEMO_USER_EMAIL = "demo@example.test";
+    process.env.DEMO_USER_PASSWORD = "demo-password";
+  });
+
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  it("does not sign in when DEMO_MODE is unset (control case stays on real /login)", async () => {
+    delete process.env.DEMO_MODE;
+    const { updateSession: updateSessionUnset } = await import("./middleware");
+    const request = new NextRequest("https://example.test/loads");
+
+    const response = await updateSessionUnset(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://example.test/login");
+  });
+
+  it("redirects /login into the app without showing auth UI", async () => {
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({ data: { user: null } }),
+          signInWithPassword: async () => ({
+            data: { user: { id: "demo-user" } },
+            error: null,
+          }),
+        },
+      }),
+    }));
+    const { updateSession: updateSessionDemo } = await import("./middleware");
+    const request = new NextRequest("https://example.test/login");
+
+    const response = await updateSessionDemo(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://example.test/");
+  });
+
+  it("redirects /register into the app without showing auth UI", async () => {
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({ data: { user: null } }),
+          signInWithPassword: async () => ({
+            data: { user: { id: "demo-user" } },
+            error: null,
+          }),
+        },
+      }),
+    }));
+    const { updateSession: updateSessionDemo } = await import("./middleware");
+    const request = new NextRequest("https://example.test/register");
+
+    const response = await updateSessionDemo(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://example.test/");
+  });
+
+  it("transparently signs an unauthenticated visitor in as the demo user instead of redirecting to /login", async () => {
+    const signInWithPassword = vi.fn(async () => ({
+      data: { user: { id: "demo-user" } },
+      error: null,
+    }));
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({ data: { user: null } }),
+          signInWithPassword,
+        },
+      }),
+    }));
+    const { updateSession: updateSessionDemo } = await import("./middleware");
+    const request = new NextRequest("https://example.test/loads");
+
+    const response = await updateSessionDemo(request);
+
+    expect(response.status).not.toBe(307);
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: "demo@example.test",
+      password: "demo-password",
+    });
+  });
+
+  it("does not attempt to sign in again for an already-authenticated demo session", async () => {
+    const signInWithPassword = vi.fn();
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({ data: { user: { id: "demo-user" } } }),
+          signInWithPassword,
+        },
+      }),
+    }));
+    const { updateSession: updateSessionDemo } = await import("./middleware");
+    const request = new NextRequest("https://example.test/loads");
+
+    const response = await updateSessionDemo(request);
+
+    expect(response.status).not.toBe(307);
+    expect(signInWithPassword).not.toHaveBeenCalled();
   });
 });
