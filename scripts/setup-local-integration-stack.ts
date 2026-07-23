@@ -17,7 +17,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   buildTestEnvFileContents,
   LOCAL_DEMO_USER_EMAIL,
@@ -55,7 +55,7 @@ function migrate(dbUrl: string): void {
 }
 
 async function seedUser(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   email: string,
   password: string,
 ): Promise<void> {
