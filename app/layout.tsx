@@ -3,7 +3,9 @@ import { Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 import { TopLoader } from "@/components/ui/top-loader";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { DemoBanner } from "@/components/demo/demo-banner";
 import { PWA_THEME_COLOR } from "@/lib/pwa/colors";
+import { isDemoModeEnabled } from "@/lib/supabase/middleware";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-sans",
@@ -45,6 +47,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <TopLoader />
         <ServiceWorkerRegister />
+        <DemoBanner demoMode={isDemoModeEnabled()} contactUrl={process.env.DEMO_CONTACT_URL} />
         {children}
       </body>
     </html>
