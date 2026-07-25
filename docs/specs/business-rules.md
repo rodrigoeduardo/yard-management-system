@@ -24,12 +24,14 @@ Source of truth for application behavior. Translated and expanded from the origi
 ## Load Removal (`load-removal`)
 
 - A removal action starts with manual input of **Exit Date**, **Driver**, and **Vehicle Plate** ("Placa do veículo") — fixed for every item removed in that action. Vehicle Plate is required.
+- The operator attaches the customer's **Pedido** as a single reference image (a photo/screenshot of the requested materials and weights) — **required**, one image per removal, replaceable before submit. It is a plain attached image: no structured rows, no OCR/parsing, and no comparison of scanned weight against a target. The New Removal form previews the attached image alongside the running list of scanned items and their weights (zoomable/expandable), so the operator can eyeball the two side by side while scanning.
 - Scanning an item's QR code adds the item to the removal.
 - Removing an item:
   - decrements the corresponding load's **Item Count**, and
   - subtracts the item's weight from that load's **Remaining Weight**.
 - A single removal action may scan items from **different loads** (different NFs).
 - On completion, compute **Total Removed Weight** = sum of the weights of all items removed in the action.
+- The Pedido image is uploaded to Supabase Storage on removal submit; the removal record stores only the storage object path, never the image bytes. An upload failure blocks submit but preserves the rest of the removal input (exit date, driver, vehicle plate, scanned items) so the operator can retry without re-entering anything.
 
 ## Registration (`auth`)
 

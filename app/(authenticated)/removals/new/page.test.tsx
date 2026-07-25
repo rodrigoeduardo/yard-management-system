@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TopLoader } from "@/components/ui/top-loader";
 import { encodeItemQrPayload } from "@/lib/qrcode/payload";
+import { uploadPedidoImage } from "@/lib/actions/pedido-image";
 import { removeItems } from "@/lib/actions/removals";
 import NewRemovalPage from "./page";
 
@@ -34,6 +35,21 @@ vi.mock("@/lib/actions/removals", () => ({
   removeItems: vi.fn(),
 }));
 
+vi.mock("@/lib/actions/pedido-image", () => ({
+  uploadPedidoImage: vi.fn(),
+}));
+
+beforeEach(() => {
+  // jsdom has no real object URL implementation, used by the pedido image
+  // preview (components/removals/pedido-image-attach.tsx).
+  URL.createObjectURL = vi.fn(() => "blob:mock-pedido-image");
+  URL.revokeObjectURL = vi.fn();
+  vi.mocked(uploadPedidoImage).mockResolvedValue({
+    success: true,
+    path: "removal-pedidos/mock-pedido.jpg",
+  });
+});
+
 async function scanItem(payload: {
   qrToken: string;
   identifier: string;
@@ -44,6 +60,14 @@ async function scanItem(payload: {
   fireEvent.click(screen.getByText("Iniciar Escaneamento"));
   await waitFor(() => expect(scanCallback).toBeDefined());
   scanCallback!({ getText: () => encodeItemQrPayload(payload as never) });
+}
+
+function attachPedidoImage() {
+  const input = screen.getByTestId("pedido-image-input");
+  const file = new File([new Uint8Array([1, 2, 3])], "pedido.png", {
+    type: "image/png",
+  });
+  fireEvent.change(input, { target: { files: [file] } });
 }
 
 describe("NewRemovalPage scanned items list", () => {
@@ -125,6 +149,7 @@ describe("NewRemovalPage sticky total bar", () => {
       material: "Aço",
       weight: "10",
     });
+    attachPedidoImage();
 
     await waitFor(() => {
       const ctas = screen.getAllByRole("button", {
@@ -134,6 +159,24 @@ describe("NewRemovalPage sticky total bar", () => {
       for (const cta of ctas) expect(cta).not.toBeDisabled();
     });
     expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
+  });
+
+  it("keeps the Concluir Remoção CTA disabled while items are scanned but no Pedido image is attached", async () => {
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    const ctas = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(1 item\)/,
+    });
+    expect(ctas.length).toBeGreaterThan(0);
+    for (const cta of ctas) expect(cta).toBeDisabled();
   });
 
   it("opens the review dialog when the CTA is clicked", async () => {
@@ -146,6 +189,7 @@ describe("NewRemovalPage sticky total bar", () => {
       material: "Aço",
       weight: "10",
     });
+    attachPedidoImage();
 
     const [cta] = await screen.findAllByRole("button", {
       name: /Concluir Remoção \(1 item\)/,
@@ -153,6 +197,53 @@ describe("NewRemovalPage sticky total bar", () => {
     fireEvent.click(cta);
 
     expect(await screen.findByText("Revisar Remoção")).toBeInTheDocument();
+  });
+});
+
+describe("NewRemovalPage Pedido image upload failure", () => {
+  it("shows the upload error and keeps the scanned items and form input intact", async () => {
+    vi.mocked(uploadPedidoImage).mockResolvedValue({
+      success: false,
+      error: "Falha ao enviar a imagem do Pedido. Tente novamente.",
+    });
+
+    render(<NewRemovalPage />);
+
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
+    });
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+    attachPedidoImage();
+
+    const [cta] = await screen.findAllByRole("button", {
+      name: /Concluir Remoção \(1 item\)/,
+    });
+    fireEvent.click(cta);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Revisar Remoção",
+    });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Confirmar" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Falha ao enviar a imagem do Pedido. Tente novamente.",
+      ),
+    ).toBeInTheDocument();
+    expect(removeItems).not.toHaveBeenCalled();
+
+    // The rest of the removal input survives the failed upload.
+    expect(screen.getByLabelText("Motorista")).toHaveValue("João Silva");
+    expect(screen.getByText("NF-100")).toBeInTheDocument();
   });
 });
 
@@ -195,6 +286,7 @@ describe("NewRemovalPage review dialog", () => {
         } as never),
     });
     await screen.findByText("NF-200");
+    attachPedidoImage();
 
     const [cta] = await screen.findAllByRole("button", {
       name: /Concluir Remoção \(2 itens\)/,
@@ -252,6 +344,7 @@ describe("NewRemovalPage review dialog", () => {
       exitDateTime: "2026-07-18T14:35",
       driver: "João Silva",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/mock-pedido.jpg",
       qrTokens: [
         "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
         "6c2f7f3e-7c1b-5c9b-ac1b-3f3f7c1b5c9b",
@@ -294,6 +387,7 @@ describe("NewRemovalPage review dialog", () => {
         } as never),
     });
     await screen.findByText("NF-100");
+    attachPedidoImage();
 
     const [openReviewCta] = await screen.findAllByRole("button", {
       name: /Concluir Remoção \(1 item\)/,
@@ -393,6 +487,7 @@ describe("NewRemovalPage vehicle plate field", () => {
       material: "Aço",
       weight: "10",
     });
+    attachPedidoImage();
 
     const [cta] = await screen.findAllByRole("button", {
       name: /Concluir Remoção \(1 item\)/,

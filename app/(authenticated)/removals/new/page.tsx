@@ -6,12 +6,14 @@ import { Calendar, Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { PageBackHeader } from "@/components/nav/page-back-header";
+import { PedidoImageAttach } from "@/components/removals/pedido-image-attach";
 import { RemovalReceiptView } from "@/components/removals/removal-receipt-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionLabel } from "@/components/ui/section-label";
 import { useTopLoaderTask } from "@/components/ui/top-loader";
+import { uploadPedidoImage } from "@/lib/actions/pedido-image";
 import { removeItems } from "@/lib/actions/removals";
 import { sumDecimalStrings } from "@/lib/db/decimal";
 import { formatEntryDateTime } from "@/lib/format/datetime";
@@ -56,6 +58,10 @@ export default function NewRemovalPage() {
   );
   const [driver, setDriver] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [pedidoImage, setPedidoImage] = useState<File | null>(null);
+  const [pedidoImageError, setPedidoImageError] = useState<
+    string | undefined
+  >();
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
   const [scanError, setScanError] = useState<string | undefined>();
   const [isScanning, setIsScanning] = useState(false);
@@ -144,12 +150,35 @@ export default function NewRemovalPage() {
   function handleConfirm() {
     setFieldErrors({});
     setFormError(undefined);
+    setPedidoImageError(undefined);
+
+    // Belt-and-suspenders: the "Concluir Remoção" CTA is already disabled
+    // without an attached image, but this action is the one place the
+    // removal is actually submitted, so it validates for itself too.
+    if (!pedidoImage) {
+      setPedidoImageError(
+        "Anexe a imagem do Pedido antes de concluir a remoção.",
+      );
+      setIsReviewOpen(false);
+      return;
+    }
 
     startTransition(async () => {
+      const pedidoImageFormData = new FormData();
+      pedidoImageFormData.set("file", pedidoImage);
+      const uploadResult = await uploadPedidoImage(pedidoImageFormData);
+
+      if (!uploadResult.success) {
+        setPedidoImageError(uploadResult.error);
+        setIsReviewOpen(false);
+        return;
+      }
+
       const result = await removeItems({
         exitDateTime,
         driver,
         vehiclePlate,
+        pedidoImagePath: uploadResult.path,
         qrTokens: scannedItemsRef.current.map((item) => item.qrToken),
       });
 
@@ -174,6 +203,7 @@ export default function NewRemovalPage() {
       );
       scannedItemsRef.current = [];
       setScannedItems([]);
+      setPedidoImage(null);
       setIsReviewOpen(false);
       stopScanning();
     });
@@ -184,6 +214,8 @@ export default function NewRemovalPage() {
     setExitDateTime(getCurrentEntryDateTimeValue());
     setDriver("");
     setVehiclePlate("");
+    setPedidoImage(null);
+    setPedidoImageError(undefined);
     setFieldErrors({});
     setFormError(undefined);
     setScanError(undefined);
@@ -226,7 +258,7 @@ export default function NewRemovalPage() {
       )}
 
       {!receipt && (
-        <div className="flex flex-col gap-5 md:grid md:grid-cols-[420px_1fr] md:items-start md:gap-5">
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-[360px_300px_1fr] md:items-start md:gap-5">
           {/* Left column: fixed removal data + scanner + toggle */}
           <div className="flex flex-col gap-5">
             <div className="flex w-full min-w-0 flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
@@ -345,6 +377,20 @@ export default function NewRemovalPage() {
             </div>
           </div>
 
+          {/* Middle column: Pedido reference image — kept next to the
+              scanned items list (and pinned on desktop) so the operator can
+              cross-check the attached image against what they scanned. */}
+          <div className="md:sticky md:top-6">
+            <PedidoImageAttach
+              file={pedidoImage}
+              onSelect={(file) => {
+                setPedidoImage(file);
+                setPedidoImageError(undefined);
+              }}
+              error={pedidoImageError}
+            />
+          </div>
+
           {/* Right column: scanned items list */}
           <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
             <div className="flex items-baseline justify-between">
@@ -437,7 +483,7 @@ export default function NewRemovalPage() {
               <Button
                 type="button"
                 onClick={() => setIsReviewOpen(true)}
-                disabled={isPending || scannedItems.length === 0}
+                disabled={isPending || scannedItems.length === 0 || !pedidoImage}
                 className="h-12 rounded-[13px] px-6"
               >
                 Concluir Remoção ({scannedItems.length}{" "}
@@ -458,7 +504,7 @@ export default function NewRemovalPage() {
             <Button
               type="button"
               onClick={() => setIsReviewOpen(true)}
-              disabled={isPending || scannedItems.length === 0}
+              disabled={isPending || scannedItems.length === 0 || !pedidoImage}
               className="h-[52px] rounded-[14px] text-[15px]"
             >
               Concluir Remoção ({scannedItems.length}{" "}
