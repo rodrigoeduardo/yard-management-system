@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { ImagePlus, ZoomIn } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionLabel } from "@/components/ui/section-label";
@@ -28,18 +28,22 @@ export function PedidoImageAttach({
   error,
 }: PedidoImageAttachProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | undefined>();
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
+  // Derived directly from `file` (not effect + setState) — the object URL
+  // only exists to synchronize with the browser's Blob URL registry, so its
+  // lifecycle is handled by a cleanup-only effect below, never by pushing
+  // it into React state.
+  const previewUrl = useMemo(
+    () => (file ? URL.createObjectURL(file) : undefined),
+    [file],
+  );
+
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(undefined);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0];
