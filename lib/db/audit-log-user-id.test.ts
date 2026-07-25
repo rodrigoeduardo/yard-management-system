@@ -223,6 +223,7 @@ describe("audit_log.user_id", () => {
           exitDate: new Date(),
           driver: "Audit Context Test Driver",
           vehiclePlate: "AUD1234",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadItem.qrToken],
         },
         userId,

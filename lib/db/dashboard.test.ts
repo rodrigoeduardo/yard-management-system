@@ -181,6 +181,7 @@ describe("getLastRemoval", () => {
         exitDate: new Date("2026-02-01"),
         driver: "Maria Souza",
         vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         totalRemovedWeight: "20",
       })
       .returning();
@@ -218,6 +219,7 @@ describe("getLastRemoval", () => {
       .values({
         exitDate: new Date("2026-02-02"),
         driver: "Maria Souza",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         totalRemovedWeight: "10",
       })
       .returning();

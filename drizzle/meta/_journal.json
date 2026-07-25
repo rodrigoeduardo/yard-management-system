@@ -78,6 +78,13 @@
       "when": 1784990989157,
       "tag": "0010_removal_pedidos_storage_bucket",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784991878840,
+      "tag": "0011_demo_reset_pedido_image_path",
+      "breakpoints": true
     }
   ]
 }

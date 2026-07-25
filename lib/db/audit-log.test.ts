@@ -128,6 +128,7 @@ describe("audit_log triggers", () => {
       .values({
         exitDate: new Date(),
         driver: "John Doe",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         totalRemovedWeight: "0",
       })
       .returning();
