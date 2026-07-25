@@ -115,8 +115,10 @@ port = 54324
 # sender_name = "Admin"
 
 [storage]
-# Not used by the app (no file uploads) — disabled to speed up `supabase start`.
-enabled = false
+# Used for the removal-pedidos bucket (issue #269) — the bucket itself is
+# created by a Drizzle migration (drizzle/0010_removal_pedidos_storage_bucket.sql),
+# not declared here.
+enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 

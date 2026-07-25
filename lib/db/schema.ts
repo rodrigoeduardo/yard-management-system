@@ -79,6 +79,10 @@ export const removals = pgTable("removals", {
   exitDate: timestamp("exit_date", { withTimezone: true }).notNull(),
   driver: text("driver").notNull(),
   vehiclePlate: text("vehicle_plate"),
+  // Object path (not bytes) of the customer's Pedido reference image in the
+  // `removal-pedidos` Supabase Storage bucket. Required — a removal always
+  // has an attached Pedido image (business-rules.md#load-removal).
+  pedidoImagePath: text("pedido_image_path").notNull(),
   totalRemovedWeight: numeric("total_removed_weight").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

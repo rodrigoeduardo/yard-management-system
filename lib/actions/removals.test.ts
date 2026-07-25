@@ -72,6 +72,7 @@ describe("removeItems", () => {
         exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
         vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken],
       });
 
@@ -127,6 +128,7 @@ describe("removeItems", () => {
         exitDateTime: "2026-02-01T14:35",
         driver: "John Doe",
         vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken],
       });
 
@@ -172,6 +174,7 @@ describe("removeItems", () => {
         exitDateTime: "2026-02-01T14:35",
         driver: "Vehicle Plate Test Driver",
         vehiclePlate: "  ABC1234  ",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken],
       });
 
@@ -180,6 +183,43 @@ describe("removeItems", () => {
       removalIds.push(result.removal.id);
 
       expect(result.removal.vehiclePlate).toBe("ABC1234");
+    },
+    20000,
+  );
+
+  it("rejects a missing pedidoImagePath", async () => {
+    const result = await removeItems({
+      exitDateTime: "2026-02-01T14:35",
+      driver: "John Doe",
+      vehiclePlate: "ABC1234",
+      pedidoImagePath: "",
+      qrTokens: [randomUUID()],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it(
+    "persists the pedido image storage path on the removal",
+    async () => {
+      const load = await insertLoadWithItems(["10"]);
+      loadIds.push(load.load.id);
+
+      const result = await removeItems({
+        exitDateTime: "2026-02-01T14:35",
+        driver: "Pedido Image Action Test Driver",
+        vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/action-test.jpg",
+        qrTokens: [load.items[0].qrToken],
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) throw new Error("expected success");
+      removalIds.push(result.removal.id);
+
+      expect(result.removal.pedidoImagePath).toBe(
+        "removal-pedidos/action-test.jpg",
+      );
     },
     20000,
   );

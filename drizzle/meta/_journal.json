@@ -64,6 +64,20 @@
       "when": 1784765981007,
       "tag": "0008_demo_reset_function",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784990964006,
+      "tag": "0009_removal_pedido_image_path",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784990989157,
+      "tag": "0010_removal_pedidos_storage_bucket",
+      "breakpoints": true
     }
   ]
 }
