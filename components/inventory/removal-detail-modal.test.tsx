@@ -145,6 +145,17 @@ describe("RemovalDetailModal", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("links to the printable receipt for this removal (#270)", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const link = screen.getByRole("link", { name: /comprovante/i });
+    expect(link).toHaveAttribute("href", "/removals/r1/receipt");
+  });
+
   it("widens the dialog to 600px on desktop widths", () => {
     fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
 
