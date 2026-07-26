@@ -101,7 +101,9 @@ export default function NewRemovalPage() {
   >();
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
   const [scanError, setScanError] = useState<string | undefined>();
-  const [scanFeedback, setScanFeedback] = useState<string | undefined>();
+  const [scanToast, setScanToast] = useState<
+    { type: "success" | "error"; text: string } | undefined
+  >();
   const [isScanning, setIsScanning] = useState(false);
   const isDesktop = useIsDesktopViewport();
   const [fieldErrors, setFieldErrors] = useState<RemoveItemsFieldMessages>({});
@@ -126,13 +128,13 @@ export default function NewRemovalPage() {
     };
   }, []);
 
-  function showScanFeedback(text: string) {
-    setScanFeedback(text);
+  function showScanToast(type: "success" | "error", text: string) {
+    setScanToast({ type, text });
     if (scanFeedbackTimeoutRef.current) {
       clearTimeout(scanFeedbackTimeoutRef.current);
     }
     scanFeedbackTimeoutRef.current = setTimeout(
-      () => setScanFeedback(undefined),
+      () => setScanToast(undefined),
       SCAN_FEEDBACK_MS,
     );
   }
@@ -141,6 +143,7 @@ export default function NewRemovalPage() {
     const payload = safeDecodeItemQrPayload(text);
     if (!payload) {
       setScanError("Código QR inválido.");
+      showScanToast("error", "Código QR inválido.");
       return;
     }
 
@@ -151,6 +154,7 @@ export default function NewRemovalPage() {
     const { list, error } = addScannedItem(scannedItemsRef.current, payload);
     if (error) {
       setScanError(error);
+      showScanToast("error", error);
       return;
     }
 
@@ -164,10 +168,12 @@ export default function NewRemovalPage() {
 
     if (!status.success || status.status === "not_found") {
       setScanError("Item não encontrado.");
+      showScanToast("error", "Item não encontrado.");
       return;
     }
     if (status.status === "removed") {
       setScanError("Este item já foi removido anteriormente.");
+      showScanToast("error", "Este item já foi removido anteriormente.");
       return;
     }
 
@@ -175,7 +181,10 @@ export default function NewRemovalPage() {
     scannedItemsRef.current = list;
     setScannedItems(list);
     scanCooldownRef.current.start(payload.qrToken);
-    showScanFeedback(`Item adicionado: ${payload.material} — ${payload.weight} t`);
+    showScanToast(
+      "success",
+      `Item adicionado: ${payload.material} — ${payload.weight} t`,
+    );
   }
 
   async function startScanning() {
@@ -311,13 +320,16 @@ export default function NewRemovalPage() {
         </>
       )}
 
-      {scanFeedback && (
+      {scanToast && (
         <div
           role="status"
           aria-live="polite"
-          className="pointer-events-none fixed inset-x-4 top-4 z-50 mx-auto max-w-sm animate-in rounded-[12px] bg-foreground/90 px-4 py-2.5 text-center text-sm font-medium text-primary-foreground shadow-lg fade-in-0 slide-in-from-top-2 md:top-6"
+          className={cn(
+            "pointer-events-none fixed inset-x-4 top-4 z-50 mx-auto max-w-sm animate-in rounded-[12px] px-4 py-2.5 text-center text-sm font-medium text-primary-foreground shadow-lg fade-in-0 slide-in-from-top-2 md:top-6",
+            scanToast.type === "success" ? "bg-emerald-600" : "bg-destructive",
+          )}
         >
-          {scanFeedback}
+          {scanToast.text}
         </div>
       )}
 

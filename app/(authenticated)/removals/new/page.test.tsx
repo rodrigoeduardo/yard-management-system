@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TopLoader } from "@/components/ui/top-loader";
 import { encodeItemQrPayload } from "@/lib/qrcode/payload";
+import { checkItemStatus } from "@/lib/actions/item-status";
 import { uploadPedidoImage } from "@/lib/actions/pedido-image";
 import { removeItems } from "@/lib/actions/removals";
 import NewRemovalPage from "./page";
@@ -82,9 +83,51 @@ describe("NewRemovalPage scan feedback", () => {
       weight: "10",
     });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Item adicionado: Aço — 10 t",
-    );
+    const toast = await screen.findByRole("status");
+    expect(toast).toHaveTextContent("Item adicionado: Aço — 10 t");
+    expect(toast).toHaveClass("bg-emerald-600");
+  });
+
+  it("shows a red error toast when the scanned item is not found", async () => {
+    vi.mocked(checkItemStatus).mockResolvedValueOnce({
+      success: true,
+      status: "not_found",
+    } as never);
+
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    const toast = await screen.findByRole("status");
+    expect(toast).toHaveTextContent("Item não encontrado.");
+    expect(toast).toHaveClass("bg-destructive");
+  });
+
+  it("shows a red error toast when the scanned item was already removed", async () => {
+    vi.mocked(checkItemStatus).mockResolvedValueOnce({
+      success: true,
+      status: "removed",
+    } as never);
+
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    const toast = await screen.findByRole("status");
+    expect(toast).toHaveTextContent("Este item já foi removido anteriormente.");
+    expect(toast).toHaveClass("bg-destructive");
   });
 
   it("shows the camera only while actively scanning", async () => {
@@ -612,7 +655,9 @@ describe("NewRemovalPage scan cooldown", () => {
     await waitFor(() => expect(scanCallback).toBeDefined());
 
     scanCallback!({ getText: () => "not a valid qr payload" });
-    expect(await screen.findByText("Código QR inválido.")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Código QR inválido.")).length,
+    ).toBeGreaterThan(0);
 
     scanCallback!({
       getText: () =>
