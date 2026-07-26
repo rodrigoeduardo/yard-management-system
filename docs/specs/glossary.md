@@ -24,4 +24,4 @@ Domain vocabulary. Code, docs, issues, and labels are in English; these Brazilia
 
 ## UI language note
 
-End-user UI text is Portuguese (the yard operators' language). Everything else — code identifiers, comments, commits, issues, docs — is English.
+End-user UI text defaults to Portuguese (the yard operators' language) and is served through an en/pt-br i18n toggle (`lib/i18n/`, issue #277): locale is detected server-side (a `NEXT_LOCALE` cookie, if set, wins; otherwise the `Accept-Language` header; otherwise pt-BR) and looked up via dictionaries (`lib/i18n/dictionaries/`) through a `t()` helper. Only pages migrated to `t()` honor the toggle — the login page is the first (see PR Notes on #277 for the per-page extraction follow-ups); everything else still renders hardcoded Portuguese until migrated. Everything dev-facing — code identifiers, comments, commits, issues, docs — stays English regardless of UI locale.
