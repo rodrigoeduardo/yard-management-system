@@ -70,6 +70,36 @@ function attachPedidoImage() {
   fireEvent.change(input, { target: { files: [file] } });
 }
 
+describe("NewRemovalPage scan feedback", () => {
+  it("shows a confirmation message after a successful scan", async () => {
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "Item 1 - NF-100",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Item adicionado: Aço — 10 t",
+    );
+  });
+
+  it("shows the camera only while actively scanning", async () => {
+    render(<NewRemovalPage />);
+
+    const video = document.querySelector("video")!;
+    expect(video.parentElement).toHaveClass("h-0");
+
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
+    await waitFor(() => expect(scanCallback).toBeDefined());
+
+    expect(video.parentElement).toHaveClass("opacity-100");
+  });
+});
+
 describe("NewRemovalPage scanned items list", () => {
   it("shows the item's Nota Fiscal as a distinct labeled chip, separate from the identifier", async () => {
     render(<NewRemovalPage />);

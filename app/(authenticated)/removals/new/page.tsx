@@ -4,7 +4,13 @@ import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { Calendar, Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { PageBackHeader } from "@/components/nav/page-back-header";
 import { PedidoImageAttach } from "@/components/removals/pedido-image-attach";
 import { RemovalReceiptView } from "@/components/removals/removal-receipt-view";
@@ -48,6 +54,37 @@ function notasFiscaisLabel(count: number): string {
 
 /** Ignore further QR reads for this long after an accepted scan (ms). */
 const SCAN_COOLDOWN_MS = 2000;
+/** How long the "item added" confirmation stays on screen (ms). */
+const SCAN_FEEDBACK_MS = 1600;
+
+/**
+ * The QR video element only ever mounts in one place at a time (desktop:
+ * inline next to the form; mobile: inside the sticky bottom bar) since it's
+ * bound to a single ref that the scanner library attaches a live camera
+ * stream to — mounting it in two places at once would only let one of them
+ * actually receive the stream.
+ */
+const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
+
+function subscribeToDesktopViewport(onChange: () => void): () => void {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+  mql.addEventListener("change", onChange);
+  return () => mql.removeEventListener("change", onChange);
+}
+
+function getIsDesktopViewport(): boolean {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+}
+
+function useIsDesktopViewport(): boolean {
+  return useSyncExternalStore(
+    subscribeToDesktopViewport,
+    getIsDesktopViewport,
+    () => false,
+  );
+}
 
 export default function NewRemovalPage() {
   const router = useRouter();
@@ -64,7 +101,9 @@ export default function NewRemovalPage() {
   >();
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
   const [scanError, setScanError] = useState<string | undefined>();
+  const [scanFeedback, setScanFeedback] = useState<string | undefined>();
   const [isScanning, setIsScanning] = useState(false);
+  const isDesktop = useIsDesktopViewport();
   const [fieldErrors, setFieldErrors] = useState<RemoveItemsFieldMessages>({});
   const [formError, setFormError] = useState<string | undefined>();
   const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -75,6 +114,28 @@ export default function NewRemovalPage() {
   const scannedItemsRef = useRef<ItemQrPayload[]>([]);
   const pendingTokensRef = useRef<Set<string>>(new Set());
   const scanCooldownRef = useRef(createScanCooldown(SCAN_COOLDOWN_MS));
+  const scanFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (scanFeedbackTimeoutRef.current) {
+        clearTimeout(scanFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function showScanFeedback(text: string) {
+    setScanFeedback(text);
+    if (scanFeedbackTimeoutRef.current) {
+      clearTimeout(scanFeedbackTimeoutRef.current);
+    }
+    scanFeedbackTimeoutRef.current = setTimeout(
+      () => setScanFeedback(undefined),
+      SCAN_FEEDBACK_MS,
+    );
+  }
 
   async function handleScannedText(text: string) {
     const payload = safeDecodeItemQrPayload(text);
@@ -114,6 +175,7 @@ export default function NewRemovalPage() {
     scannedItemsRef.current = list;
     setScannedItems(list);
     scanCooldownRef.current.start(payload.qrToken);
+    showScanFeedback(`Item adicionado: ${payload.material} — ${payload.weight} t`);
   }
 
   async function startScanning() {
@@ -249,6 +311,16 @@ export default function NewRemovalPage() {
         </>
       )}
 
+      {scanFeedback && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed inset-x-4 top-4 z-50 mx-auto max-w-sm animate-in rounded-[12px] bg-foreground/90 px-4 py-2.5 text-center text-sm font-medium text-primary-foreground shadow-lg fade-in-0 slide-in-from-top-2 md:top-6"
+        >
+          {scanFeedback}
+        </div>
+      )}
+
       {receipt && (
         <RemovalReceiptView
           receipt={receipt}
@@ -339,56 +411,47 @@ export default function NewRemovalPage() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-3">
-              {/* On mobile the camera only takes up space while actively
-                  scanning (height/opacity transition), to leave room for the
-                  Pedido preview — the toggle button itself lives in the
-                  sticky mobile bottom bar instead, between "Peso Total
-                  Removido" and "Concluir Remoção". On desktop both the
-                  camera and its toggle button are always static and
-                  visible here. */}
-              <div
-                className={cn(
-                  "relative w-full overflow-hidden rounded-[18px] bg-foreground transition-all duration-300 ease-out md:h-[280px] md:max-h-none md:opacity-100",
-                  isScanning
-                    ? "h-[210px] max-h-[210px] opacity-100"
-                    : "h-0 max-h-0 opacity-0",
-                )}
-              >
-                <video
-                  ref={videoRef}
-                  className="h-full w-full object-cover"
-                  muted
-                />
-                <div className="pointer-events-none absolute inset-4 md:inset-5">
-                  <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90 md:size-7" />
-                  {isScanning && (
-                    <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
-                  )}
-                  <span className="absolute right-0 bottom-1 left-0 text-center text-xs text-primary-foreground/65 md:text-[12.5px]">
-                    Aponte a câmera para o QR Code do item
-                  </span>
+            {/* The camera only ever mounts here on desktop — on mobile it
+                lives inside the sticky bottom bar instead (see below), so
+                it's reachable without scrolling back up to this column. */}
+            {isDesktop && (
+              <div className="flex flex-col gap-3">
+                <div className="relative h-[280px] w-full overflow-hidden rounded-[18px] bg-foreground">
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover"
+                    muted
+                  />
+                  <div className="pointer-events-none absolute inset-5">
+                    <span className="absolute top-0 left-0 size-7 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90" />
+                    <span className="absolute top-0 right-0 size-7 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90" />
+                    <span className="absolute bottom-0 left-0 size-7 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90" />
+                    <span className="absolute right-0 bottom-0 size-7 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90" />
+                    {isScanning && (
+                      <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
+                    )}
+                    <span className="absolute right-0 bottom-1 left-0 text-center text-[12.5px] text-primary-foreground/65">
+                      Aponte a câmera para o QR Code do item
+                    </span>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={isScanning ? stopScanning : startScanning}
+                  className="flex h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+                >
+                  <Scan className="size-4" />
+                  {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+                </button>
+
+                {scanError && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {scanError}
+                  </p>
+                )}
               </div>
-
-              <button
-                type="button"
-                onClick={isScanning ? stopScanning : startScanning}
-                className="hidden h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground md:flex"
-              >
-                <Scan className="size-4" />
-                {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
-              </button>
-
-              {scanError && (
-                <p role="alert" className="text-sm text-destructive">
-                  {scanError}
-                </p>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Right column: Pedido reference image above the scanned items
@@ -518,6 +581,38 @@ export default function NewRemovalPage() {
               </span>
             </div>
 
+            {/* Mobile-only mount of the camera — see the comment on the
+                desktop version above. Only takes up space (with a
+                height/opacity transition) while actively scanning. */}
+            {!isDesktop && (
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden rounded-[16px] bg-foreground transition-all duration-300 ease-out",
+                  isScanning
+                    ? "h-[190px] max-h-[190px] opacity-100"
+                    : "h-0 max-h-0 opacity-0",
+                )}
+              >
+                <video
+                  ref={videoRef}
+                  className="h-full w-full object-cover"
+                  muted
+                />
+                <div className="pointer-events-none absolute inset-4">
+                  <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90" />
+                  <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90" />
+                  <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90" />
+                  <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90" />
+                  {isScanning && (
+                    <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
+                  )}
+                  <span className="absolute right-0 bottom-1 left-0 text-center text-xs text-primary-foreground/65">
+                    Aponte a câmera para o QR Code do item
+                  </span>
+                </div>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={isScanning ? stopScanning : startScanning}
@@ -526,6 +621,12 @@ export default function NewRemovalPage() {
               <Scan className="size-4" />
               {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
             </button>
+
+            {scanError && (
+              <p role="alert" className="text-sm text-destructive">
+                {scanError}
+              </p>
+            )}
 
             <Button
               type="button"
