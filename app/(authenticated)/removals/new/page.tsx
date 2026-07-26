@@ -100,7 +100,6 @@ export default function NewRemovalPage() {
     string | undefined
   >();
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
-  const [scanError, setScanError] = useState<string | undefined>();
   const [scanToast, setScanToast] = useState<
     { type: "success" | "error"; text: string } | undefined
   >();
@@ -142,7 +141,6 @@ export default function NewRemovalPage() {
   async function handleScannedText(text: string) {
     const payload = safeDecodeItemQrPayload(text);
     if (!payload) {
-      setScanError("Código QR inválido.");
       showScanToast("error", "Código QR inválido.");
       return;
     }
@@ -153,7 +151,6 @@ export default function NewRemovalPage() {
 
     const { list, error } = addScannedItem(scannedItemsRef.current, payload);
     if (error) {
-      setScanError(error);
       showScanToast("error", error);
       return;
     }
@@ -167,17 +164,14 @@ export default function NewRemovalPage() {
     pendingTokensRef.current.delete(payload.qrToken);
 
     if (!status.success || status.status === "not_found") {
-      setScanError("Item não encontrado.");
       showScanToast("error", "Item não encontrado.");
       return;
     }
     if (status.status === "removed") {
-      setScanError("Este item já foi removido anteriormente.");
       showScanToast("error", "Este item já foi removido anteriormente.");
       return;
     }
 
-    setScanError(undefined);
     scannedItemsRef.current = list;
     setScannedItems(list);
     scanCooldownRef.current.start(payload.qrToken);
@@ -289,7 +283,6 @@ export default function NewRemovalPage() {
     setPedidoImageError(undefined);
     setFieldErrors({});
     setFormError(undefined);
-    setScanError(undefined);
     setReceipt(undefined);
   }
 
@@ -456,12 +449,6 @@ export default function NewRemovalPage() {
                   <Scan className="size-4" />
                   {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
                 </button>
-
-                {scanError && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {scanError}
-                  </p>
-                )}
               </div>
             )}
           </div>
@@ -633,12 +620,6 @@ export default function NewRemovalPage() {
               <Scan className="size-4" />
               {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
             </button>
-
-            {scanError && (
-              <p role="alert" className="text-sm text-destructive">
-                {scanError}
-              </p>
-            )}
 
             <Button
               type="button"
