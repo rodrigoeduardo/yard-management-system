@@ -90,6 +90,7 @@ describe("removeItems", () => {
       exitDateTime: "2026-02-01T14:35",
       driver: "John Doe",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [],
     });
 
@@ -101,6 +102,7 @@ describe("removeItems", () => {
       exitDateTime: "2026-02-01T14:35",
       driver: "",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [randomUUID()],
     });
 
@@ -112,6 +114,7 @@ describe("removeItems", () => {
       exitDateTime: "2026-02-30T14:35",
       driver: "John Doe",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [randomUUID()],
     });
 
@@ -147,6 +150,7 @@ describe("removeItems", () => {
       exitDateTime: "2026-02-01T14:35",
       driver: "John Doe",
       vehiclePlate: "",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [randomUUID()],
     });
 
@@ -158,6 +162,7 @@ describe("removeItems", () => {
       exitDateTime: "2026-02-01T14:35",
       driver: "John Doe",
       vehiclePlate: "   ",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [randomUUID()],
     });
 
