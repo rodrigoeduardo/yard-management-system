@@ -39,4 +39,11 @@ describe("DemoBanner", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("renders nothing on the removal receipt print route even when demo mode is on", () => {
+    usePathname.mockReturnValue("/removals/5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a/receipt");
+    const { container } = render(<DemoBanner demoMode contactUrl="https://example.com/contact" />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });

@@ -39,8 +39,11 @@ function pngFile(name = "pedido.png"): File {
 }
 
 let uploadPedidoImage: typeof import("./pedido-image").uploadPedidoImage;
+let getPedidoImageSignedUrl: typeof import("./pedido-image").getPedidoImageSignedUrl;
 beforeAll(async () => {
-  ({ uploadPedidoImage } = await import("./pedido-image"));
+  ({ uploadPedidoImage, getPedidoImageSignedUrl } = await import(
+    "./pedido-image"
+  ));
 });
 
 describe("uploadPedidoImage", () => {
@@ -115,6 +118,22 @@ describe("uploadPedidoImage", () => {
 
       expect(error).toBeNull();
       expect(data).not.toBeNull();
+    });
+
+    it("returns a fetchable signed URL for the uploaded image, for the printable receipt (#270)", async () => {
+      const formData = new FormData();
+      formData.set("file", pngFile("pedido-signed-url.png"));
+
+      const uploadResult = await uploadPedidoImage(formData);
+      expect(uploadResult.success).toBe(true);
+      if (!uploadResult.success) throw new Error("expected success");
+      uploadedPaths.push(uploadResult.path);
+
+      const signedUrl = await getPedidoImageSignedUrl(uploadResult.path);
+
+      expect(signedUrl).not.toBeNull();
+      const response = await fetch(signedUrl!);
+      expect(response.ok).toBe(true);
     });
   });
 });

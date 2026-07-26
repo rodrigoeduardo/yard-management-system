@@ -32,6 +32,7 @@ Source of truth for application behavior. Translated and expanded from the origi
 - A single removal action may scan items from **different loads** (different NFs).
 - On completion, compute **Total Removed Weight** = sum of the weights of all items removed in the action.
 - The Pedido image is uploaded to Supabase Storage on removal submit; the removal record stores only the storage object path, never the image bytes. An upload failure blocks submit but preserves the rest of the removal input (exit date, driver, vehicle plate, scanned items) so the operator can retry without re-entering anything.
+- Each removal has a printable/shareable **comprovante de remoção** (receipt), reachable from the removal detail modal on the Estoque page (`/removals/<id>/receipt`). It shows: Exit Date + time, Driver, Vehicle Plate, Total Removed Weight; the attached Pedido reference image (always present — required at removal time, see above); and a removed-items table (item number, NF, material, weight). No client fields — the client entity was removed (#264–#268). PT-BR text throughout; printable via the browser's print dialog.
 
 ## Registration (`auth`)
 

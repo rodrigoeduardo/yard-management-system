@@ -70,3 +70,30 @@ export async function uploadPedidoImage(
 
   return { success: true, path };
 }
+
+/** How long a receipt's signed Pedido image URL stays valid — long enough to view/print/share the receipt in one sitting. */
+const SIGNED_URL_TTL_SECONDS = 60 * 60;
+
+/**
+ * Generates a short-lived signed URL for a Pedido image already stored in
+ * the private `removal-pedidos` bucket, so the printable removal receipt
+ * (issue #270) can render it without making the bucket public. Runs as the
+ * currently authenticated operator, same posture as `uploadPedidoImage`.
+ * Returns null if the object can't be signed (e.g. it was deleted).
+ */
+export async function getPedidoImageSignedUrl(
+  path: string,
+): Promise<string | null> {
+  const cookieStore = await cookies();
+  const supabase = createSupabaseSsrServerClient(cookieStore);
+
+  const { data, error } = await supabase.storage
+    .from(PEDIDO_IMAGES_BUCKET)
+    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.signedUrl;
+}

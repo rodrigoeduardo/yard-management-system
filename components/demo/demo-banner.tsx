@@ -3,12 +3,14 @@
 import { usePathname } from "next/navigation";
 
 import { isQrPrintRoute } from "@/lib/loads/print";
+import { isReceiptPrintRoute } from "@/lib/removals/print";
 
 /**
  * Persistent PT-BR notice shown on every page while `DEMO_MODE` is set
  * (ADR 0002): visitors share one dataset that resets nightly. Never
  * rendered when demo mode is off, and deliberately excluded from the QR
- * codes print route (#252) so the printed sheet stays clean.
+ * codes print route (#252) and the removal receipt print route (#270) so
+ * the printed output stays clean.
  */
 export function DemoBanner({
   demoMode,
@@ -19,7 +21,7 @@ export function DemoBanner({
 }) {
   const pathname = usePathname();
 
-  if (!demoMode || isQrPrintRoute(pathname)) {
+  if (!demoMode || isQrPrintRoute(pathname) || isReceiptPrintRoute(pathname)) {
     return null;
   }
 

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { resolveMaterialId } from "./materials";
-import { removeScannedItems } from "./removals";
+import { getRemovalById, removeScannedItems } from "./removals";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoadWithItems(itemWeights: string[]) {
@@ -215,5 +215,50 @@ describe("removeScannedItems", () => {
       .from(removals)
       .where(eq(removals.id, removal.id));
     expect(reloaded[0].pedidoImagePath).toBe("pedidos/pedido-image-test.jpg");
+  });
+});
+
+describe("getRemovalById", () => {
+  const loadIds: string[] = [];
+  const removalIds: string[] = [];
+
+  afterEach(async () => {
+    while (removalIds.length > 0) {
+      const id = removalIds.pop()!;
+      await db.delete(removalItems).where(eq(removalItems.removalId, id));
+      await db.delete(removals).where(eq(removals.id, id));
+    }
+    while (loadIds.length > 0) {
+      const id = loadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it("returns the removal row for the printable receipt (issue #270)", async () => {
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Receipt Test Driver",
+      vehiclePlate: "REC0001",
+      pedidoImagePath: "removal-pedidos/receipt-test.jpg",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    const result = await getRemovalById(removal.id);
+
+    expect(result?.id).toBe(removal.id);
+    expect(result?.driver).toBe("Receipt Test Driver");
+    expect(result?.vehiclePlate).toBe("REC0001");
+    expect(result?.pedidoImagePath).toBe("removal-pedidos/receipt-test.jpg");
+  });
+
+  it("returns undefined for an unknown removal id", async () => {
+    const result = await getRemovalById(randomUUID());
+
+    expect(result).toBeUndefined();
   });
 });

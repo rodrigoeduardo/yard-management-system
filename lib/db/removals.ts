@@ -1,7 +1,18 @@
 import { eq, inArray } from "drizzle-orm";
 import { withAuditUser } from "./audit-context";
 import { subtractDecimalStrings, sumDecimalStrings } from "./decimal";
+import { db } from "./index";
 import { items, loads, removalItems, removals } from "./schema";
+
+/** Fetches a single removal by id (e.g. for the printable receipt page, issue #270). */
+export async function getRemovalById(removalId: string) {
+  const [removal] = await db
+    .select()
+    .from(removals)
+    .where(eq(removals.id, removalId));
+
+  return removal;
+}
 
 export type CreateRemovalData = {
   exitDate: Date;

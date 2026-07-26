@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -106,6 +108,16 @@ export function RemovalDetailModal({
                 </ul>
               )}
             </div>
+
+            <Link
+              href={`/removals/${removal.id}/receipt`}
+              className={buttonVariants({
+                variant: "outline",
+                className: "w-fit self-end",
+              })}
+            >
+              Comprovante de Remoção
+            </Link>
           </>
         )}
       </DialogContent>
