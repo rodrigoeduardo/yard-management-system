@@ -57,7 +57,7 @@ async function scanItem(payload: {
   material: string;
   weight: string;
 }) {
-  fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+  fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
   await waitFor(() => expect(scanCallback).toBeDefined());
   scanCallback!({ getText: () => encodeItemQrPayload(payload as never) });
 }
@@ -98,7 +98,7 @@ describe("NewRemovalPage scanned items list", () => {
       weight: "10",
     };
 
-    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
     await waitFor(() => expect(scanCallback).toBeDefined());
     scanCallback!({ getText: () => JSON.stringify(legacyPayload) });
 
@@ -261,7 +261,7 @@ describe("NewRemovalPage review dialog", () => {
       target: { value: "ABC1234" },
     });
 
-    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
     await waitFor(() => expect(scanCallback).toBeDefined());
     scanCallback!({
       getText: () =>
@@ -374,7 +374,7 @@ describe("NewRemovalPage review dialog", () => {
       </>,
     );
 
-    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
     await waitFor(() => expect(scanCallback).toBeDefined());
     scanCallback!({
       getText: () =>
@@ -578,7 +578,7 @@ describe("NewRemovalPage scan cooldown", () => {
   it("does not arm the cooldown on an invalid scan, so a valid scan right after is still accepted", async () => {
     render(<NewRemovalPage />);
 
-    fireEvent.click(screen.getByText("Iniciar Escaneamento"));
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
     await waitFor(() => expect(scanCallback).toBeDefined());
 
     scanCallback!({ getText: () => "not a valid qr payload" });

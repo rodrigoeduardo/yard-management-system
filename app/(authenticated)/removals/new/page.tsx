@@ -339,19 +339,20 @@ export default function NewRemovalPage() {
               </span>
             </div>
 
-            {/* On mobile this whole block (camera + toggle) sticks to the
-                bottom, right above the "Concluir Remoção" bar, so it stays
-                reachable without eating space from the Pedido preview. The
-                camera itself only appears (with a height/opacity transition)
-                while actively scanning — on desktop both are always static
-                and always visible. */}
-            <div className="fixed inset-x-0 bottom-[7.75rem] z-20 flex flex-col gap-3 bg-gradient-to-t from-background from-60% to-transparent px-4 pt-6 md:static md:z-auto md:bg-none md:p-0">
+            <div className="flex flex-col gap-3">
+              {/* On mobile the camera only takes up space while actively
+                  scanning (height/opacity transition), to leave room for the
+                  Pedido preview — the toggle button itself lives in the
+                  sticky mobile bottom bar instead, between "Peso Total
+                  Removido" and "Concluir Remoção". On desktop both the
+                  camera and its toggle button are always static and
+                  visible here. */}
               <div
                 className={cn(
                   "relative w-full overflow-hidden rounded-[18px] bg-foreground transition-all duration-300 ease-out md:h-[280px] md:max-h-none md:opacity-100",
                   isScanning
-                    ? "h-[180px] max-h-[180px] opacity-100"
-                    : "h-0 max-h-0 opacity-0 md:h-[280px]",
+                    ? "h-[210px] max-h-[210px] opacity-100"
+                    : "h-0 max-h-0 opacity-0",
                 )}
               >
                 <video
@@ -376,7 +377,7 @@ export default function NewRemovalPage() {
               <button
                 type="button"
                 onClick={isScanning ? stopScanning : startScanning}
-                className="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+                className="hidden h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground md:flex"
               >
                 <Scan className="size-4" />
                 {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
@@ -388,9 +389,6 @@ export default function NewRemovalPage() {
                 </p>
               )}
             </div>
-            {/* Spacer reserving the mobile-fixed block's height above so it
-                doesn't overlap the rest of the column's flow. */}
-            <div className="h-[190px] md:hidden" />
           </div>
 
           {/* Right column: Pedido reference image above the scanned items
@@ -519,6 +517,16 @@ export default function NewRemovalPage() {
                 {totalRemovedWeight} t
               </span>
             </div>
+
+            <button
+              type="button"
+              onClick={isScanning ? stopScanning : startScanning}
+              className="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+            >
+              <Scan className="size-4" />
+              {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+            </button>
+
             <Button
               type="button"
               onClick={() => setIsReviewOpen(true)}
