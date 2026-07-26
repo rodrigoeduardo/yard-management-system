@@ -1,6 +1,6 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "./index";
-import { items, loads, removalItems } from "./schema";
+import { items, loads, materials, removalItems } from "./schema";
 
 export type RemovalItemDetail = {
   id: string;
@@ -9,10 +9,19 @@ export type RemovalItemDetail = {
   notaFiscal: string;
 };
 
-/** Items removed in a given removal, labeled with each item's originating NF (e.g. for the removal-detail modal). */
-export async function getRemovalItems(
+export type RemovalReceiptItemDetail = RemovalItemDetail & {
+  material: string;
+};
+
+/**
+ * Shared core for `getRemovalItems`/`getRemovalReceiptItems`: resolves each
+ * removed item's identifier and originating NF (plus material, dropped by
+ * `getRemovalItems`), indexed by the item's position among *all* of its
+ * load's items (not just the removed ones).
+ */
+async function getRemovalItemsWithMaterial(
   removalId: string,
-): Promise<RemovalItemDetail[]> {
+): Promise<RemovalReceiptItemDetail[]> {
   const removedItems = await db
     .select({
       id: items.id,
@@ -32,8 +41,13 @@ export async function getRemovalItems(
 
   const [loadRows, allItemsInLoads] = await Promise.all([
     db
-      .select({ id: loads.id, notaFiscal: loads.notaFiscal })
+      .select({
+        id: loads.id,
+        notaFiscal: loads.notaFiscal,
+        material: materials.name,
+      })
       .from(loads)
+      .innerJoin(materials, eq(loads.materialId, materials.id))
       .where(inArray(loads.id, loadIds)),
     db
       .select({ id: items.id, loadId: items.loadId })
@@ -42,9 +56,7 @@ export async function getRemovalItems(
       .orderBy(asc(items.sequence)),
   ]);
 
-  const notaFiscalByLoadId = new Map(
-    loadRows.map((load) => [load.id, load.notaFiscal]),
-  );
+  const loadById = new Map(loadRows.map((load) => [load.id, load]));
 
   const indexByItemId = new Map<string, number>();
   const counters = new Map<string, number>();
@@ -55,12 +67,33 @@ export async function getRemovalItems(
   }
 
   return removedItems.map((item) => {
-    const notaFiscal = notaFiscalByLoadId.get(item.loadId)!;
+    const load = loadById.get(item.loadId)!;
     return {
       id: item.id,
-      identifier: `Item ${indexByItemId.get(item.id)} - ${notaFiscal}`,
+      identifier: `Item ${indexByItemId.get(item.id)} - ${load.notaFiscal}`,
       weight: item.weight,
-      notaFiscal,
+      notaFiscal: load.notaFiscal,
+      material: load.material,
     };
   });
+}
+
+/** Items removed in a given removal, labeled with each item's originating NF (e.g. for the removal-detail modal). */
+export async function getRemovalItems(
+  removalId: string,
+): Promise<RemovalItemDetail[]> {
+  const detailed = await getRemovalItemsWithMaterial(removalId);
+  return detailed.map(({ id, identifier, weight, notaFiscal }) => ({
+    id,
+    identifier,
+    weight,
+    notaFiscal,
+  }));
+}
+
+/** Items removed in a given removal, each labeled with its originating NF and material (for the printable receipt, issue #270). */
+export async function getRemovalReceiptItems(
+  removalId: string,
+): Promise<RemovalReceiptItemDetail[]> {
+  return getRemovalItemsWithMaterial(removalId);
 }
