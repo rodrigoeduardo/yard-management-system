@@ -55,6 +55,8 @@ The nightly data reset (`reset_demo_data()`, scheduled via `pg_cron`) is a separ
 see [demo-reset-scheduling.md](./demo-reset-scheduling.md), including the migration-applied
 prerequisite check.
 
-## Known gap — database migrations
+## Database migrations
 
-Vercel's default build runs `next build` only; it does **not** run Drizzle migrations (`npm run db:migrate`). Schema changes must be applied to production Supabase separately. Automating this (a migration step in the deploy pipeline) is out of scope for the initial deploy — tracked as a follow-up.
+Vercel's default build runs `next build` only; it does **not** run Drizzle migrations. A `migrate` job in `.github/workflows/ci.yml` runs `npm run db:migrate` against `SUPABASE_DB_URL` after `checks` and `integration` pass on a push to `main`, so schema changes land right after merge, ahead of (or racing) the Vercel prod deploy.
+
+**Known gap — preview deploys**: PR preview deploys still point at the shared dev/prod Supabase project and get no migrations of their own. A migration only reaches that project once its PR merges to `main` (triggering the `migrate` job above). Testing a PR's DB-schema changes before merge still requires running `npm run db:migrate` by hand against that shared project. Fixing this needs either a per-PR isolated database (Supabase Branching) or a CI step that migrates the shared dev DB on every push — tracked as a follow-up.
