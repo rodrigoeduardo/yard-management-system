@@ -121,6 +121,7 @@ export async function listRemovalsPage({
         exitDate: removals.exitDate,
         driver: removals.driver,
         vehiclePlate: removals.vehiclePlate,
+        pedidoImagePath: removals.pedidoImagePath,
         totalRemovedWeight: removals.totalRemovedWeight,
         createdAt: removals.createdAt,
         itemCount: itemCountExpr,

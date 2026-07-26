@@ -10,6 +10,7 @@ const FIELD_MESSAGES: Record<keyof RemoveItemsInput, string> = {
   exitDateTime: "Informe uma data e hora de saída válidas.",
   driver: "Informe o motorista.",
   vehiclePlate: "Informe a placa do veículo.",
+  pedidoImagePath: "Anexe a imagem do Pedido.",
   qrTokens: "Escaneie ao menos um item.",
 };
 

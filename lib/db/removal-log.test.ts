@@ -61,6 +61,7 @@ describe("removal log queries", () => {
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
         vehiclePlate: "AAA1111",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken],
       });
       removalIds.push(older.id);
@@ -69,6 +70,7 @@ describe("removal log queries", () => {
         exitDate: new Date("2026-02-02"),
         driver: "Driver B",
         vehiclePlate: "BBB2222",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[1].qrToken],
       });
       removalIds.push(newer.id);
@@ -91,6 +93,7 @@ describe("removal log queries", () => {
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
         vehiclePlate: "AAA1111",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [loadA.items[0].qrToken, loadB.items[0].qrToken],
       });
       removalIds.push(removal.id);
@@ -117,12 +120,14 @@ describe("removal log queries", () => {
         exitDate: new Date("2026-02-01"),
         driver: "Driver A",
         vehiclePlate: "AAA1111",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [loadA.items[0].qrToken],
       });
       const removalB = await removeScannedItems({
         exitDate: new Date("2026-02-02"),
         driver: "Driver B",
         vehiclePlate: "BBB2222",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [loadB.items[0].qrToken],
       });
       removalIds.push(removalA.id, removalB.id);
@@ -146,12 +151,14 @@ describe("removal log queries", () => {
           exitDate: new Date("2026-02-01"),
           driver: `Motorista-${marker}`,
           vehiclePlate: "AAA1111",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadDriver.items[0].qrToken],
         });
         const byNf = await removeScannedItems({
           exitDate: new Date("2026-02-02"),
           driver: "Outro Motorista",
           vehiclePlate: "BBB2222",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadNf.items[0].qrToken],
         });
         removalIds.push(byDriver.id, byNf.id);
@@ -189,12 +196,14 @@ describe("removal log queries", () => {
           exitDate: new Date("2026-03-01"),
           driver: `Driver-Order-${marker}-LIGHT`,
           vehiclePlate: "AAA1111",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadA.items[0].qrToken],
         });
         const heavy = await removeScannedItems({
           exitDate: new Date("2026-03-02"),
           driver: `Driver-Order-${marker}-HEAVY`,
           vehiclePlate: "BBB2222",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadA.items[1].qrToken, loadB.items[0].qrToken],
         });
         removalIds.push(light.id, heavy.id);
@@ -231,6 +240,7 @@ describe("removal log queries", () => {
             exitDate: new Date(2026, 3, i + 1),
             driver: `Driver-Page-${marker}`,
             vehiclePlate: "AAA1111",
+            pedidoImagePath: "removal-pedidos/test.jpg",
             qrTokens: [load.items[0].qrToken],
           });
           removalIds.push(removal.id);
@@ -270,6 +280,7 @@ describe("removal log queries", () => {
           exitDate: new Date("2026-02-01"),
           driver: `Driver-Plate-${marker}`,
           vehiclePlate: "ABC1234",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [load.items[0].qrToken],
         });
         removalIds.push(removal.id);
@@ -318,18 +329,21 @@ describe("removal log queries", () => {
           exitDate: new Date("2026-04-01T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
           vehiclePlate: "AAA1111",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadEarlyLight.items[0].qrToken],
         });
         const mid = await removeScannedItems({
           exitDate: new Date("2026-04-15T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
           vehiclePlate: "BBB2222",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadMidHeavy.items[0].qrToken],
         });
         const late = await removeScannedItems({
           exitDate: new Date("2026-04-30T12:00:00Z"),
           driver: `Driver-Filter-${marker}`,
           vehiclePlate: "CCC3333",
+          pedidoImagePath: "removal-pedidos/test.jpg",
           qrTokens: [loadLateLight.items[0].qrToken],
         });
         removalIds.push(early.id, mid.id, late.id);

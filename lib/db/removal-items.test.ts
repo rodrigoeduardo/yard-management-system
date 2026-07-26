@@ -35,6 +35,7 @@ async function insertRemoval(itemIds: string[]) {
     .values({
       exitDate: new Date("2026-02-01"),
       driver: "Driver A",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       totalRemovedWeight: "0",
     })
     .returning();

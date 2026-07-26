@@ -7,6 +7,7 @@ export type CreateRemovalData = {
   exitDate: Date;
   driver: string;
   vehiclePlate: string;
+  pedidoImagePath: string;
   qrTokens: string[];
 };
 
@@ -37,6 +38,7 @@ export async function removeScannedItems(
         exitDate: data.exitDate,
         driver: data.driver,
         vehiclePlate: data.vehiclePlate,
+        pedidoImagePath: data.pedidoImagePath,
         totalRemovedWeight,
       })
       .returning();

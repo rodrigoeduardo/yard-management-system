@@ -67,6 +67,7 @@ async function insertJunkData(): Promise<void> {
         exitDate: new Date(),
         driver: `Junk driver ${randomUUID()}`,
         vehiclePlate: "JUNK123",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         totalRemovedWeight: "5.00",
       })
       .returning();

@@ -57,6 +57,7 @@ describe("removeScannedItems", () => {
       exitDate: new Date("2026-02-01"),
       driver: "John Doe",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/test.jpg",
       qrTokens: [
         loadA.items[0].qrToken,
         loadB.items[0].qrToken,
@@ -111,6 +112,7 @@ describe("removeScannedItems", () => {
         exitDate: new Date("2026-02-01"),
         driver: "John Doe",
         vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken],
       });
       removalIds.push(removal.id);
@@ -146,6 +148,7 @@ describe("removeScannedItems", () => {
         exitDate: new Date("2026-02-01"),
         driver: uniqueDriver,
         vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/test.jpg",
         qrTokens: [load.items[0].qrToken, load.items[1].qrToken],
       }),
     ).rejects.toThrow();
@@ -178,6 +181,7 @@ describe("removeScannedItems", () => {
       exitDate: new Date("2026-02-01"),
       driver: "Vehicle Plate Test Driver",
       vehiclePlate: "ABC1234",
+      pedidoImagePath: "pedidos/pedido-1.jpg",
       qrTokens: [load.items[0].qrToken],
     });
     removalIds.push(removal.id);
@@ -189,5 +193,27 @@ describe("removeScannedItems", () => {
       .from(removals)
       .where(eq(removals.id, removal.id));
     expect(reloaded[0].vehiclePlate).toBe("ABC1234");
+  });
+
+  it("persists the pedido image storage path on the removal row", async () => {
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Pedido Image Test Driver",
+      vehiclePlate: "ABC1234",
+      pedidoImagePath: "pedidos/pedido-image-test.jpg",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    expect(removal.pedidoImagePath).toBe("pedidos/pedido-image-test.jpg");
+
+    const reloaded = await db
+      .select()
+      .from(removals)
+      .where(eq(removals.id, removal.id));
+    expect(reloaded[0].pedidoImagePath).toBe("pedidos/pedido-image-test.jpg");
   });
 });

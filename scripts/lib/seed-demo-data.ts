@@ -169,6 +169,10 @@ export async function seedDemoData(
       exitDate: seedEntryDate(-i, now), // exits after entries, spread across days
       driver,
       vehiclePlate: buildSeedVehiclePlate(prefix, i),
+      // Seed data has no real attached Pedido image (issue #269) — a fixed
+      // placeholder path keeps this idempotent seeding path type-correct
+      // without implying a real Storage object exists.
+      pedidoImagePath: "removal-pedidos/seed-placeholder.jpg",
       qrTokens: [availableItem.qrToken],
     });
     removalsCreated += 1;

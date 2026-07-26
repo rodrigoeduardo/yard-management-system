@@ -4,14 +4,22 @@ import { Dialog } from "@base-ui/react/dialog";
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { Calendar, Scan, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { PageBackHeader } from "@/components/nav/page-back-header";
+import { PedidoImageAttach } from "@/components/removals/pedido-image-attach";
 import { RemovalReceiptView } from "@/components/removals/removal-receipt-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionLabel } from "@/components/ui/section-label";
 import { useTopLoaderTask } from "@/components/ui/top-loader";
+import { uploadPedidoImage } from "@/lib/actions/pedido-image";
 import { removeItems } from "@/lib/actions/removals";
 import { sumDecimalStrings } from "@/lib/db/decimal";
 import { formatEntryDateTime } from "@/lib/format/datetime";
@@ -46,6 +54,37 @@ function notasFiscaisLabel(count: number): string {
 
 /** Ignore further QR reads for this long after an accepted scan (ms). */
 const SCAN_COOLDOWN_MS = 2000;
+/** How long the "item added" confirmation stays on screen (ms). */
+const SCAN_FEEDBACK_MS = 1600;
+
+/**
+ * The QR video element only ever mounts in one place at a time (desktop:
+ * inline next to the form; mobile: inside the sticky bottom bar) since it's
+ * bound to a single ref that the scanner library attaches a live camera
+ * stream to — mounting it in two places at once would only let one of them
+ * actually receive the stream.
+ */
+const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
+
+function subscribeToDesktopViewport(onChange: () => void): () => void {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+  mql.addEventListener("change", onChange);
+  return () => mql.removeEventListener("change", onChange);
+}
+
+function getIsDesktopViewport(): boolean {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+}
+
+function useIsDesktopViewport(): boolean {
+  return useSyncExternalStore(
+    subscribeToDesktopViewport,
+    getIsDesktopViewport,
+    () => false,
+  );
+}
 
 export default function NewRemovalPage() {
   const router = useRouter();
@@ -56,9 +95,16 @@ export default function NewRemovalPage() {
   );
   const [driver, setDriver] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [pedidoImage, setPedidoImage] = useState<File | null>(null);
+  const [pedidoImageError, setPedidoImageError] = useState<
+    string | undefined
+  >();
   const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
-  const [scanError, setScanError] = useState<string | undefined>();
+  const [scanToast, setScanToast] = useState<
+    { type: "success" | "error"; text: string } | undefined
+  >();
   const [isScanning, setIsScanning] = useState(false);
+  const isDesktop = useIsDesktopViewport();
   const [fieldErrors, setFieldErrors] = useState<RemoveItemsFieldMessages>({});
   const [formError, setFormError] = useState<string | undefined>();
   const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -69,11 +115,33 @@ export default function NewRemovalPage() {
   const scannedItemsRef = useRef<ItemQrPayload[]>([]);
   const pendingTokensRef = useRef<Set<string>>(new Set());
   const scanCooldownRef = useRef(createScanCooldown(SCAN_COOLDOWN_MS));
+  const scanFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (scanFeedbackTimeoutRef.current) {
+        clearTimeout(scanFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function showScanToast(type: "success" | "error", text: string) {
+    setScanToast({ type, text });
+    if (scanFeedbackTimeoutRef.current) {
+      clearTimeout(scanFeedbackTimeoutRef.current);
+    }
+    scanFeedbackTimeoutRef.current = setTimeout(
+      () => setScanToast(undefined),
+      SCAN_FEEDBACK_MS,
+    );
+  }
 
   async function handleScannedText(text: string) {
     const payload = safeDecodeItemQrPayload(text);
     if (!payload) {
-      setScanError("Código QR inválido.");
+      showScanToast("error", "Código QR inválido.");
       return;
     }
 
@@ -83,7 +151,7 @@ export default function NewRemovalPage() {
 
     const { list, error } = addScannedItem(scannedItemsRef.current, payload);
     if (error) {
-      setScanError(error);
+      showScanToast("error", error);
       return;
     }
 
@@ -96,18 +164,21 @@ export default function NewRemovalPage() {
     pendingTokensRef.current.delete(payload.qrToken);
 
     if (!status.success || status.status === "not_found") {
-      setScanError("Item não encontrado.");
+      showScanToast("error", "Item não encontrado.");
       return;
     }
     if (status.status === "removed") {
-      setScanError("Este item já foi removido anteriormente.");
+      showScanToast("error", "Este item já foi removido anteriormente.");
       return;
     }
 
-    setScanError(undefined);
     scannedItemsRef.current = list;
     setScannedItems(list);
     scanCooldownRef.current.start(payload.qrToken);
+    showScanToast(
+      "success",
+      `Item adicionado: ${payload.material} — ${payload.weight} t`,
+    );
   }
 
   async function startScanning() {
@@ -144,12 +215,35 @@ export default function NewRemovalPage() {
   function handleConfirm() {
     setFieldErrors({});
     setFormError(undefined);
+    setPedidoImageError(undefined);
+
+    // Belt-and-suspenders: the "Concluir Remoção" CTA is already disabled
+    // without an attached image, but this action is the one place the
+    // removal is actually submitted, so it validates for itself too.
+    if (!pedidoImage) {
+      setPedidoImageError(
+        "Anexe a imagem do Pedido antes de concluir a remoção.",
+      );
+      setIsReviewOpen(false);
+      return;
+    }
 
     startTransition(async () => {
+      const pedidoImageFormData = new FormData();
+      pedidoImageFormData.set("file", pedidoImage);
+      const uploadResult = await uploadPedidoImage(pedidoImageFormData);
+
+      if (!uploadResult.success) {
+        setPedidoImageError(uploadResult.error);
+        setIsReviewOpen(false);
+        return;
+      }
+
       const result = await removeItems({
         exitDateTime,
         driver,
         vehiclePlate,
+        pedidoImagePath: uploadResult.path,
         qrTokens: scannedItemsRef.current.map((item) => item.qrToken),
       });
 
@@ -174,6 +268,7 @@ export default function NewRemovalPage() {
       );
       scannedItemsRef.current = [];
       setScannedItems([]);
+      setPedidoImage(null);
       setIsReviewOpen(false);
       stopScanning();
     });
@@ -184,9 +279,10 @@ export default function NewRemovalPage() {
     setExitDateTime(getCurrentEntryDateTimeValue());
     setDriver("");
     setVehiclePlate("");
+    setPedidoImage(null);
+    setPedidoImageError(undefined);
     setFieldErrors({});
     setFormError(undefined);
-    setScanError(undefined);
     setReceipt(undefined);
   }
 
@@ -217,6 +313,19 @@ export default function NewRemovalPage() {
         </>
       )}
 
+      {scanToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={cn(
+            "pointer-events-none fixed inset-x-4 top-4 z-50 mx-auto max-w-sm animate-in rounded-[12px] px-4 py-2.5 text-center text-sm font-medium text-primary-foreground shadow-lg fade-in-0 slide-in-from-top-2 md:top-6",
+            scanToast.type === "success" ? "bg-emerald-600" : "bg-destructive",
+          )}
+        >
+          {scanToast.text}
+        </div>
+      )}
+
       {receipt && (
         <RemovalReceiptView
           receipt={receipt}
@@ -226,7 +335,7 @@ export default function NewRemovalPage() {
       )}
 
       {!receipt && (
-        <div className="flex flex-col gap-5 md:grid md:grid-cols-[420px_1fr] md:items-start md:gap-5">
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-[360px_1fr] md:items-start md:gap-5">
           {/* Left column: fixed removal data + scanner + toggle */}
           <div className="flex flex-col gap-5">
             <div className="flex w-full min-w-0 flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
@@ -307,46 +416,60 @@ export default function NewRemovalPage() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="relative h-[210px] w-full overflow-hidden rounded-[18px] bg-foreground md:h-[280px]">
-                <video
-                  ref={videoRef}
-                  className="h-full w-full object-cover"
-                  muted
-                />
-                <div className="pointer-events-none absolute inset-4 md:inset-5">
-                  <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90 md:size-7" />
-                  <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90 md:size-7" />
-                  {isScanning && (
-                    <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
-                  )}
-                  <span className="absolute right-0 bottom-1 left-0 text-center text-xs text-primary-foreground/65 md:text-[12.5px]">
-                    Aponte a câmera para o QR Code do item
-                  </span>
+            {/* The camera only ever mounts here on desktop — on mobile it
+                lives inside the sticky bottom bar instead (see below), so
+                it's reachable without scrolling back up to this column. */}
+            {isDesktop && (
+              <div className="flex flex-col gap-3">
+                <div className="relative h-[280px] w-full overflow-hidden rounded-[18px] bg-foreground">
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover"
+                    muted
+                  />
+                  <div className="pointer-events-none absolute inset-5">
+                    <span className="absolute top-0 left-0 size-7 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90" />
+                    <span className="absolute top-0 right-0 size-7 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90" />
+                    <span className="absolute bottom-0 left-0 size-7 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90" />
+                    <span className="absolute right-0 bottom-0 size-7 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90" />
+                    {isScanning && (
+                      <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
+                    )}
+                    <span className="absolute right-0 bottom-1 left-0 text-center text-[12.5px] text-primary-foreground/65">
+                      Aponte a câmera para o QR Code do item
+                    </span>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={isScanning ? stopScanning : startScanning}
+                  className="flex h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+                >
+                  <Scan className="size-4" />
+                  {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={isScanning ? stopScanning : startScanning}
-                className="flex h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
-              >
-                <Scan className="size-4" />
-                {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
-              </button>
-
-              {scanError && (
-                <p role="alert" className="text-sm text-destructive">
-                  {scanError}
-                </p>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* Right column: scanned items list */}
-          <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+          {/* Right column: Pedido reference image above the scanned items
+              list — full column width so the preview stays legible, and
+              viewable together with the running list so the operator can
+              cross-check the image against what they scanned. */}
+          <div className="flex flex-col gap-5">
+            <div className="md:sticky md:top-6">
+              <PedidoImageAttach
+                file={pedidoImage}
+                onSelect={(file) => {
+                  setPedidoImage(file);
+                  setPedidoImageError(undefined);
+                }}
+                error={pedidoImageError}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
             <div className="flex items-baseline justify-between">
               <SectionLabel className="font-bold text-foreground/80">
                 ITENS LIDOS ({scannedItems.length})
@@ -437,13 +560,14 @@ export default function NewRemovalPage() {
               <Button
                 type="button"
                 onClick={() => setIsReviewOpen(true)}
-                disabled={isPending || scannedItems.length === 0}
+                disabled={isPending || scannedItems.length === 0 || !pedidoImage}
                 className="h-12 rounded-[13px] px-6"
               >
                 Concluir Remoção ({scannedItems.length}{" "}
                 {itemsLabel(scannedItems.length)})
               </Button>
             </div>
+          </div>
           </div>
 
           <div className="fixed inset-x-0 bottom-16 z-30 flex flex-col gap-3 bg-gradient-to-t from-background from-35% to-transparent p-5 pt-7 md:hidden">
@@ -455,10 +579,52 @@ export default function NewRemovalPage() {
                 {totalRemovedWeight} t
               </span>
             </div>
+
+            {/* Mobile-only mount of the camera — see the comment on the
+                desktop version above. Only takes up space (with a
+                height/opacity transition) while actively scanning. */}
+            {!isDesktop && (
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden rounded-[16px] bg-foreground transition-all duration-300 ease-out",
+                  isScanning
+                    ? "h-[190px] max-h-[190px] opacity-100"
+                    : "h-0 max-h-0 opacity-0",
+                )}
+              >
+                <video
+                  ref={videoRef}
+                  className="h-full w-full object-cover"
+                  muted
+                />
+                <div className="pointer-events-none absolute inset-4">
+                  <span className="absolute top-0 left-0 size-6 rounded-tl-md border-t-[3px] border-l-[3px] border-primary-foreground/90" />
+                  <span className="absolute top-0 right-0 size-6 rounded-tr-md border-t-[3px] border-r-[3px] border-primary-foreground/90" />
+                  <span className="absolute bottom-0 left-0 size-6 rounded-bl-md border-b-[3px] border-l-[3px] border-primary-foreground/90" />
+                  <span className="absolute right-0 bottom-0 size-6 rounded-br-md border-r-[3px] border-b-[3px] border-primary-foreground/90" />
+                  {isScanning && (
+                    <div className="animate-scan-line absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_14px_var(--primary)]" />
+                  )}
+                  <span className="absolute right-0 bottom-1 left-0 text-center text-xs text-primary-foreground/65">
+                    Aponte a câmera para o QR Code do item
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={isScanning ? stopScanning : startScanning}
+              className="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+            >
+              <Scan className="size-4" />
+              {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
+            </button>
+
             <Button
               type="button"
               onClick={() => setIsReviewOpen(true)}
-              disabled={isPending || scannedItems.length === 0}
+              disabled={isPending || scannedItems.length === 0 || !pedidoImage}
               className="h-[52px] rounded-[14px] text-[15px]"
             >
               Concluir Remoção ({scannedItems.length}{" "}
