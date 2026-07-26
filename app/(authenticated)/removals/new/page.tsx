@@ -258,7 +258,7 @@ export default function NewRemovalPage() {
       )}
 
       {!receipt && (
-        <div className="flex flex-col gap-5 md:grid md:grid-cols-[360px_300px_1fr] md:items-start md:gap-5">
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-[360px_1fr] md:items-start md:gap-5">
           {/* Left column: fixed removal data + scanner + toggle */}
           <div className="flex flex-col gap-5">
             <div className="flex w-full min-w-0 flex-col gap-4 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
@@ -339,8 +339,21 @@ export default function NewRemovalPage() {
               </span>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="relative h-[210px] w-full overflow-hidden rounded-[18px] bg-foreground md:h-[280px]">
+            {/* On mobile this whole block (camera + toggle) sticks to the
+                bottom, right above the "Concluir Remoção" bar, so it stays
+                reachable without eating space from the Pedido preview. The
+                camera itself only appears (with a height/opacity transition)
+                while actively scanning — on desktop both are always static
+                and always visible. */}
+            <div className="fixed inset-x-0 bottom-[7.75rem] z-20 flex flex-col gap-3 bg-gradient-to-t from-background from-60% to-transparent px-4 pt-6 md:static md:z-auto md:bg-none md:p-0">
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden rounded-[18px] bg-foreground transition-all duration-300 ease-out md:h-[280px] md:max-h-none md:opacity-100",
+                  isScanning
+                    ? "h-[180px] max-h-[180px] opacity-100"
+                    : "h-0 max-h-0 opacity-0 md:h-[280px]",
+                )}
+              >
                 <video
                   ref={videoRef}
                   className="h-full w-full object-cover"
@@ -363,7 +376,7 @@ export default function NewRemovalPage() {
               <button
                 type="button"
                 onClick={isScanning ? stopScanning : startScanning}
-                className="flex h-[46px] items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
+                className="flex h-[46px] shrink-0 items-center justify-center gap-2 rounded-input border-[1.5px] border-dashed border-accent-foreground/40 bg-accent/50 text-[13.5px] font-semibold text-accent-foreground"
               >
                 <Scan className="size-4" />
                 {isScanning ? "Parar Escaneamento" : "Iniciar Escaneamento"}
@@ -375,24 +388,28 @@ export default function NewRemovalPage() {
                 </p>
               )}
             </div>
+            {/* Spacer reserving the mobile-fixed block's height above so it
+                doesn't overlap the rest of the column's flow. */}
+            <div className="h-[190px] md:hidden" />
           </div>
 
-          {/* Middle column: Pedido reference image — kept next to the
-              scanned items list (and pinned on desktop) so the operator can
-              cross-check the attached image against what they scanned. */}
-          <div className="md:sticky md:top-6">
-            <PedidoImageAttach
-              file={pedidoImage}
-              onSelect={(file) => {
-                setPedidoImage(file);
-                setPedidoImageError(undefined);
-              }}
-              error={pedidoImageError}
-            />
-          </div>
+          {/* Right column: Pedido reference image above the scanned items
+              list — full column width so the preview stays legible, and
+              viewable together with the running list so the operator can
+              cross-check the image against what they scanned. */}
+          <div className="flex flex-col gap-5">
+            <div className="md:sticky md:top-6">
+              <PedidoImageAttach
+                file={pedidoImage}
+                onSelect={(file) => {
+                  setPedidoImage(file);
+                  setPedidoImageError(undefined);
+                }}
+                error={pedidoImageError}
+              />
+            </div>
 
-          {/* Right column: scanned items list */}
-          <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
+            <div className="flex flex-col gap-3 md:gap-3.5 md:rounded-card md:border md:border-border md:bg-card md:p-[22px]">
             <div className="flex items-baseline justify-between">
               <SectionLabel className="font-bold text-foreground/80">
                 ITENS LIDOS ({scannedItems.length})
@@ -490,6 +507,7 @@ export default function NewRemovalPage() {
                 {itemsLabel(scannedItems.length)})
               </Button>
             </div>
+          </div>
           </div>
 
           <div className="fixed inset-x-0 bottom-16 z-30 flex flex-col gap-3 bg-gradient-to-t from-background from-35% to-transparent p-5 pt-7 md:hidden">
