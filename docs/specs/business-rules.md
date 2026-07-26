@@ -2,6 +2,10 @@
 
 Source of truth for application behavior. Translated and expanded from the original project proposal (original Portuguese version preserved in git history: first commit's `CLAUDE.md`).
 
+## UI language (`setup`)
+
+- The UI defaults to Portuguese but is served through an en/pt-br toggle — see the [UI language note](glossary.md#ui-language-note) for the detection mechanism and current migration status.
+
 ## Weight display
 
 - All weight values are displayed with the unit label **"t"** (tonnes) everywhere in the UI. This is a display re-label only — no numeric conversion is applied to stored values.
