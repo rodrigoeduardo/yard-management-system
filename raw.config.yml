@@ -8,23 +8,26 @@ gates:
   # Who promotes issues from status:proposed to status:ready (makes them claimable).
   promote: human
   # Who clicks merge on an approved, green PR. "auto" lets /autopilot merge.
-  merge: auto
+  merge: human
   # Who triggers a deploy after merges. Only meaningful if commands.deploy is set.
   deploy: human
 
 # Project commands agents run. Fill these for your stack.
 # Unset commands are skipped (agents will note the skip, never guess a command).
 commands:
-  install: npm ci
-  lint: npm run lint
-  test: npm test
-  test_all: npm run test:all
-  deploy: # unset — CD deploys main automatically (Vercel)
+  install: # e.g. npm ci
+  lint: # e.g. npm run lint
+  test: # e.g. npm test
+  test_all: # full suite incl. integration, e.g. npm run test:all
+  deploy: # e.g. npm run deploy — leave unset if CD deploys main automatically
+  dev: # e.g. npm run dev — run the app locally; required by the evidence gate below
 
 # Domain area labels (area:*) used on issues. Define your own; these are examples.
 # /configure can create them on GitHub for you.
 labels:
-  areas: [setup, database, auth, load-intake, inventory-view, load-removal, audit, qrcode, deploy, demo, landing]
+  areas: []
+  # EXAMPLE:
+  # areas: [setup, database, auth, billing, notifications]
 
 # Where the planner (/plan-board) reads specs from.
 specs_dir: docs/specs
@@ -41,3 +44,58 @@ autopilot:
   parallel: 1
   # Review→fix rounds per PR before the issue is marked status:blocked.
   max_fix_cycles: 3
+
+# ---------------------------------------------------------------------------
+# Pluggability. Every default below is raw's original behavior — leaving this
+# whole block out changes nothing. Each provider has an adapter doc under
+# docs/workflow/adapters/; skills read the doc for the provider you select.
+# ---------------------------------------------------------------------------
+
+# Where the board lives. The *tracker state* is the machine source of truth;
+# for GitHub that state is issue labels. PRs are always GitHub either way, so
+# ai-review:* labels are unaffected by this choice.
+tracker:
+  provider: github # github | linear    → adapters/tracker-<provider>.md
+  linear: # only read when provider: linear
+    team: # e.g. ENG
+    states: # Linear workflow state per raw status
+      proposed: Backlog
+      ready: Todo
+      in_progress: In Progress
+      in_review: In Review
+      blocked: Blocked
+
+# How isolated workspaces are created for workers.
+worktrees:
+  provider: claude # claude | orca | conductor (experimental)
+
+# Which engine runs each role. `bindings` above picks a *skill*; `runners`
+# picks an *engine*. Claude models map to the Agent-tool model override (the
+# agent frontmatter model stays the fallback).
+runners:
+  executor: { runner: claude, model: sonnet, effort: medium } # runner: claude | codex
+  reviewer: { runner: claude, model: sonnet, effort: medium }
+  # Drives one PR to merge-ready. Opus by default because it decides whether a
+  # review finding actually reproduces — the judgement call the whole fix loop
+  # hangs on. Downgrading this saves little and costs wrong fix rounds.
+  babysitter: { runner: claude, model: opus, effort: medium }
+  # Optional second reviewer from another model family, for decorrelated errors.
+  # Its findings are comments only — raw's reviewer still owns the verdict label.
+  # e.g. { runner: codex, model: gpt-5.6-codex, effort: medium }
+  adversarial_reviewer:
+  # Headless invocation template for the codex runner.
+  codex_command: codex exec
+
+# Evidence gate: "done" on user-visible work needs an artifact someone other
+# than the worker looked at.
+evidence:
+  # auto     — required whenever the issue is user-visible (template field or a
+  #            UI-ish area:* label); inert for repos/issues with no UI surface
+  # required — always required
+  # off      — never required
+  ui_screenshot: auto
+  # How the screenshot is captured. playwright (default) follows
+  # docs/workflow/adapters/evidence-playwright.md — the Playwright MCP server
+  # when the session has it, `npx playwright` otherwise. manual = the worker
+  # improvises (escape hatch for stacks Playwright can't drive).
+  driver: playwright # playwright | manual
