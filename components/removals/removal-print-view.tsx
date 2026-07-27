@@ -93,7 +93,7 @@ export function RemovalPrintView({
 
       <div className="overflow-hidden rounded-[14px] border border-border">
         <table className="w-full text-[13.5px]">
-          <thead>
+          <thead className="print:table-header-group">
             <tr className="border-b border-border bg-muted text-left text-xs text-muted-foreground">
               <th className="px-[18px] py-2.5 font-medium">Item</th>
               <th className="px-[18px] py-2.5 font-medium">NF</th>
@@ -105,7 +105,7 @@ export function RemovalPrintView({
           </thead>
           <tbody className="divide-y divide-border">
             {items.map((item) => (
-              <tr key={item.id}>
+              <tr key={item.id} className="print:break-inside-avoid">
                 <td className="px-[18px] py-3 font-semibold">
                   {item.identifier}
                 </td>
