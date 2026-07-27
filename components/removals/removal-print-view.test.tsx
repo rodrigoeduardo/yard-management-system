@@ -68,6 +68,25 @@ describe("RemovalPrintView", () => {
     ).toBeInTheDocument();
   });
 
+  it("repeats the table header on every printed page and never splits a row across a page break (issue #286)", () => {
+    const { container } = render(
+      <RemovalPrintView
+        summary={summary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={items}
+      />,
+    );
+
+    const thead = container.querySelector("thead");
+    expect(thead?.className).toMatch(/\bprint:table-header-group\b/);
+
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(items.length);
+    for (const row of rows) {
+      expect(row.className).toMatch(/\bprint:break-inside-avoid\b/);
+    }
+  });
+
   it("lists each removed item with its item number, NF, material and weight", () => {
     render(
       <RemovalPrintView
