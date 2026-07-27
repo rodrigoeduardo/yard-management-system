@@ -54,11 +54,15 @@ describe("design tokens (globals.css)", () => {
     expect(variantMatch![1]).toContain(".dark");
   });
 
-  it("defines @page margins and forces a white background for print (issue #95)", () => {
+  it("forces a white background for print, app-wide", () => {
     const printBlockMatch = css.match(/@media print\s*\{[\s\S]*?\n\}/);
     expect(printBlockMatch).not.toBeNull();
     const printBlock = printBlockMatch![0];
-    expect(printBlock).toMatch(/@page\s*\{[\s\S]*?margin:[\s\S]*?\}/);
     expect(printBlock).toMatch(/background:\s*(#fff|white)/i);
+  });
+
+  it("declares no @page rule of its own (issue #286): page sizes are route-scoped via CSS Modules, not global", () => {
+    expect(css).not.toMatch(/@page/);
+    expect(css).not.toMatch(/100mm 50mm/);
   });
 });

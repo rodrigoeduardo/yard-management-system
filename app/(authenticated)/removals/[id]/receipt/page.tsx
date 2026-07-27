@@ -5,6 +5,7 @@ import { getPedidoImageSignedUrl } from "@/lib/actions/pedido-image";
 import { getRemovalReceiptItems } from "@/lib/db/removal-items";
 import { getRemovalById } from "@/lib/db/removals";
 import { formatRemovalReceiptSummary, isValidRemovalId } from "@/lib/removals/print";
+import "./print.module.css";
 
 export const dynamic = "force-dynamic";
 

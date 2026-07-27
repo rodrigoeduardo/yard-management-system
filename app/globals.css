@@ -152,15 +152,14 @@
   }
 }
 
-/* QR label print output: one 100x50mm label per page (Elgin L42 Pro Full
-   thermal printer), forced white background so labels print without app
-   chrome (issue #95, adapted for label-roll printing in #217). */
+/* Forces a white background app-wide for print, so screen chrome (e.g. dark
+   surfaces) never bleeds into printed output on any route (issue #95).
+   Route-specific print page sizes (label vs. receipt) are NOT declared here
+   — they live in a CSS Module per print route so they never leak into other
+   routes' stylesheets. See docs/specs/architecture.md and
+   app/(authenticated)/loads/[id]/print/print.module.css /
+   app/(authenticated)/removals/[id]/receipt/print.module.css (issue #286). */
 @media print {
-  @page {
-    size: 100mm 50mm;
-    margin: 0;
-  }
-
   html,
   body {
     background: #fff;

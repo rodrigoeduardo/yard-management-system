@@ -4,6 +4,7 @@ import { PageBackHeader } from "@/components/nav/page-back-header";
 import { getLoadWithItems } from "@/lib/db/loads";
 import { formatLoadSummary, isValidLoadId } from "@/lib/loads/print";
 import { getLoadItemQrCodes } from "@/lib/qrcode/generate";
+import "./print.module.css";
 
 export const dynamic = "force-dynamic";
 
