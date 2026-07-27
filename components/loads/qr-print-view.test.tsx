@@ -154,4 +154,82 @@ describe("QrPrintView", () => {
     const img1 = screen.getByAltText("Item 1 - NF-123456");
     expect(img1.className).toMatch(/print:w-\[40mm\]|print:w-\[4[0-9]mm\]/);
   });
+
+  it("enlarges the print-only font sizes of the identifier, material and weight lines without touching their screen sizes", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    const identifier = screen.getByText("Item 1 - NF-123456");
+    expect(identifier.className).toMatch(/\btext-\[13px\]/);
+    expect(identifier.className).toMatch(/\bmd:text-\[13\.5px\]/);
+    expect(identifier.className).toMatch(/\bprint:text-\[5mm\]/);
+
+    const material = screen.getAllByText("Aço").find((el) =>
+      el.className.includes("text-[11.5px]"),
+    );
+    expect(material).toBeDefined();
+    expect(material?.className).toMatch(/\bprint:text-\[4mm\]/);
+
+    const weight = screen.getByText("10.5 t");
+    expect(weight.className).toMatch(/\btext-xs\b/);
+    expect(weight.className).toMatch(/\bmd:text-\[12\.5px\]/);
+    expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
+  });
+
+  it("keeps the worst-case identifier's text column within the 46mm print box", () => {
+    const longIdentifier = "Item 128 - NF-123456789";
+    const longQrCodes: LoadItemQrCode[] = [
+      {
+        itemId: "item-long",
+        qrToken: "token-long",
+        payload: {
+          qrToken: "token-long",
+          identifier: longIdentifier,
+          notaFiscal: "NF-123456789",
+          material: "Aço",
+          weight: "10.5",
+        },
+        dataUrl: "data:image/png;base64,itemlong",
+      },
+    ];
+
+    render(<QrPrintView summary={summary} qrCodes={longQrCodes} />);
+
+    const identifier = screen.getByText(longIdentifier);
+    expect(identifier.className).toMatch(/\bprint:text-\[5mm\]/);
+    expect(identifier.className).toMatch(/\bprint:leading-\[5\.5mm\]/);
+
+    const textColumn = identifier.parentElement;
+    expect(textColumn?.className).toMatch(/\bprint:w-\[46mm\]/);
+
+    const material = screen.getAllByText("Aço").find((el) =>
+      el.className.includes("text-[11.5px]"),
+    );
+    expect(material).toBeDefined();
+    expect(material?.className).toMatch(/\bprint:text-\[4mm\]/);
+    expect(material?.className).toMatch(/\bprint:leading-\[4\.5mm\]/);
+    expect(material?.parentElement).toBe(textColumn);
+
+    const weight = screen.getByText("10.5 t");
+    expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
+    expect(weight.className).toMatch(/\bprint:leading-\[5mm\]/);
+    expect(weight.parentElement).toBe(textColumn);
+  });
+
+  it("keeps the print geometry classes unchanged on the card and QR image", () => {
+    const { container } = render(
+      <QrPrintView summary={summary} qrCodes={qrCodes} />,
+    );
+
+    const cards = container.querySelectorAll('[data-testid="qr-grid"] > *');
+    for (const card of cards) {
+      expect(card.className).toMatch(/print:p-\[4mm\]/);
+      expect(card.className).toMatch(/print:gap-\[4mm\]/);
+      expect(card.className).toMatch(/print:break-after-page/);
+    }
+
+    const img1 = screen.getByAltText("Item 1 - NF-123456");
+    expect(img1.className).toMatch(/print:w-\[42mm\]/);
+    expect(img1.className).toMatch(/print:max-w-none/);
+    expect(img1.className).toMatch(/print:shrink-0/);
+  });
 });
