@@ -69,7 +69,7 @@ describe("getRemovalItems", () => {
     }
   });
 
-  it("returns each removed item's identifier, weight and originating NF, from a single load", async () => {
+  it("returns each removed item's identifier, weight, material and originating NF, from a single load", async () => {
     const load = await insertLoadWithItems(["10", "20"]);
     loadIds.push(load.load.id);
 
@@ -84,12 +84,14 @@ describe("getRemovalItems", () => {
         identifier: `Item 1 - ${load.notaFiscal}`,
         weight: "10",
         notaFiscal: load.notaFiscal,
+        material: "Aço",
       },
       {
         id: load.items[1].id,
         identifier: `Item 2 - ${load.notaFiscal}`,
         weight: "20",
         notaFiscal: load.notaFiscal,
+        material: "Aço",
       },
     ]);
   });
@@ -109,12 +111,14 @@ describe("getRemovalItems", () => {
       identifier: `Item 1 - ${loadA.notaFiscal}`,
       weight: "10",
       notaFiscal: loadA.notaFiscal,
+      material: "Aço",
     });
     expect(result).toContainEqual({
       id: loadB.items[0].id,
       identifier: `Item 1 - ${loadB.notaFiscal}`,
       weight: "5",
       notaFiscal: loadB.notaFiscal,
+      material: "Aço",
     });
   });
 
@@ -134,6 +138,7 @@ describe("getRemovalItems", () => {
         identifier: `Item 2 - ${load.notaFiscal}`,
         weight: "20",
         notaFiscal: load.notaFiscal,
+        material: "Aço",
       },
     ]);
   });

@@ -39,6 +39,7 @@ describe("RemovalDetailModal", () => {
           identifier: "Item 1 - NF-001",
           weight: "50",
           notaFiscal: "NF-001",
+          material: "Aço",
         },
       ],
     });
@@ -64,21 +65,23 @@ describe("RemovalDetailModal", () => {
     ).toBeInTheDocument();
   });
 
-  it("labels each item row 'Item {n} — {NF}', indexed by position", async () => {
+  it("labels each item row with its real per-load identifier, not its position in the list", async () => {
     fetchRemovalItems.mockResolvedValue({
       success: true,
       items: [
         {
           id: "item-1",
-          identifier: "Item 1 - NF-001",
+          identifier: "Item 7 - NF-001",
           weight: "50",
           notaFiscal: "NF-001",
+          material: "Aço",
         },
         {
           id: "item-2",
-          identifier: "Item 2 - NF-002",
+          identifier: "Item 3 - NF-002",
           weight: "30",
           notaFiscal: "NF-002",
+          material: "Cobre",
         },
       ],
     });
@@ -88,12 +91,40 @@ describe("RemovalDetailModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Item 1 — NF-001")).toBeInTheDocument();
+      expect(screen.getByText("Item 7 - NF-001")).toBeInTheDocument();
     });
-    expect(screen.getByText("Item 2 — NF-002")).toBeInTheDocument();
+    expect(screen.getByText("Item 3 - NF-002")).toBeInTheDocument();
   });
 
-  it("renders each item's NF and weight in separate columns", async () => {
+  it("renders each item's identifier and material in separate columns, with the NF appearing exactly once", async () => {
+    fetchRemovalItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 7 - NF-123",
+          weight: "50",
+          notaFiscal: "NF-123",
+          material: "Aço",
+        },
+      ],
+    });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Item 7 - NF-123")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Aço")).toBeInTheDocument();
+    expect(screen.getByText("50 t")).toBeInTheDocument();
+
+    const row = screen.getByText("Item 7 - NF-123").closest("li");
+    expect(row?.textContent?.match(/NF-123/g)).toHaveLength(1);
+  });
+
+  it("renders the row with three columns even when the item's material is missing", async () => {
     fetchRemovalItems.mockResolvedValue({
       success: true,
       items: [
@@ -102,6 +133,7 @@ describe("RemovalDetailModal", () => {
           identifier: "Item 1 - NF-001",
           weight: "50",
           notaFiscal: "NF-001",
+          material: "",
         },
       ],
     });
@@ -110,15 +142,10 @@ describe("RemovalDetailModal", () => {
       <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
     );
 
-    await waitFor(() => {
-      expect(screen.getByText("Item 1 — NF-001")).toBeInTheDocument();
-    });
-    // The label ("Item 1 — NF-001") is one text node; the NF column renders
-    // "NF-001" again on its own, as a separate, muted element.
-    const nfColumn = screen.getByText("NF-001");
-    expect(nfColumn).toBeInTheDocument();
-    expect(nfColumn.className).toContain("text-muted-foreground");
-    expect(screen.getByText("50 t")).toBeInTheDocument();
+    const row = await waitFor(() =>
+      screen.getByText("Item 1 - NF-001").closest("li"),
+    );
+    expect(row?.children).toHaveLength(3);
   });
 
   it("renders the vehicle plate", () => {
@@ -195,6 +222,7 @@ describe("RemovalDetailModal", () => {
           identifier: "Item 1 - NF-001",
           weight: "50",
           notaFiscal: "NF-001",
+          material: "Aço",
         },
       ],
     });
@@ -204,10 +232,10 @@ describe("RemovalDetailModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Item 1 — NF-001")).toBeInTheDocument();
+      expect(screen.getByText("Item 1 - NF-001")).toBeInTheDocument();
     });
 
-    const wrapper = screen.getByText("Item 1 — NF-001").closest("ul")
+    const wrapper = screen.getByText("Item 1 - NF-001").closest("ul")
       ?.parentElement;
     expect(wrapper?.className).toContain("max-h-64");
     expect(wrapper?.className).toContain("overflow-y-auto");

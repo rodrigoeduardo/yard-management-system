@@ -7,21 +7,21 @@ export type RemovalItemDetail = {
   identifier: string;
   weight: string;
   notaFiscal: string;
-};
-
-export type RemovalReceiptItemDetail = RemovalItemDetail & {
   material: string;
 };
 
+/** Kept as an alias for callers written against the receipt-specific name. */
+export type RemovalReceiptItemDetail = RemovalItemDetail;
+
 /**
  * Shared core for `getRemovalItems`/`getRemovalReceiptItems`: resolves each
- * removed item's identifier and originating NF (plus material, dropped by
- * `getRemovalItems`), indexed by the item's position among *all* of its
- * load's items (not just the removed ones).
+ * removed item's identifier, material and originating NF, indexed by the
+ * item's position among *all* of its load's items (not just the removed
+ * ones).
  */
 async function getRemovalItemsWithMaterial(
   removalId: string,
-): Promise<RemovalReceiptItemDetail[]> {
+): Promise<RemovalItemDetail[]> {
   const removedItems = await db
     .select({
       id: items.id,
@@ -78,17 +78,11 @@ async function getRemovalItemsWithMaterial(
   });
 }
 
-/** Items removed in a given removal, labeled with each item's originating NF (e.g. for the removal-detail modal). */
+/** Items removed in a given removal, each labeled with its identifier, material and originating NF (e.g. for the removal-detail modal). */
 export async function getRemovalItems(
   removalId: string,
 ): Promise<RemovalItemDetail[]> {
-  const detailed = await getRemovalItemsWithMaterial(removalId);
-  return detailed.map(({ id, identifier, weight, notaFiscal }) => ({
-    id,
-    identifier,
-    weight,
-    notaFiscal,
-  }));
+  return getRemovalItemsWithMaterial(removalId);
 }
 
 /** Items removed in a given removal, each labeled with its originating NF and material (for the printable receipt, issue #270). */
