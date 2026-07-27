@@ -90,16 +90,14 @@ export function RemovalDetailModal({
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {items.map((item, index) => (
+                  {items.map((item) => (
                     <li
                       key={item.id}
                       className="grid grid-cols-[1fr_110px_110px] items-center gap-2.5 px-[18px] py-3.5 text-[13.5px]"
                     >
-                      <span className="font-semibold">
-                        Item {index + 1} — {item.notaFiscal}
-                      </span>
-                      <span className="text-right font-mono text-muted-foreground">
-                        {item.notaFiscal}
+                      <span className="font-semibold">{item.identifier}</span>
+                      <span className="text-right text-muted-foreground">
+                        {item.material}
                       </span>
                       <span className="text-right font-mono font-semibold">
                         {formatWeight(item.weight)}
