@@ -175,6 +175,46 @@ describe("QrPrintView", () => {
     expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
   });
 
+  it("keeps the worst-case identifier's text column within the 46mm print box", () => {
+    const longIdentifier = "Item 128 - NF-123456789";
+    const longQrCodes: LoadItemQrCode[] = [
+      {
+        itemId: "item-long",
+        qrToken: "token-long",
+        payload: {
+          qrToken: "token-long",
+          identifier: longIdentifier,
+          notaFiscal: "NF-123456789",
+          material: "Aço",
+          weight: "10.5",
+        },
+        dataUrl: "data:image/png;base64,itemlong",
+      },
+    ];
+
+    render(<QrPrintView summary={summary} qrCodes={longQrCodes} />);
+
+    const identifier = screen.getByText(longIdentifier);
+    expect(identifier.className).toMatch(/\bprint:text-\[5mm\]/);
+    expect(identifier.className).toMatch(/\bprint:leading-\[5\.5mm\]/);
+
+    const textColumn = identifier.parentElement;
+    expect(textColumn?.className).toMatch(/\bprint:w-\[46mm\]/);
+
+    const material = screen.getAllByText("Aço").find((el) =>
+      el.className.includes("text-[11.5px]"),
+    );
+    expect(material).toBeDefined();
+    expect(material?.className).toMatch(/\bprint:text-\[4mm\]/);
+    expect(material?.className).toMatch(/\bprint:leading-\[4\.5mm\]/);
+    expect(material?.parentElement).toBe(textColumn);
+
+    const weight = screen.getByText("10.5 t");
+    expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
+    expect(weight.className).toMatch(/\bprint:leading-\[5mm\]/);
+    expect(weight.parentElement).toBe(textColumn);
+  });
+
   it("keeps the print geometry classes unchanged on the card and QR image", () => {
     const { container } = render(
       <QrPrintView summary={summary} qrCodes={qrCodes} />,
