@@ -26,3 +26,20 @@ describe("QR print page shell (issue #95)", () => {
     expect(mainBlockMatch![0]).toMatch(/\bprint:p-0\b/);
   });
 });
+
+describe("QR label print page size (issue #286)", () => {
+  it("mounts PrintPageStyle with a 100x50mm @page rule instead of a route-scoped CSS Module", () => {
+    // A CSS Module's stylesheet is a React 19 hoistable resource that never
+    // gets removed from <head> on client-side navigation away from this
+    // route (see components/print/print-page-style.tsx), so the @page
+    // rule must be injected at runtime instead.
+    expect(source).not.toMatch(/import\s+["']\.\/print\.module\.css["']/);
+    expect(source).toMatch(
+      /import\s+\{\s*PrintPageStyle\s*\}\s+from\s+["']@\/components\/print\/print-page-style["']/,
+    );
+    expect(source).toMatch(/<PrintPageStyle\s+css=\{LABEL_PAGE_CSS\}\s*\/>/);
+    expect(source).toMatch(
+      /LABEL_PAGE_CSS\s*=\s*["'`][\s\S]*?@page\s*\{[\s\S]*?size:\s*100mm 50mm;[\s\S]*?margin:\s*0;[\s\S]*?\}/,
+    );
+  });
+});
