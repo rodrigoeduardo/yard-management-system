@@ -1,6 +1,9 @@
 # Business Rules
 
-Source of truth for application behavior. Translated and expanded from the original project proposal (original Portuguese version preserved in git history: first commit's `CLAUDE.md`).
+<!-- The source of truth for behavior. Reviewers check PRs against this file.
+     Write rules so they are objectively checkable: given input/state -> expected outcome.
+     Use stable headings — issues reference them as anchors
+     (e.g. docs/specs/business-rules.md#rule-name). -->
 
 ## UI language (`setup`)
 

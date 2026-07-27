@@ -1,6 +1,8 @@
 # Glossary
 
-Domain vocabulary. Code, docs, issues, and labels are in English; these Brazilian terms remain part of the domain and appear in the UI (which is in Portuguese for end users).
+<!-- Domain terms, one per row. Agents use exactly these terms in code, issues, and
+     commits — a shared language keeps everything greppable. Include translations if
+     the UI language differs from the dev language. -->
 
 | Term | English | Meaning |
 |---|---|---|

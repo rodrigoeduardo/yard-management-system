@@ -1,20 +1,17 @@
-# Overview — Yard Inventory Management App
+# Overview
 
-Web application for tracking yard inventory. Material arrives in **loads** identified by a Nota Fiscal (NF — Brazilian invoice; see [glossary](glossary.md)), and every item in a load is tracked individually via a printed QR code.
+<!-- What the product is, who uses it, and the core loop. One page maximum.
+     The planner (/plan-board) reads this tree to decompose work into issues,
+     and reviewers read it to judge PRs — write for them. -->
 
-Three core functions:
+## What this is
 
-1. **Add Load** (`load-intake`) — register an incoming load and its items, then print one QR code per item.
-2. **Load Removal** (`load-removal`) — scan item QR codes to remove them from the yard, recording exit date and driver.
-3. **Inventory View** (`inventory-view`) — read-only tables showing current stock per load and the history of removals.
+<!-- Two or three sentences: the product and the problem it solves. -->
 
-## Expected volume
+## Users
 
-More than 100 operations/day — low volume, comfortably inside any modern free tier. Stack choices prioritize data-model correctness and low infra cost, not scale capacity.
+<!-- Who uses it and what each role does. -->
 
-## Detailed specs
+## Core flows
 
-- [Business rules](business-rules.md)
-- [Architecture](architecture.md)
-- [Data model](data-model.md)
-- [Glossary](glossary.md)
+<!-- Numbered list of the main user flows, each linking to its business-rules section. -->
