@@ -1,5 +1,6 @@
 "use client";
 
+import { FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { buttonVariants } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export function RemovalDetailModal({
               </div>
             </dl>
 
-            <div className="overflow-hidden rounded-[14px] border border-border">
+            <div className="max-h-64 overflow-y-auto rounded-[14px] border border-border">
               {isPending ? (
                 <p className="p-3 text-sm text-muted-foreground">
                   Carregando itens...
@@ -113,9 +114,10 @@ export function RemovalDetailModal({
               href={`/removals/${removal.id}/receipt`}
               className={buttonVariants({
                 variant: "outline",
-                className: "w-fit self-end",
+                className: "w-fit self-end gap-1.5",
               })}
             >
+              <FileText className="size-4" aria-hidden="true" />
               Comprovante de Remoção
             </Link>
           </>

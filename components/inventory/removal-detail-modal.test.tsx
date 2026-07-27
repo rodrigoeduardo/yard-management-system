@@ -169,4 +169,74 @@ describe("RemovalDetailModal", () => {
     const dialogContent = heading.closest('[class*="rounded-[20px]"]');
     expect(dialogContent?.className).toContain("sm:max-w-[600px]");
   });
+
+  it("caps the item list wrapper's height and makes it scrollable (#287)", async () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const wrapper = await waitFor(
+      () =>
+        screen.getByText("Nenhum item encontrado para esta remoção.")
+          .parentElement,
+    );
+    expect(wrapper?.className).toContain("max-h-64");
+    expect(wrapper?.className).toContain("overflow-y-auto");
+  });
+
+  it("keeps the scroll wrapper classes even with few items (cap, not conditional) (#287)", async () => {
+    fetchRemovalItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          weight: "50",
+          notaFiscal: "NF-001",
+        },
+      ],
+    });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Item 1 — NF-001")).toBeInTheDocument();
+    });
+
+    const wrapper = screen.getByText("Item 1 — NF-001").closest("ul")
+      ?.parentElement;
+    expect(wrapper?.className).toContain("max-h-64");
+    expect(wrapper?.className).toContain("overflow-y-auto");
+  });
+
+  it("renders the loading state inside the scroll wrapper (#287)", () => {
+    fetchRemovalItems.mockResolvedValue(new Promise(() => {}));
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const wrapper = screen.getByText("Carregando itens...").parentElement;
+    expect(wrapper?.className).toContain("max-h-64");
+    expect(wrapper?.className).toContain("overflow-y-auto");
+  });
+
+  it("renders an aria-hidden icon before the receipt link's label without changing its accessible name (#287)", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const link = screen.getByRole("link", { name: "Comprovante de Remoção" });
+    expect(link).toHaveAttribute("href", "/removals/r1/receipt");
+
+    const icon = link.querySelector("svg");
+    expect(icon).not.toBeNull();
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+  });
 });
