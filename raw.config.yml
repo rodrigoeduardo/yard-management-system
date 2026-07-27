@@ -8,26 +8,24 @@ gates:
   # Who promotes issues from status:proposed to status:ready (makes them claimable).
   promote: human
   # Who clicks merge on an approved, green PR. "auto" lets /autopilot merge.
-  merge: human
+  merge: auto
   # Who triggers a deploy after merges. Only meaningful if commands.deploy is set.
   deploy: human
 
 # Project commands agents run. Fill these for your stack.
 # Unset commands are skipped (agents will note the skip, never guess a command).
 commands:
-  install: # e.g. npm ci
-  lint: # e.g. npm run lint
-  test: # e.g. npm test
-  test_all: # full suite incl. integration, e.g. npm run test:all
-  deploy: # e.g. npm run deploy — leave unset if CD deploys main automatically
-  dev: # e.g. npm run dev — run the app locally; required by the evidence gate below
+  install: npm ci
+  lint: npm run lint
+  test: npm test
+  test_all: npm run test:all
+  deploy: # unset — CD deploys main automatically (Vercel)
+  dev: npm run dev
 
 # Domain area labels (area:*) used on issues. Define your own; these are examples.
 # /configure can create them on GitHub for you.
 labels:
-  areas: []
-  # EXAMPLE:
-  # areas: [setup, database, auth, billing, notifications]
+  areas: [setup, database, auth, load-intake, inventory-view, load-removal, audit, qrcode, deploy, demo, landing]
 
 # Where the planner (/plan-board) reads specs from.
 specs_dir: docs/specs
