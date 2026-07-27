@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { PrintButton } from "@/components/loads/print-button";
 import type { RemovalReceiptItemDetail } from "@/lib/db/removal-items";
 import { formatWeight } from "@/lib/format/weight";
@@ -73,23 +72,25 @@ export function RemovalPrintView({
         </div>
       </dl>
 
-      <Card className="flex flex-col gap-2.5 p-4">
-        <span className="text-[13px] font-semibold text-foreground">
+      <div className="overflow-hidden rounded-[14px] border border-border">
+        <div className="border-b border-border bg-muted px-[18px] py-2.5 text-xs text-muted-foreground">
           Pedido
-        </span>
-        {pedidoImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={pedidoImageUrl}
-            alt="Pedido"
-            className="max-h-[420px] w-full rounded-[10px] object-contain print:max-h-[240px]"
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Imagem do Pedido indisponível.
-          </p>
-        )}
-      </Card>
+        </div>
+        <div className="p-4">
+          {pedidoImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={pedidoImageUrl}
+              alt="Pedido"
+              className="max-h-[420px] w-full rounded-[10px] object-contain print:max-h-[240px]"
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Imagem do Pedido indisponível.
+            </p>
+          )}
+        </div>
+      </div>
 
       <div className="overflow-hidden rounded-[14px] border border-border">
         <table className="w-full text-[13.5px]">

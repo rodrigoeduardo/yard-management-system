@@ -55,6 +55,7 @@ describe("RemovalPrintView", () => {
 
     const image = screen.getByAltText(/pedido/i);
     expect(image).toHaveAttribute("src", "https://example.com/pedido.png");
+    expect(image.className).toMatch(/\bobject-contain\b/);
   });
 
   it("shows a fallback message when the Pedido image URL is unavailable", () => {
@@ -66,6 +67,51 @@ describe("RemovalPrintView", () => {
     expect(
       screen.getByText(/imagem do pedido indispon/i),
     ).toBeInTheDocument();
+  });
+
+  it("wraps the Pedido block in the same bordered container as the items table", () => {
+    render(
+      <RemovalPrintView
+        summary={summary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={items}
+      />,
+    );
+
+    const pedidoLabel = screen.getByText("Pedido");
+    expect(pedidoLabel.className).toMatch(/\btext-xs\b/);
+    expect(pedidoLabel.className).toMatch(/\btext-muted-foreground\b/);
+    expect(pedidoLabel.className).not.toMatch(/text-\[13px\]/);
+    expect(pedidoLabel.className).not.toMatch(/font-semibold/);
+
+    const header = pedidoLabel.closest("div");
+    expect(header?.className).toMatch(/\bbg-muted\b/);
+    expect(header?.className).toMatch(/\bborder-b\b/);
+    expect(header?.className).toMatch(/\bborder-border\b/);
+
+    const panel = header?.parentElement;
+    expect(panel?.className).toMatch(/\brounded-\[14px\]/);
+    expect(panel?.className).toMatch(/\bborder-border\b/);
+    expect(panel?.className).toMatch(/\boverflow-hidden\b/);
+
+    expect(panel?.className).not.toMatch(/\bp-4\b/);
+  });
+
+  it("renders the empty-state Pedido message inside the same bordered container with the header strip", () => {
+    render(
+      <RemovalPrintView summary={summary} pedidoImageUrl={null} items={items} />,
+    );
+
+    const pedidoLabel = screen.getByText("Pedido");
+    const header = pedidoLabel.closest("div");
+    expect(header?.className).toMatch(/\bbg-muted\b/);
+
+    const panel = header?.parentElement;
+    expect(panel?.className).toMatch(/\brounded-\[14px\]/);
+    expect(panel?.className).toMatch(/\bborder-border\b/);
+
+    const fallback = screen.getByText(/imagem do pedido indispon/i);
+    expect(panel?.contains(fallback)).toBe(true);
   });
 
   it("repeats the table header on every printed page and never splits a row across a page break (issue #286)", () => {
