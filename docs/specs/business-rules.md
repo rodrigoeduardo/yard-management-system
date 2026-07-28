@@ -11,7 +11,7 @@
 
 ## Weight display
 
-- All weight values are displayed with the unit label **"t"** (tonnes) everywhere in the UI. This is a display re-label only — no numeric conversion is applied to stored values.
+- All weight values are displayed with the unit label **"Ton"** (tonnes) everywhere in the UI. This is a display re-label only — no numeric conversion is applied to stored values.
 
 ## Materials (`load-intake`, `inventory-view`)
 
