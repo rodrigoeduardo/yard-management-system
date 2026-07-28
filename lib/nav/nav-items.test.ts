@@ -2,21 +2,21 @@ import { describe, expect, it } from "vitest";
 import { APP_NAV_ITEMS, isNavItemActive } from "./nav-items";
 
 describe("APP_NAV_ITEMS", () => {
-  it("has exactly five items, in Início / Carga / Remoção / Estoque / Materiais order", () => {
+  it("has exactly five items, in Início / Entrada / Saída / Estoque / Materiais order", () => {
     expect(APP_NAV_ITEMS.map((item) => item.mobileLabel)).toEqual([
       "Início",
-      "Carga",
-      "Remoção",
+      "Entrada",
+      "Saída",
       "Estoque",
       "Materiais",
     ]);
   });
 
-  it("uses the full desktop labels for Carga and Remoção", () => {
+  it("uses the same labels for the desktop nav", () => {
     expect(APP_NAV_ITEMS.map((item) => item.desktopLabel)).toEqual([
       "Início",
-      "Nova Carga",
-      "Nova Remoção",
+      "Entrada",
+      "Saída",
       "Estoque",
       "Materiais",
     ]);
@@ -41,19 +41,19 @@ describe("isNavItemActive", () => {
     expect(isNavItemActive("/inventory", home)).toBe(false);
   });
 
-  it("marks Carga active on /loads/new", () => {
+  it("marks Entrada active on /loads/new", () => {
     expect(isNavItemActive("/loads/new", loads)).toBe(true);
   });
 
-  it("marks Carga active on nested /loads routes like the QR print page", () => {
+  it("marks Entrada active on nested /loads routes like the QR print page", () => {
     expect(isNavItemActive("/loads/abc-123/print", loads)).toBe(true);
   });
 
-  it("does not mark Carga active on unrelated routes", () => {
+  it("does not mark Entrada active on unrelated routes", () => {
     expect(isNavItemActive("/removals/new", loads)).toBe(false);
   });
 
-  it("marks Remoção active on /removals/new", () => {
+  it("marks Saída active on /removals/new", () => {
     expect(isNavItemActive("/removals/new", removals)).toBe(true);
   });
 

@@ -11,14 +11,14 @@ export interface HomeEntryPoint {
 export const HOME_ENTRY_POINTS: HomeEntryPoint[] = [
   {
     href: "/loads/new",
-    label: "Adicionar Carga",
+    label: "Entrada",
     description: "Registrar a entrada de uma nova carga por Nota Fiscal.",
     icon: PackagePlus,
   },
   {
     href: "/removals/new",
-    label: "Remover Carga",
-    description: "Registrar a retirada de itens do estoque via leitura de QR Code.",
+    label: "Saída",
+    description: "Registrar a saída de itens do estoque via leitura de QR Code.",
     icon: PackageMinus,
   },
   {

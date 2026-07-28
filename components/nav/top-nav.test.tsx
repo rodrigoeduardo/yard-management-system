@@ -16,11 +16,11 @@ describe("TopNav", () => {
 
     expect(screen.getByText("Pátio")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: "Nova Carga" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Entrada" })).toHaveAttribute(
       "href",
       "/loads/new",
     );
-    expect(screen.getByRole("link", { name: "Nova Remoção" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Saída" })).toHaveAttribute(
       "href",
       "/removals/new",
     );
@@ -38,7 +38,7 @@ describe("TopNav", () => {
     usePathname.mockReturnValue("/removals/new");
     render(<TopNav initials="RS" />);
 
-    const activeLink = screen.getByRole("link", { name: "Nova Remoção" });
+    const activeLink = screen.getByRole("link", { name: "Saída" });
     expect(activeLink.className).toMatch(/\bbg-accent\b/);
     expect(activeLink.className).toMatch(/\btext-accent-foreground\b/);
 
