@@ -4,7 +4,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -47,7 +46,7 @@ function numericCell(value: string | number, highlight: boolean) {
     <span
       className={cn(
         "font-mono",
-        highlight && "font-bold text-success-foreground",
+        highlight && "font-bold text-destructive",
       )}
     >
       {value}
@@ -89,11 +88,6 @@ const columns: ColumnDef<StockRow>[] = [
         <span className="truncate" title={row.original.material}>
           {row.original.material}
         </span>
-        {row.original.finished && (
-          <span className="shrink-0">
-            <Badge variant="success">Finalizada</Badge>
-          </span>
-        )}
       </span>
     ),
   },
@@ -166,7 +160,7 @@ export function StockTable({
               }
               className={cn(
                 onRowClick && "cursor-pointer",
-                row.original.finished && "bg-success/10 hover:bg-success/10",
+                row.original.finished && "bg-destructive/10 hover:bg-destructive/10",
               )}
             >
               {row.getVisibleCells().map((cell) => (

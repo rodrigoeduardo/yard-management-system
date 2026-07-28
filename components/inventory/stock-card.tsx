@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatWeight } from "@/lib/format/weight";
 import { cn } from "@/lib/utils";
@@ -21,7 +20,7 @@ function MetricField({
       <dd
         className={cn(
           "font-mono text-[13.5px] font-semibold text-foreground",
-          highlight && "font-bold text-success-foreground",
+          highlight && "font-bold text-destructive",
         )}
       >
         {value}
@@ -55,14 +54,13 @@ export function StockCard({
       className={cn(
         "flex flex-col gap-[11px] px-4 py-3.5",
         onClick && "cursor-pointer",
-        row.finished && "border-success bg-success/15",
+        row.finished && "border-destructive bg-destructive/15",
       )}
     >
       <div className="flex items-center gap-[10px]">
         <span className="font-mono text-[15px] font-bold text-foreground">
           NF {row.notaFiscal}
         </span>
-        {row.finished && <Badge variant="success">Finalizada</Badge>}
         <span className="ml-auto text-[12px] text-muted-foreground">
           {row.entryDate}
         </span>
@@ -89,7 +87,7 @@ export function StockCard({
       <span
         className={cn(
           "text-[11px] text-muted-foreground",
-          row.finished && "text-success-foreground",
+          row.finished && "text-destructive",
         )}
       >
         Material: {row.material}
