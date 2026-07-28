@@ -52,7 +52,7 @@ describe("formatRemovalReceiptSummary", () => {
       exitDate: "05/03/2026 · 09:00",
       driver: "John Doe",
       vehiclePlate: "ABC1234",
-      totalRemovedWeight: "15.5 t",
+      totalRemovedWeight: "15.5 Ton",
     });
   });
 

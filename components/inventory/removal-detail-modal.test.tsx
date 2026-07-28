@@ -20,17 +20,17 @@ const REMOVAL: RemovalLogRow = {
 };
 
 describe("RemovalDetailModal", () => {
-  it("renders the total removed weight with the t unit", () => {
+  it("renders the total removed weight with the Ton unit", () => {
     fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
 
     render(
       <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
     );
 
-    expect(screen.getByText("100 t")).toBeInTheDocument();
+    expect(screen.getByText("100 Ton")).toBeInTheDocument();
   });
 
-  it("renders each item's weight with the t unit", async () => {
+  it("renders each item's weight with the Ton unit", async () => {
     fetchRemovalItems.mockResolvedValue({
       success: true,
       items: [
@@ -49,7 +49,7 @@ describe("RemovalDetailModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("50 t")).toBeInTheDocument();
+      expect(screen.getByText("50 Ton")).toBeInTheDocument();
     });
   });
 
@@ -118,7 +118,7 @@ describe("RemovalDetailModal", () => {
       expect(screen.getByText("Item 7 - NF-123")).toBeInTheDocument();
     });
     expect(screen.getByText("Aço")).toBeInTheDocument();
-    expect(screen.getByText("50 t")).toBeInTheDocument();
+    expect(screen.getByText("50 Ton")).toBeInTheDocument();
 
     const row = screen.getByText("Item 7 - NF-123").closest("li");
     expect(row?.textContent?.match(/NF-123/g)).toHaveLength(1);

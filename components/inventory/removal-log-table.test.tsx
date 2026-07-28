@@ -21,7 +21,7 @@ describe("RemovalLogTable", () => {
     expect(screen.getByText("ABC1234")).toBeInTheDocument();
     expect(screen.getByText("NF-001")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("100 t")).toBeInTheDocument();
+    expect(screen.getByText("100 Ton")).toBeInTheDocument();
   });
 
   it("renders a Placa column header", () => {
@@ -41,7 +41,7 @@ describe("RemovalLogTable", () => {
 
     expect(screen.getByText("3").className).toMatch(/\bfont-mono\b/);
 
-    const weight = screen.getByText("100 t");
+    const weight = screen.getByText("100 Ton");
     expect(weight.className).toMatch(/\bfont-mono\b/);
     expect(weight.className).toMatch(/\btext-accent-foreground\b/);
   });
