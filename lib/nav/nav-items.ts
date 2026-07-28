@@ -14,11 +14,11 @@ export interface AppNavItem {
 
 export const APP_NAV_ITEMS: AppNavItem[] = [
   { href: "/", mobileLabel: "Início", desktopLabel: "Início", matchPrefix: "/" },
-  { href: "/loads/new", mobileLabel: "Carga", desktopLabel: "Nova Carga", matchPrefix: "/loads" },
+  { href: "/loads/new", mobileLabel: "Entrada", desktopLabel: "Entrada", matchPrefix: "/loads" },
   {
     href: "/removals/new",
-    mobileLabel: "Remoção",
-    desktopLabel: "Nova Remoção",
+    mobileLabel: "Saída",
+    desktopLabel: "Saída",
     matchPrefix: "/removals",
   },
   { href: "/inventory", mobileLabel: "Estoque", desktopLabel: "Estoque", matchPrefix: "/inventory" },

@@ -12,8 +12,8 @@ describe("BottomTabBar", () => {
     render(<BottomTabBar />);
 
     expect(screen.getByText("Início")).toBeInTheDocument();
-    expect(screen.getByText("Carga")).toBeInTheDocument();
-    expect(screen.getByText("Remoção")).toBeInTheDocument();
+    expect(screen.getByText("Entrada")).toBeInTheDocument();
+    expect(screen.getByText("Saída")).toBeInTheDocument();
     expect(screen.getByText("Estoque")).toBeInTheDocument();
     expect(screen.getByText("Materiais")).toBeInTheDocument();
   });
@@ -22,11 +22,11 @@ describe("BottomTabBar", () => {
     usePathname.mockReturnValue("/");
     render(<BottomTabBar />);
 
-    expect(screen.getByRole("link", { name: /Carga/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Entrada/ })).toHaveAttribute(
       "href",
       "/loads/new",
     );
-    expect(screen.getByRole("link", { name: /Remoção/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Saída/ })).toHaveAttribute(
       "href",
       "/removals/new",
     );
@@ -49,11 +49,11 @@ describe("BottomTabBar", () => {
     expect(inactiveLink.querySelector("span")?.className).not.toMatch(/\bbg-accent\b/);
   });
 
-  it("marks Carga active for nested /loads routes", () => {
+  it("marks Entrada active for nested /loads routes", () => {
     usePathname.mockReturnValue("/loads/abc-123/print");
     render(<BottomTabBar />);
 
-    const activeLink = screen.getByRole("link", { name: /Carga/ });
+    const activeLink = screen.getByRole("link", { name: /Entrada/ });
     expect(activeLink.querySelector("span")?.className).toMatch(/\bbg-accent\b/);
   });
 

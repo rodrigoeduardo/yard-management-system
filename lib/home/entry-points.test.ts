@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { HOME_ENTRY_POINTS } from "./entry-points";
 
 describe("HOME_ENTRY_POINTS", () => {
-  it("links to the load creation page labeled Adicionar Carga", () => {
+  it("links to the load creation page labeled Entrada", () => {
     expect(HOME_ENTRY_POINTS).toContainEqual(
-      expect.objectContaining({ href: "/loads/new", label: "Adicionar Carga" }),
+      expect.objectContaining({ href: "/loads/new", label: "Entrada" }),
     );
   });
 
-  it("links to the removal creation page labeled Remover Carga", () => {
+  it("links to the removal creation page labeled Saída", () => {
     expect(HOME_ENTRY_POINTS).toContainEqual(
-      expect.objectContaining({ href: "/removals/new", label: "Remover Carga" }),
+      expect.objectContaining({ href: "/removals/new", label: "Saída" }),
     );
   });
 

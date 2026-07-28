@@ -6,10 +6,10 @@ describe("ActionCards", () => {
   it("renders a card per home entry point, each linking to its route", () => {
     render(<ActionCards />);
 
-    const addLoad = screen.getByRole("link", { name: /Adicionar Carga/ });
+    const addLoad = screen.getByRole("link", { name: /Entrada/ });
     expect(addLoad).toHaveAttribute("href", "/loads/new");
 
-    const removeLoad = screen.getByRole("link", { name: /Remover Carga/ });
+    const removeLoad = screen.getByRole("link", { name: /Saída/ });
     expect(removeLoad).toHaveAttribute("href", "/removals/new");
 
     const viewStock = screen.getByRole("link", { name: /Ver Estoque/ });
