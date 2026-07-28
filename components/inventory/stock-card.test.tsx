@@ -52,30 +52,25 @@ describe("StockCard", () => {
     expect(screen.getByText("Material: Sucata")).toBeInTheDocument();
   });
 
-  it("shows a Finalizada badge, green border tint, and a footer note for a finished load", () => {
+  it("does not show a Finalizada badge but shows a red border tint and a footer note for a finished load", () => {
     render(<StockCard row={FINISHED_ROW} />);
 
-    const badge = screen.getByText("Finalizada");
-    expect(badge.closest('[data-slot="badge"]')).toBeInTheDocument();
+    expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
 
-    const card = badge.closest('[data-slot="card"]');
-    expect(card?.className).toMatch(/\bbg-success\/\d+\b/);
-    expect(card?.className).toMatch(/\bborder-success\b/);
-
-    expect(
-      screen.getByText("Material: Sucata · estoque desta carga finalizado"),
-    ).toBeInTheDocument();
+    const card = screen
+      .getByText("Material: Sucata · estoque desta carga finalizado")
+      .closest('[data-slot="card"]');
+    expect(card?.className).toMatch(/\bbg-destructive\/\d+\b/);
+    expect(card?.className).toMatch(/\bborder-destructive\b/);
   });
 
-  it("highlights item count and remaining weight in green when finished, but not the NF weight", () => {
+  it("highlights item count and remaining weight in red when finished, but not the NF weight", () => {
     render(<StockCard row={FINISHED_ROW} />);
 
-    expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0 Ton").className).toMatch(
-      /\btext-success-foreground\b/,
-    );
+    expect(screen.getByText("0").className).toMatch(/\btext-destructive\b/);
+    expect(screen.getByText("0 Ton").className).toMatch(/\btext-destructive\b/);
     expect(screen.getByText("1000 Ton").className).not.toMatch(
-      /\btext-success-foreground\b/,
+      /\btext-destructive\b/,
     );
   });
 });

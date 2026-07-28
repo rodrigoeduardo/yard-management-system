@@ -46,26 +46,22 @@ describe("StockTable", () => {
     expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
   });
 
-  it("shows a Finalizada badge next to the material and tints the row for a finished load", () => {
+  it("does not show a Finalizada badge for a finished row, but tints the row red", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
-    const badge = screen.getByText("Finalizada");
-    expect(badge.closest('[data-slot="badge"]')).toBeInTheDocument();
-    expect(badge.closest("td")?.textContent).toContain("Papel");
+    expect(screen.queryByText("Finalizada")).not.toBeInTheDocument();
 
-    const row = badge.closest('[data-slot="table-row"]');
-    expect(row?.className).toMatch(/\bbg-success\/\d+\b/);
+    const row = screen.getByText("Papel").closest('[data-slot="table-row"]');
+    expect(row?.className).toMatch(/\bbg-destructive\/\d+\b/);
   });
 
-  it("renders finished-row item count and remaining weight in the success color, but not the NF weight", () => {
+  it("renders finished-row item count and remaining weight in the destructive color, but not the NF weight", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
-    expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0 Ton").className).toMatch(
-      /\btext-success-foreground\b/,
-    );
+    expect(screen.getByText("0").className).toMatch(/\btext-destructive\b/);
+    expect(screen.getByText("0 Ton").className).toMatch(/\btext-destructive\b/);
     expect(screen.getByText("500 Ton").className).not.toMatch(
-      /\btext-success-foreground\b/,
+      /\btext-destructive\b/,
     );
   });
 
