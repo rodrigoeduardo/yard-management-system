@@ -295,6 +295,24 @@ describe("NewLoadForm", () => {
     expect(item1Group?.contains(error)).toBe(false);
   });
 
+  it("reserves extra bottom padding on the pesos step so the fixed summary card can't cover the last item field, while leaving the dados step's padding untouched", () => {
+    render(<NewLoadForm materials={MATERIALS} />);
+
+    const dadosContainer = screen.getByTestId("new-load-form-scroll-container");
+    expect(dadosContainer.className).toMatch(/\bpb-28\b/);
+    expect(dadosContainer.className).toMatch(/\bmd:pb-10\b/);
+
+    fillDadosAndContinue();
+
+    const pesosContainer = screen.getByTestId("new-load-form-scroll-container");
+    expect(pesosContainer.className).not.toMatch(/\bpb-28\b/);
+    expect(pesosContainer.className).toMatch(/\bpb-\[\d+px\]/);
+    const [, pxValue] =
+      pesosContainer.className.match(/\bpb-\[(\d+)px\]/) ?? [];
+    expect(Number(pxValue)).toBeGreaterThanOrEqual(260);
+    expect(pesosContainer.className).toMatch(/\bmd:pb-10\b/);
+  });
+
   it("shows an NF context chip with the NF number and material above the weights grid", () => {
     render(<NewLoadForm materials={MATERIALS} />);
     fillDadosAndContinue();
