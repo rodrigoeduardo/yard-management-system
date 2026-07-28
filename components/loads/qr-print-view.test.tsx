@@ -215,6 +215,38 @@ describe("QrPrintView", () => {
     expect(weight.parentElement).toBe(textColumn);
   });
 
+  it("keeps the label at 100x50mm and the weight line inside the 46mm text column with the widest realistic weight", () => {
+    const wideWeightQrCodes: LoadItemQrCode[] = [
+      {
+        itemId: "item-wide",
+        qrToken: "token-wide",
+        payload: {
+          qrToken: "token-wide",
+          identifier: "Item 1 - NF-123456",
+          notaFiscal: "NF-123456",
+          material: "Aço",
+          weight: "12345.67",
+        },
+        dataUrl: "data:image/png;base64,itemwide",
+      },
+    ];
+
+    const { container } = render(
+      <QrPrintView summary={summary} qrCodes={wideWeightQrCodes} />,
+    );
+
+    const cards = container.querySelectorAll('[data-testid="qr-grid"] > *');
+    expect(cards.length).toBe(1);
+    expect(cards[0].className).toMatch(/print:w-\[100mm\]/);
+    expect(cards[0].className).toMatch(/print:h-\[50mm\]/);
+
+    const weight = screen.getByText("12345.67 Ton");
+    expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
+
+    const textColumn = weight.parentElement;
+    expect(textColumn?.className).toMatch(/\bprint:w-\[46mm\]/);
+  });
+
   it("keeps the print geometry classes unchanged on the card and QR image", () => {
     const { container } = render(
       <QrPrintView summary={summary} qrCodes={qrCodes} />,
