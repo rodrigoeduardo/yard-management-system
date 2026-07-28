@@ -57,7 +57,7 @@ describe("StockTable", () => {
     expect(row?.className).toMatch(/\bbg-success\/\d+\b/);
   });
 
-  it("renders finished-row item count and remaining weight in Tonhe success color, but not the NF weight", () => {
+  it("renders finished-row item count and remaining weight in the success color, but not the NF weight", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
