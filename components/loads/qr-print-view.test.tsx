@@ -108,11 +108,11 @@ describe("QrPrintView", () => {
     const img1 = screen.getByAltText("Item 1 - NF-123456");
     expect(img1).toHaveAttribute("src", "data:image/png;base64,item1");
     expect(screen.getByText("Item 1 - NF-123456")).toBeInTheDocument();
-    expect(screen.getByText("10.5 t")).toBeInTheDocument();
+    expect(screen.getByText("10.5 Ton")).toBeInTheDocument();
 
     const img2 = screen.getByAltText("Item 2 - NF-123456");
     expect(img2).toHaveAttribute("src", "data:image/png;base64,item2");
-    expect(screen.getByText("12 t")).toBeInTheDocument();
+    expect(screen.getByText("12 Ton")).toBeInTheDocument();
   });
 
   it("lays the grid mobile-first (2 cols) with md: 4 cols and stacks one label per page in print", () => {
@@ -169,7 +169,7 @@ describe("QrPrintView", () => {
     expect(material).toBeDefined();
     expect(material?.className).toMatch(/\bprint:text-\[4mm\]/);
 
-    const weight = screen.getByText("10.5 t");
+    const weight = screen.getByText("10.5 Ton");
     expect(weight.className).toMatch(/\btext-xs\b/);
     expect(weight.className).toMatch(/\bmd:text-\[12\.5px\]/);
     expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
@@ -209,7 +209,7 @@ describe("QrPrintView", () => {
     expect(material?.className).toMatch(/\bprint:leading-\[4\.5mm\]/);
     expect(material?.parentElement).toBe(textColumn);
 
-    const weight = screen.getByText("10.5 t");
+    const weight = screen.getByText("10.5 Ton");
     expect(weight.className).toMatch(/\bprint:text-\[4\.5mm\]/);
     expect(weight.className).toMatch(/\bprint:leading-\[5mm\]/);
     expect(weight.parentElement).toBe(textColumn);
