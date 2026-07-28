@@ -134,8 +134,10 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
 
   return (
     <div
+      data-testid="new-load-form-scroll-container"
       className={cn(
-        "flex flex-col gap-5 px-4 py-6 pb-28 md:gap-[22px] md:pb-10",
+        "flex flex-col gap-5 px-4 py-6 md:gap-[22px] md:pb-10",
+        step === "pesos" ? "pb-[280px]" : "pb-28",
         PAGE_CONTAINER_DESKTOP_CLASS,
       )}
     >
