@@ -177,7 +177,7 @@ export default function NewRemovalPage() {
     scanCooldownRef.current.start(payload.qrToken);
     showScanToast(
       "success",
-      `Item adicionado: ${payload.material} — ${payload.weight} t`,
+      `Item adicionado: ${payload.material} — ${payload.weight} Ton`,
     );
   }
 
@@ -505,7 +505,7 @@ export default function NewRemovalPage() {
 
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-mono text-sm font-medium text-foreground">
-                          {item.weight} t
+                          {item.weight} Ton
                         </span>
                         <Button
                           type="button"
@@ -545,7 +545,7 @@ export default function NewRemovalPage() {
                   Peso Total Removido
                 </span>
                 <span className="font-mono text-xl font-bold text-foreground">
-                  {totalRemovedWeight} t
+                  {totalRemovedWeight} Ton
                 </span>
               </div>
               <Button
@@ -576,7 +576,7 @@ export default function NewRemovalPage() {
                 Peso Total Removido
               </span>
               <span className="font-mono text-lg font-bold text-foreground">
-                {totalRemovedWeight} t
+                {totalRemovedWeight} Ton
               </span>
             </div>
 
@@ -693,7 +693,7 @@ export default function NewRemovalPage() {
                             {item.identifier} — {item.material}
                           </span>
                           <span className="shrink-0 font-mono font-medium text-muted-foreground">
-                            {item.weight} t
+                            {item.weight} Ton
                           </span>
                         </li>
                       ))}
@@ -707,7 +707,7 @@ export default function NewRemovalPage() {
                   Peso Total Removido
                 </span>
                 <span className="font-mono text-lg font-bold text-accent-foreground">
-                  {totalRemovedWeight} t
+                  {totalRemovedWeight} Ton
                 </span>
               </div>
             </div>

@@ -30,10 +30,10 @@ describe("LastMovementCard", () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent("Carga · NF 145.982");
     expect(rows[0]).toHaveTextContent("Sucata de Alumínio");
-    expect(rows[0]).toHaveTextContent("12480 t");
+    expect(rows[0]).toHaveTextContent("12480 Ton");
     expect(rows[1]).toHaveTextContent("Remoção · João Batista");
     expect(rows[1]).toHaveTextContent("4 itens");
-    expect(rows[1]).toHaveTextContent("3240 t");
+    expect(rows[1]).toHaveTextContent("3240 Ton");
     expect(rows[1]).toHaveTextContent("NF 145.977");
     expect(rows[1]).toHaveTextContent("NF 145.812");
   });
@@ -163,7 +163,7 @@ describe("LastMovementCard", () => {
       "span.text-muted-foreground, span.text-xs",
     );
     expect(meta?.textContent).toBe(
-      "17/07/2026 · 12:00 · Sucata de Alumínio · 12480 t",
+      "17/07/2026 · 12:00 · Sucata de Alumínio · 12480 Ton",
     );
   });
 
@@ -187,7 +187,7 @@ describe("LastMovementCard", () => {
       "span.text-muted-foreground, span.text-xs",
     );
     expect(meta?.textContent).toBe(
-      "16/07/2026 · 09:00 · 4 itens · 3240 t · ABC1234",
+      "16/07/2026 · 09:00 · 4 itens · 3240 Ton · ABC1234",
     );
   });
 
@@ -210,7 +210,9 @@ describe("LastMovementCard", () => {
     const meta = rows[0].querySelector(
       "span.text-muted-foreground, span.text-xs",
     );
-    expect(meta?.textContent).toBe("16/07/2026 · 09:00 · 4 itens · 3240 t · —");
+    expect(meta?.textContent).toBe(
+      "16/07/2026 · 09:00 · 4 itens · 3240 Ton · —",
+    );
   });
 
   it("renders the NF using the accent-foreground token, matching the design's mono NF color", () => {

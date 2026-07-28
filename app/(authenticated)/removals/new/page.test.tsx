@@ -84,7 +84,7 @@ describe("NewRemovalPage scan feedback", () => {
     });
 
     const toast = await screen.findByRole("status");
-    expect(toast).toHaveTextContent("Item adicionado: Aço — 10 t");
+    expect(toast).toHaveTextContent("Item adicionado: Aço — 10 Ton");
     expect(toast).toHaveClass("bg-emerald-600");
   });
 
@@ -158,7 +158,7 @@ describe("NewRemovalPage scanned items list", () => {
     expect(await screen.findByText("NF-100")).toBeInTheDocument();
     expect(screen.getByText("Item 1")).toBeInTheDocument();
     expect(screen.getByText("Aço")).toBeInTheDocument();
-    expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 Ton").length).toBeGreaterThan(0);
   });
 
   it("falls back to the identifier-embedded Nota Fiscal for legacy QR payloads without the distinct field", async () => {
@@ -231,7 +231,7 @@ describe("NewRemovalPage sticky total bar", () => {
       expect(ctas.length).toBeGreaterThan(0);
       for (const cta of ctas) expect(cta).not.toBeDisabled();
     });
-    expect(screen.getAllByText("10 t").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("10 Ton").length).toBeGreaterThan(0);
   });
 
   it("keeps the Concluir Remoção CTA disabled while items are scanned but no Pedido image is attached", async () => {
@@ -389,7 +389,7 @@ describe("NewRemovalPage review dialog", () => {
     expect(within(nf200Group).getByText(/Item 1 - NF-200/)).toBeInTheDocument();
 
     expect(within(dialog).getByText("Peso Total Removido")).toBeInTheDocument();
-    expect(within(dialog).getByText("15 t")).toBeInTheDocument();
+    expect(within(dialog).getByText("15 Ton")).toBeInTheDocument();
   });
 
   it("closes the dialog without submitting when Cancelar is clicked", async () => {

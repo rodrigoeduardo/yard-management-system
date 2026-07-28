@@ -20,7 +20,7 @@ describe("DashboardStats", () => {
     expect(materialsInStock.className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("Materiais no Pátio")).toBeInTheDocument();
 
-    const remainingWeight = screen.getByText("2450.5 t");
+    const remainingWeight = screen.getByText("2450.5 Ton");
     expect(remainingWeight.className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("Peso Restante")).toBeInTheDocument();
   });
@@ -30,7 +30,7 @@ describe("DashboardStats", () => {
       <DashboardStats activeLoads={0} materialsInStock={0} remainingWeight="0" />,
     );
 
-    expect(screen.getByText("0 t")).toBeInTheDocument();
+    expect(screen.getByText("0 Ton")).toBeInTheDocument();
     expect(screen.getAllByText("0")).toHaveLength(2);
   });
 
