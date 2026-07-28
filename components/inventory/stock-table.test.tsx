@@ -28,9 +28,9 @@ describe("StockTable", () => {
   it("renders numeric columns with the mono font", () => {
     render(<StockTable rows={[OPEN_ROW]} />);
 
-    expect(screen.getByText("1000 t").className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("1000 Ton").className).toMatch(/\bfont-mono\b/);
     expect(screen.getByText("4").className).toMatch(/\bfont-mono\b/);
-    expect(screen.getByText("250 t").className).toMatch(/\bfont-mono\b/);
+    expect(screen.getByText("250 Ton").className).toMatch(/\bfont-mono\b/);
   });
 
   it("renders uppercase, letter-spaced column headers", () => {
@@ -61,10 +61,10 @@ describe("StockTable", () => {
     render(<StockTable rows={[FINISHED_ROW]} />);
 
     expect(screen.getByText("0").className).toMatch(/\btext-success-foreground\b/);
-    expect(screen.getByText("0 t").className).toMatch(
+    expect(screen.getByText("0 Ton").className).toMatch(
       /\btext-success-foreground\b/,
     );
-    expect(screen.getByText("500 t").className).not.toMatch(
+    expect(screen.getByText("500 Ton").className).not.toMatch(
       /\btext-success-foreground\b/,
     );
   });

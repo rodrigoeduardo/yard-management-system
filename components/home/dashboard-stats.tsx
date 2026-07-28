@@ -26,7 +26,7 @@ export function DashboardStats({
         label="Materiais no Pátio"
         href="/materials"
       />
-      <StatCard value={`${remainingWeight} t`} label="Peso Restante" />
+      <StatCard value={`${remainingWeight} Ton`} label="Peso Restante" />
     </div>
   );
 }

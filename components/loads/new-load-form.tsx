@@ -233,7 +233,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                 step="any"
                 inputMode="decimal"
                 mono
-                unit="t"
+                unit="Ton"
                 placeholder="0"
                 value={nfWeight}
                 onChange={(e) => setNfWeight(e.target.value)}
@@ -359,7 +359,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                     step="any"
                     inputMode="decimal"
                     mono
-                    unit="t"
+                    unit="Ton"
                     placeholder="0"
                     aria-label={`Peso do item ${index + 1}`}
                     value={weight}
@@ -386,7 +386,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                       Peso Restante (soma dos itens)
                     </span>
                     <span className="font-mono text-xl font-bold text-foreground">
-                      {remainingWeight} t
+                      {remainingWeight} Ton
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -394,7 +394,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                       Peso da Nota Fiscal
                     </span>
                     <span className="font-mono text-xl font-bold text-muted-foreground">
-                      {nfWeight || 0} t
+                      {nfWeight || 0} Ton
                     </span>
                   </div>
                 </div>
@@ -445,7 +445,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                   data-testid="pesos-remaining-weight"
                   className="font-mono text-[17px] font-bold text-foreground"
                 >
-                  {remainingWeight} t
+                  {remainingWeight} Ton
                 </span>
               </div>
               <div className="flex items-baseline justify-between">
@@ -456,7 +456,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                   data-testid="pesos-nf-weight"
                   className="font-mono text-[13px] text-muted-foreground"
                 >
-                  {nfWeight || 0} t
+                  {nfWeight || 0} Ton
                 </span>
               </div>
               <div

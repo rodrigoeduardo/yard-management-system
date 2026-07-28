@@ -126,7 +126,7 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
                 {qr.payload.material}
               </span>
               <span className="text-center font-mono text-xs font-semibold text-accent-foreground md:text-[12.5px] print:text-left print:text-[4.5mm] print:leading-[5mm]">
-                {qr.payload.weight} t
+                {qr.payload.weight} Ton
               </span>
             </div>
           </Card>

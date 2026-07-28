@@ -8,7 +8,7 @@ const summary: RemovalReceiptSummary = {
   exitDate: "05/03/2026 · 09:00",
   driver: "John Doe",
   vehiclePlate: "ABC1234",
-  totalRemovedWeight: "15.5 t",
+  totalRemovedWeight: "15.5 Ton",
 };
 
 const items: RemovalReceiptItemDetail[] = [
@@ -41,7 +41,7 @@ describe("RemovalPrintView", () => {
     expect(screen.getByText("05/03/2026 · 09:00")).toBeInTheDocument();
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.getByText("ABC1234")).toBeInTheDocument();
-    expect(screen.getByText("15.5 t")).toBeInTheDocument();
+    expect(screen.getByText("15.5 Ton")).toBeInTheDocument();
   });
 
   it("renders the attached Pedido image", () => {
@@ -145,11 +145,11 @@ describe("RemovalPrintView", () => {
     expect(screen.getByText("Item 1 - NF-100")).toBeInTheDocument();
     expect(screen.getByText("NF-100")).toBeInTheDocument();
     expect(screen.getByText("Aço")).toBeInTheDocument();
-    expect(screen.getByText("10 t")).toBeInTheDocument();
+    expect(screen.getByText("10 Ton")).toBeInTheDocument();
 
     expect(screen.getByText("Item 1 - NF-200")).toBeInTheDocument();
     expect(screen.getByText("NF-200")).toBeInTheDocument();
     expect(screen.getByText("Cobre")).toBeInTheDocument();
-    expect(screen.getByText("5.5 t")).toBeInTheDocument();
+    expect(screen.getByText("5.5 Ton")).toBeInTheDocument();
   });
 });

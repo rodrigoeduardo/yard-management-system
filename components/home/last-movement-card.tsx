@@ -33,7 +33,7 @@ function removalToRow(removal: LastRemovalSummary): Row {
     key: "removal",
     sortDate: removal.exitDate,
     title: `Remoção · ${removal.driver}`,
-    meta: `${formatEntryDateTime(removal.exitDate)} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} t · ${removal.vehiclePlate}`,
+    meta: `${formatEntryDateTime(removal.exitDate)} · ${removal.itemCount} itens · ${removal.totalRemovedWeight} Ton · ${removal.vehiclePlate}`,
     nf: nf || undefined,
   };
 }
@@ -43,7 +43,7 @@ function loadToRow(load: LastLoadSummary): Row {
     key: "load",
     sortDate: load.entryDate,
     title: `Carga · NF ${load.notaFiscal}`,
-    meta: `${formatEntryDateTime(load.entryDate)} · ${load.material} · ${load.nfWeight} t`,
+    meta: `${formatEntryDateTime(load.entryDate)} · ${load.material} · ${load.nfWeight} Ton`,
   };
 }
 

@@ -22,7 +22,7 @@
 
 ## Units
 
-- Weight values are displayed with the unit label **"t"** (tonnes) throughout the UI. This is a display convention only — stored values are not numerically converted.
+- Weight values are displayed with the unit label **"Ton"** (tonnes) throughout the UI. This is a display convention only — stored values are not numerically converted.
 
 ## UI language note
 

@@ -21,16 +21,16 @@ const LOAD: StockRow = {
 };
 
 describe("LoadDetailModal", () => {
-  it("renders the NF weight and remaining weight with the t unit", () => {
+  it("renders the NF weight and remaining weight with the Ton unit", () => {
     fetchLoadItems.mockResolvedValue({ success: true, items: [] });
 
     render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
 
-    expect(screen.getByText("1000 t")).toBeInTheDocument();
-    expect(screen.getByText("250 t")).toBeInTheDocument();
+    expect(screen.getByText("1000 Ton")).toBeInTheDocument();
+    expect(screen.getByText("250 Ton")).toBeInTheDocument();
   });
 
-  it("renders each item's weight with the t unit", async () => {
+  it("renders each item's weight with the Ton unit", async () => {
     fetchLoadItems.mockResolvedValue({
       success: true,
       items: [
@@ -46,7 +46,7 @@ describe("LoadDetailModal", () => {
     render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
 
     await waitFor(() => {
-      expect(screen.getByText("50 t")).toBeInTheDocument();
+      expect(screen.getByText("50 Ton")).toBeInTheDocument();
     });
   });
 
