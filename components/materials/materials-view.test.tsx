@@ -23,8 +23,8 @@ describe("MaterialsView", () => {
 
     expect(screen.getByText("Alumínio")).toBeInTheDocument();
     expect(screen.getByText("Cobre")).toBeInTheDocument();
-    expect(screen.getByText(/3/)).toBeInTheDocument();
-    expect(screen.getByText(/0/)).toBeInTheDocument();
+    expect(screen.getByText("3 und. em estoque")).toBeInTheDocument();
+    expect(screen.getByText("0 und. em estoque")).toBeInTheDocument();
   });
 
   it("shows an empty state when there are no materials", () => {

@@ -87,7 +87,7 @@ export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
             <span className="font-medium text-foreground">{material.name}</span>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
-                {material.inStockCount} em estoque
+                {material.inStockCount} und. em estoque
               </span>
               <Button
                 variant="outline"
