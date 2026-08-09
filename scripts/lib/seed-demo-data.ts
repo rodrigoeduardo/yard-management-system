@@ -33,6 +33,16 @@ export function buildSeedDriver(prefix: string, index: number): string {
   return `${prefix}DRIVER-${pad(index)}`;
 }
 
+/** Deterministic, marker-prefixed Ordem de Transporte for the load at this 1-indexed position. */
+export function buildSeedTransportOrder(prefix: string, index: number): string {
+  return `${prefix}OT-${pad(index)}`;
+}
+
+/** Deterministic, marker-prefixed inbound driver name for the load at this 1-indexed position. */
+export function buildSeedLoadDriver(prefix: string, index: number): string {
+  return `${prefix}LOAD-DRIVER-${pad(index)}`;
+}
+
 /** Deterministic, marker-prefixed vehicle plate for the removal at this 1-indexed position. */
 export function buildSeedVehiclePlate(prefix: string, index: number): string {
   return `${prefix}PLATE-${pad(index)}`;
@@ -113,6 +123,8 @@ export async function seedDemoData(
     const itemWeights = generateItemWeights(i);
     await insertLoadWithItems({
       notaFiscal,
+      transportOrder: buildSeedTransportOrder(prefix, i),
+      driver: buildSeedLoadDriver(prefix, i),
       entryDate: seedEntryDate(i, now),
       // Consistent with the per-item weights (business rules only require
       // consistency, not that NF weight equal the item-weight sum).

@@ -116,6 +116,8 @@ describe("materials backfill mapping (via insertLoadWithItems)", () => {
 
     const loadA = await insertLoadWithItems({
       notaFiscal: `NF-MAT-A-${randomUUID()}`,
+      transportOrder: "OT-100001",
+      driver: "João da Silva",
       entryDate: new Date("2026-01-01"),
       nfWeight: "100",
       material: name,
@@ -125,6 +127,8 @@ describe("materials backfill mapping (via insertLoadWithItems)", () => {
 
     const loadB = await insertLoadWithItems({
       notaFiscal: `NF-MAT-B-${randomUUID()}`,
+      transportOrder: "OT-100002",
+      driver: "Maria Oliveira",
       entryDate: new Date("2026-01-01"),
       nfWeight: "100",
       material: name.toUpperCase(),
@@ -185,6 +189,8 @@ describe("getMaterialsWithInStockCounts", () => {
 
     const load = await insertLoadWithItems({
       notaFiscal: `NF-MAT-COUNT-${randomUUID()}`,
+      transportOrder: "OT-100003",
+      driver: "Pedro Souza",
       entryDate: new Date("2026-01-01"),
       nfWeight: "100",
       material: name,
@@ -320,6 +326,8 @@ describe("renameMaterial", () => {
     const name = `Vidro-${randomUUID()}`;
     const load = await insertLoadWithItems({
       notaFiscal: `NF-MAT-RENAME-${randomUUID()}`,
+      transportOrder: "OT-100004",
+      driver: "Ana Costa",
       entryDate: new Date("2026-01-01"),
       nfWeight: "50",
       material: name,

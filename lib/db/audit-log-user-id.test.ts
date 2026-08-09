@@ -168,6 +168,8 @@ describe("audit_log.user_id", () => {
       const load = await insertLoadWithItems(
         {
           notaFiscal: `NF-AUDIT-CTX-${randomUUID()}`,
+          transportOrder: "OT-900001",
+          driver: "Carlos Mendes",
           entryDate: new Date(),
           nfWeight: "1",
           material: "steel",
@@ -206,6 +208,8 @@ describe("audit_log.user_id", () => {
     it("attributes the removals row and the removed items' update to the acting user", async () => {
       const load = await insertLoadWithItems({
         notaFiscal: `NF-AUDIT-CTX-REMOVE-${randomUUID()}`,
+        transportOrder: "OT-900002",
+        driver: "Fernanda Lima",
         entryDate: new Date(),
         nfWeight: "1",
         material: "steel",
