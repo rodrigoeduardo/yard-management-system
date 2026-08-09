@@ -129,6 +129,7 @@ export async function listRemovalsPage({
         // (issue #310). Cancelled removals stay in the list — the paper
         // trail is preserved — they're only marked, not filtered out.
         cancelledAt: removals.cancelledAt,
+        cancelledBy: removals.cancelledBy,
       })
       .from(removals)
       .where(whereClause)

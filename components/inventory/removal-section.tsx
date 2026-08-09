@@ -25,10 +25,12 @@ export function RemovalSection({
   rows,
   total,
   query,
+  removalCancelEnabled = false,
 }: {
   rows: RemovalLogRow[];
   total: number;
   query: RemovalQueryState;
+  removalCancelEnabled?: boolean;
 }) {
   const [selected, setSelected] = useState<RemovalLogRow | null>(null);
   const [open, setOpen] = useState(false);
@@ -116,6 +118,7 @@ export function RemovalSection({
         removal={selected}
         open={open}
         onOpenChange={setOpen}
+        removalCancelEnabled={removalCancelEnabled}
       />
     </>
   );

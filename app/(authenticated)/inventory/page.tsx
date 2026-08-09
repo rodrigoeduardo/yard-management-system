@@ -8,6 +8,7 @@ import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
+import { isRemovalCancelEnabled } from "@/lib/removals/feature-flags";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ export default async function InventoryPage({
     totalRemovedWeight: removal.totalRemovedWeight,
     notasFiscais: (nfsByRemoval.get(removal.id) ?? []).join(", "),
     itemCount: removal.itemCount,
+    cancelled: removal.cancelledAt !== null,
   }));
 
   return (
@@ -64,6 +66,7 @@ export default async function InventoryPage({
         removalRows={removalRows}
         removalTotal={removalPage.total}
         removalQuery={removalQuery}
+        removalCancelEnabled={isRemovalCancelEnabled()}
       />
     </main>
   );

@@ -24,6 +24,8 @@ export type RemovalLogRow = {
   totalRemovedWeight: string;
   notasFiscais: string;
   itemCount: number;
+  /** Issue #310: a cancelled removal's row stays in the Histórico, marked instead of hidden. */
+  cancelled: boolean;
 };
 
 const HEADER_CLASS =
@@ -45,8 +47,13 @@ const columns: ColumnDef<RemovalLogRow>[] = [
     accessorKey: "exitDate",
     header: "Data de Saída",
     cell: ({ row }) => (
-      <span className="block whitespace-nowrap font-mono font-bold">
-        {row.original.exitDate}
+      <span className="flex items-center gap-2 whitespace-nowrap">
+        <span className="font-mono font-bold">{row.original.exitDate}</span>
+        {row.original.cancelled ? (
+          <span className="text-[10px] font-bold uppercase tracking-[0.04em] text-destructive">
+            Cancelada
+          </span>
+        ) : null}
       </span>
     ),
   },

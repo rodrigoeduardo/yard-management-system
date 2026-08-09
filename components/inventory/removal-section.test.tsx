@@ -21,6 +21,7 @@ const ROW: RemovalLogRow = {
   totalRemovedWeight: "100,00 t",
   notasFiscais: "NF-001",
   itemCount: 3,
+  cancelled: false,
 };
 
 const DEFAULT_QUERY: RemovalQueryState = {
