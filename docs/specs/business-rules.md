@@ -21,7 +21,7 @@
 
 ## Add Load (`load-intake`)
 
-- Creates a `load` object with: **Nota Fiscal (NF)**, **Entry Date**, **NF Weight**, **Material**, **Item Count**.
+- Creates a `load` object with: **Nota Fiscal (NF)**, **Ordem de Transporte**, **Motorista** (inbound driver — distinct from the removal's Motorista), **Entry Date**, **NF Weight**, **Material**, **Item Count**. Ordem de Transporte and Motorista are required at intake; loads created before this field existed keep them `NULL` and display `—`.
 - From Item Count, the form generates N fields for each item's individual weight (typically 15–18 items, recommended maximum 20).
 - All other parameters (NF, entry date, material) are shared by every item in the load; only weight varies per item.
 - The sum of individual item weights produces the load's **Remaining Weight**. It does **not** need to match the NF Weight.

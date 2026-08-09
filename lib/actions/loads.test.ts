@@ -37,6 +37,8 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T09:30",
       nfWeight: 500,
       material: "Aço",
@@ -56,6 +58,8 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T14:35",
       nfWeight: 500,
       material: "Aço",
@@ -75,6 +79,8 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "",
       nfWeight: 500,
       material: "Aço",
@@ -95,6 +101,8 @@ describe("createLoad", () => {
   it("rejects a calendar date that does not exist, even with a valid time", async () => {
     const result = await createLoad({
       notaFiscal: `NF-BADDATE-${randomUUID()}`,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-02-30T10:00",
       nfWeight: 500,
       material: "Aço",
@@ -111,6 +119,8 @@ describe("createLoad", () => {
 
     const result = await createLoad({
       notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
@@ -129,6 +139,8 @@ describe("createLoad", () => {
   it("rejects a non-positive item weight", async () => {
     const result = await createLoad({
       notaFiscal: `NF-BADWEIGHT-${randomUUID()}`,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
@@ -141,6 +153,8 @@ describe("createLoad", () => {
   it("attributes an invalid item weight to its own index, not a flattened bucket", async () => {
     const result = await createLoad({
       notaFiscal: `NF-INDEXED-${randomUUID()}`,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
@@ -157,6 +171,8 @@ describe("createLoad", () => {
   it("preserves top-level field errors alongside per-index item weight errors", async () => {
     const result = await createLoad({
       notaFiscal: "",
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDateTime: "2026-01-01T09:00",
       nfWeight: 500,
       material: "Aço",
@@ -167,5 +183,78 @@ describe("createLoad", () => {
     if (result.success) throw new Error("expected failure");
     expect(result.error.fieldErrors.notaFiscal).toBeDefined();
     expect(result.error.itemWeightErrors[1]).toBeDefined();
+  });
+
+  it("rejects an empty driver without touching the database", async () => {
+    const notaFiscal = `NF-NODRIVER-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "",
+      entryDateTime: "2026-01-01T09:00",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.fieldErrors.driver).toBeDefined();
+
+    const rows = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.notaFiscal, notaFiscal));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("rejects an empty transport order without touching the database", async () => {
+    const notaFiscal = `NF-NOTRANSPORT-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      transportOrder: "",
+      driver: "João Silva",
+      entryDateTime: "2026-01-01T09:00",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.fieldErrors.transportOrder).toBeDefined();
+
+    const rows = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.notaFiscal, notaFiscal));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("persists the transport order and driver on a valid submit", async () => {
+    const notaFiscal = `NF-PERSIST-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      transportOrder: "OT-9912",
+      driver: "Carlos Pereira",
+      entryDateTime: "2026-01-01T09:00",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error("expected success");
+    createdLoadIds.push(result.load.id);
+
+    const [row] = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, result.load.id));
+    expect(row.transportOrder).toBe("OT-9912");
+    expect(row.driver).toBe("Carlos Pereira");
   });
 });

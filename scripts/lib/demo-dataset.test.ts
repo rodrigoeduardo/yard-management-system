@@ -43,6 +43,8 @@ describe("seedDemoDataset", () => {
           .from(loads)
           .where(eq(loads.notaFiscal, spec.notaFiscal));
         expect(load).toBeDefined();
+        expect(load.transportOrder).toBe(spec.transportOrder);
+        expect(load.driver).toBe(spec.driver);
       }
 
       // At least one finished load: item_count = 0, remaining_weight = 0.

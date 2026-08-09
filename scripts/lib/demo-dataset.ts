@@ -17,10 +17,37 @@ import { items, loads, removals } from "@/lib/db/schema";
 export type DemoLoadSpec = {
   /** Plausible Nota Fiscal number; also the idempotency key for this load. */
   notaFiscal: string;
+  /** Ordem de Transporte read off the inbound paperwork alongside the NF. */
+  transportOrder: string;
+  /** Inbound driver — distinct from the removal (outbound) driver. */
+  driver: string;
   material: string;
   entryDaysAgo: number;
   itemWeights: string[];
 };
+
+/**
+ * Fixed pool of plausible PT-BR inbound driver names, picked deterministically
+ * by index so re-running the seed script never changes previously-inserted
+ * data.
+ */
+const DEMO_LOAD_DRIVERS = [
+  "Antônio Carlos Pereira",
+  "Francisco das Chagas Silva",
+  "Raimundo Nonato Alves",
+  "Sebastião Gomes Rocha",
+  "Vanderlei José Santos",
+  "Wellington Braga Costa",
+];
+
+function demoLoadDriver(index: number): string {
+  return DEMO_LOAD_DRIVERS[index % DEMO_LOAD_DRIVERS.length];
+}
+
+/** Deterministic Ordem de Transporte derived from the load's Nota Fiscal. */
+function demoTransportOrder(notaFiscal: string): string {
+  return `OT-${notaFiscal.slice(-6)}`;
+}
 
 export type DemoRemovalTarget = {
   notaFiscal: string;
@@ -61,36 +88,48 @@ export const MULTI_LOAD_REMOVAL_DRIVER = "Marcos Antônio Souza";
 export const DEMO_LOADS: DemoLoadSpec[] = [
   {
     notaFiscal: "000123456",
+    transportOrder: demoTransportOrder("000123456"),
+    driver: demoLoadDriver(1),
     material: "Sucata de Ferro",
     entryDaysAgo: 14,
     itemWeights: demoItemWeights(1, 16),
   },
   {
     notaFiscal: "000123457",
+    transportOrder: demoTransportOrder("000123457"),
+    driver: demoLoadDriver(2),
     material: "Alumínio",
     entryDaysAgo: 13,
     itemWeights: demoItemWeights(2, 17),
   },
   {
     notaFiscal: "000123458",
+    transportOrder: demoTransportOrder("000123458"),
+    driver: demoLoadDriver(3),
     material: "Cobre",
     entryDaysAgo: 12,
     itemWeights: demoItemWeights(3, 15),
   },
   {
     notaFiscal: "000123459",
+    transportOrder: demoTransportOrder("000123459"),
+    driver: demoLoadDriver(4),
     material: "Papelão Ondulado",
     entryDaysAgo: 11,
     itemWeights: demoItemWeights(4, 18),
   },
   {
     notaFiscal: FINISHED_LOAD_NOTA_FISCAL,
+    transportOrder: demoTransportOrder(FINISHED_LOAD_NOTA_FISCAL),
+    driver: demoLoadDriver(5),
     material: "Plástico PET",
     entryDaysAgo: 10,
     itemWeights: demoItemWeights(5, 15),
   },
   {
     notaFiscal: "000123461",
+    transportOrder: demoTransportOrder("000123461"),
+    driver: demoLoadDriver(6),
     material: "Sucata de Aço Inox",
     entryDaysAgo: 9,
     itemWeights: demoItemWeights(6, 16),
@@ -160,6 +199,8 @@ export async function seedDemoDataset(
 
     await insertLoadWithItems({
       notaFiscal: spec.notaFiscal,
+      transportOrder: spec.transportOrder,
+      driver: spec.driver,
       entryDate: daysAgo(spec.entryDaysAgo, now),
       // Consistent with the per-item weights (business rules only require
       // consistency, not that NF weight equal the item-weight sum).

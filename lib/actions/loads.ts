@@ -9,6 +9,8 @@ import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 const createLoadSchema = z
   .object({
     notaFiscal: z.string().min(1),
+    transportOrder: z.string().min(1),
+    driver: z.string().min(1),
     entryDateTime: z.string().min(1),
     nfWeight: z.number().positive(),
     material: z.string().min(1),
@@ -73,6 +75,8 @@ export async function createLoad(input: CreateLoadInput) {
   const load = await insertLoadWithItems(
     {
       notaFiscal: parsed.data.notaFiscal,
+      transportOrder: parsed.data.transportOrder,
+      driver: parsed.data.driver,
       entryDate,
       nfWeight: parsed.data.nfWeight.toString(),
       material: parsed.data.material,

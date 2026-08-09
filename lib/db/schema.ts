@@ -33,6 +33,15 @@ export const materials = pgTable(
 export const loads = pgTable("loads", {
   id: uuid("id").primaryKey().defaultRandom(),
   notaFiscal: text("nota_fiscal").notNull(),
+  // Inbound transport order reference, read off the paperwork alongside the
+  // NF. Nullable only because loads created before this column existed have
+  // no value — new loads always require it (lib/actions/loads.ts).
+  transportOrder: text("transport_order"),
+  // Driver who brought the load in. Distinct from `removals.driver` (the
+  // outbound driver on a removal) — disambiguated in the UI copy, not the
+  // schema, per docs/specs/glossary.md. Nullable for the same pre-existing-row
+  // reason as `transportOrder`.
+  driver: text("driver"),
   entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
   nfWeight: numeric("nf_weight").notNull(),
   materialId: uuid("material_id")
