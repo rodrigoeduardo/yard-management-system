@@ -127,13 +127,14 @@ describe("RemovalPrintView", () => {
     expect(thead?.className).toMatch(/\bprint:table-header-group\b/);
 
     const rows = container.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(items.length);
+    // Two items from two different (NF, material) pairs -> two summary rows.
+    expect(rows.length).toBe(2);
     for (const row of rows) {
       expect(row.className).toMatch(/\bprint:break-inside-avoid\b/);
     }
   });
 
-  it("lists each removed item with its item number, NF, material and weight", () => {
+  it("summarizes removed items into one row per (NF, material) pair with item count and total weight (issue #308)", () => {
     render(
       <RemovalPrintView
         summary={summary}
@@ -142,14 +143,46 @@ describe("RemovalPrintView", () => {
       />,
     );
 
-    expect(screen.getByText("Item 1 - NF-100")).toBeInTheDocument();
     expect(screen.getByText("NF-100")).toBeInTheDocument();
     expect(screen.getByText("Aço")).toBeInTheDocument();
     expect(screen.getByText("10 Ton")).toBeInTheDocument();
 
-    expect(screen.getByText("Item 1 - NF-200")).toBeInTheDocument();
     expect(screen.getByText("NF-200")).toBeInTheDocument();
     expect(screen.getByText("Cobre")).toBeInTheDocument();
     expect(screen.getByText("5.5 Ton")).toBeInTheDocument();
+
+    expect(screen.queryByText("Item 1 - NF-100")).not.toBeInTheDocument();
+  });
+
+  it("prints exactly one row for a group of multiple items from the same NF and material", () => {
+    const sameGroupItems: RemovalReceiptItemDetail[] = [
+      {
+        id: "item-1",
+        identifier: "Item 1 - NF-100",
+        weight: "10",
+        notaFiscal: "NF-100",
+        material: "Aço",
+      },
+      {
+        id: "item-2",
+        identifier: "Item 2 - NF-100",
+        weight: "2.5",
+        notaFiscal: "NF-100",
+        material: "Aço",
+      },
+    ];
+
+    const { container } = render(
+      <RemovalPrintView
+        summary={summary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={sameGroupItems}
+      />,
+    );
+
+    const rows = container.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(1);
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("12.5 Ton")).toBeInTheDocument();
   });
 });

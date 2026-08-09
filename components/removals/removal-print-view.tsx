@@ -4,6 +4,7 @@ import { PrintButton } from "@/components/loads/print-button";
 import type { RemovalReceiptItemDetail } from "@/lib/db/removal-items";
 import { formatWeight } from "@/lib/format/weight";
 import type { RemovalReceiptSummary } from "@/lib/removals/print";
+import { groupRemovalItemsForReceiptTable } from "@/lib/removals/receipt-table";
 
 interface RemovalPrintViewProps {
   summary: RemovalReceiptSummary;
@@ -23,6 +24,8 @@ export function RemovalPrintView({
   pedidoImageUrl,
   items,
 }: RemovalPrintViewProps) {
+  const rows = groupRemovalItemsForReceiptTable(items);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3.5 print:hidden">
@@ -96,28 +99,33 @@ export function RemovalPrintView({
         <table className="w-full text-[13.5px]">
           <thead className="print:table-header-group">
             <tr className="border-b border-border bg-muted text-left text-xs text-muted-foreground">
-              <th className="px-[18px] py-2.5 font-medium">Item</th>
               <th className="px-[18px] py-2.5 font-medium">NF</th>
               <th className="px-[18px] py-2.5 font-medium">Material</th>
               <th className="px-[18px] py-2.5 text-right font-medium">
-                Peso
+                Qtd. de itens
+              </th>
+              <th className="px-[18px] py-2.5 text-right font-medium">
+                Peso total
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {items.map((item) => (
-              <tr key={item.id} className="print:break-inside-avoid">
-                <td className="px-[18px] py-3 font-semibold">
-                  {item.identifier}
-                </td>
+            {rows.map((row) => (
+              <tr
+                key={`${row.notaFiscal}-${row.material}`}
+                className="print:break-inside-avoid"
+              >
                 <td className="px-[18px] py-3 font-mono text-muted-foreground">
-                  {item.notaFiscal}
+                  {row.notaFiscal}
                 </td>
-                <td className="px-[18px] py-3 text-muted-foreground">
-                  {item.material}
+                <td className="px-[18px] py-3 font-semibold">
+                  {row.material}
+                </td>
+                <td className="px-[18px] py-3 text-right font-mono text-muted-foreground">
+                  {row.itemCount}
                 </td>
                 <td className="px-[18px] py-3 text-right font-mono font-semibold">
-                  {formatWeight(item.weight)}
+                  {formatWeight(row.totalWeight)}
                 </td>
               </tr>
             ))}
