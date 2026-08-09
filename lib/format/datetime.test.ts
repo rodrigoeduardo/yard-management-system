@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { formatEntryDateTime, formatYardDate } from "./datetime";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  formatCalendarDate,
+  formatEntryDateTime,
+  formatYardDate,
+} from "./datetime";
 
 describe("formatEntryDateTime", () => {
   it("formats as dd/mm/aaaa · HH:mm", () => {
@@ -31,4 +35,28 @@ describe("formatYardDate", () => {
     const date = new Date("2026-07-18T02:30:00Z");
     expect(formatYardDate(date)).toBe("17/07/2026");
   });
+});
+
+describe("formatCalendarDate", () => {
+  const originalTz = process.env.TZ;
+
+  afterEach(() => {
+    process.env.TZ = originalTz;
+  });
+
+  it("formats a YYYY-MM-DD value as dd/mm/aaaa", () => {
+    expect(formatCalendarDate("2026-07-10")).toBe("10/07/2026");
+  });
+
+  it("zero-pads single-digit day/month", () => {
+    expect(formatCalendarDate("2026-01-05")).toBe("05/01/2026");
+  });
+
+  it.each(["UTC", "America/Sao_Paulo", "Asia/Tokyo"])(
+    "renders the same dd/mm/aaaa under host TZ=%s — no timezone shifting",
+    (hostTz) => {
+      process.env.TZ = hostTz;
+      expect(formatCalendarDate("2026-07-10")).toBe("10/07/2026");
+    },
+  );
 });

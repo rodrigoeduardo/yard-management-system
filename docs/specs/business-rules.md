@@ -22,9 +22,10 @@
 
 ## Add Load (`load-intake`)
 
-- Creates a `load` object with: **Nota Fiscal (NF)**, **Ordem de Transporte**, **Motorista** (inbound driver — distinct from the removal's Motorista), **Entry Date**, **NF Weight**, **Material**, **Item Count**. Ordem de Transporte and Motorista are required at intake; loads created before this field existed keep them `NULL` and display `—`.
+- Creates a `load` object with: **Nota Fiscal (NF)**, **Ordem de Transporte**, **Motorista** (inbound driver — distinct from the removal's Motorista), **NF Date**, **Entry Date**, **NF Weight**, **Material**, **Item Count**. Ordem de Transporte and Motorista are required at intake; loads created before this field existed keep them `NULL` and display `—`.
+- **NF Date** (the calendar date printed on the invoice) and **Entry Date** (when the truck physically arrived at the yard) are two distinct facts, both required at intake. NF Date has no time component and is never timezone-shifted; Entry Date is a timestamp shown in the yard's local timezone (see `lib/loads/entry-datetime.ts`). Loads created before NF Date existed as its own field have it backfilled from Entry Date's calendar day.
 - From Item Count, the form generates N fields for each item's individual weight (typically 15–18 items, recommended maximum 20).
-- All other parameters (NF, entry date, material) are shared by every item in the load; only weight varies per item.
+- All other parameters (NF, NF date, entry date, material) are shared by every item in the load; only weight varies per item.
 - The sum of individual item weights produces the load's **Remaining Weight**. It does **not** need to match the NF Weight.
 - On completion, generate one QR code per item containing: an identifier (e.g. "Item 1 - <NF>"), the material, and the item's weight.
 - QR codes are printed one per label, sized for the Elgin L42 Pro Full label printer (100×50 mm labels) — not laid out in a batch on a single page.

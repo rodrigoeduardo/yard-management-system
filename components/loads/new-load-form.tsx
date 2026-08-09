@@ -17,7 +17,10 @@ import {
   mapCreateLoadFieldErrors,
   mapCreateLoadItemWeightErrors,
 } from "@/lib/forms/create-load-error-map";
-import { getCurrentEntryDateTimeValue } from "@/lib/loads/entry-datetime";
+import {
+  getCurrentEntryDateTimeValue,
+  getCurrentEntryDateValue,
+} from "@/lib/loads/entry-datetime";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +40,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
   const [notaFiscal, setNotaFiscal] = useState("");
   const [transportOrder, setTransportOrder] = useState("");
   const [driver, setDriver] = useState("");
+  const [nfDate, setNfDate] = useState(() => getCurrentEntryDateValue());
   const [entryDateTime, setEntryDateTime] = useState(() =>
     getCurrentEntryDateTimeValue(),
   );
@@ -85,6 +89,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
     notaFiscal.trim() !== "" &&
     transportOrder.trim() !== "" &&
     driver.trim() !== "" &&
+    nfDate.trim() !== "" &&
     entryDateTime.trim() !== "" &&
     nfWeight.trim() !== "" &&
     Number.isFinite(Number(nfWeight)) &&
@@ -114,6 +119,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
         notaFiscal,
         transportOrder,
         driver,
+        nfDate,
         entryDateTime,
         nfWeight: Number(nfWeight),
         material,
@@ -243,6 +249,32 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
               {fieldErrors.driver && (
                 <p role="alert" className="text-sm text-destructive">
                   {fieldErrors.driver}
+                </p>
+              )}
+            </div>
+
+            <div className="flex w-full min-w-0 flex-col gap-1.5">
+              <label
+                htmlFor="nfDate"
+                className="text-sm font-medium text-foreground"
+              >
+                Data da Nota Fiscal
+              </label>
+              <div className="relative w-full min-w-0 overflow-hidden rounded-input">
+                <Input
+                  id="nfDate"
+                  type="date"
+                  mono
+                  value={nfDate}
+                  onChange={(e) => setNfDate(e.target.value)}
+                  required
+                  className="h-12 min-w-0 overflow-hidden px-3.5 pr-11 text-[15px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:opacity-0 md:h-11 md:text-sm"
+                />
+                <Calendar className="pointer-events-none absolute right-3.5 top-1/2 size-[19px] -translate-y-1/2 text-muted-foreground" />
+              </div>
+              {fieldErrors.nfDate && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.nfDate}
                 </p>
               )}
             </div>

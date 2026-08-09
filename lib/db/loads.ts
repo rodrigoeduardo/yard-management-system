@@ -17,6 +17,8 @@ export type CreateLoadData = {
   transportOrder: string;
   /** Inbound driver — distinct from `removals.driver` (the outbound driver). */
   driver: string;
+  /** Calendar date printed on the invoice, `YYYY-MM-DD` — distinct from `entryDate`. */
+  nfDate: string;
   entryDate: Date;
   nfWeight: string;
   /** An existing material's id, or a name to find-or-create — see `resolveMaterialId`. */
@@ -39,6 +41,7 @@ export async function insertLoadWithItems(
         notaFiscal: data.notaFiscal,
         transportOrder: data.transportOrder,
         driver: data.driver,
+        nfDate: data.nfDate,
         entryDate: data.entryDate,
         nfWeight: data.nfWeight,
         materialId: material.id,
@@ -65,6 +68,7 @@ export async function getLoadWithItems(loadId: string) {
       notaFiscal: loads.notaFiscal,
       transportOrder: loads.transportOrder,
       driver: loads.driver,
+      nfDate: loads.nfDate,
       entryDate: loads.entryDate,
       nfWeight: loads.nfWeight,
       material: materials.name,
@@ -181,10 +185,11 @@ export async function listStockPage({
   const selectColumns = {
     id: loads.id,
     notaFiscal: loads.notaFiscal,
-    // Not rendered as stock table columns (out of scope for #304) — carried
-    // through only so the load detail modal can show them.
+    // Not rendered as stock table columns (out of scope for #304/#305) —
+    // carried through only so the load detail modal can show them.
     transportOrder: loads.transportOrder,
     driver: loads.driver,
+    nfDate: loads.nfDate,
     entryDate: loads.entryDate,
     nfWeight: loads.nfWeight,
     material: materials.name,

@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   bigserial,
   check,
+  date,
   integer,
   jsonb,
   numeric,
@@ -43,6 +44,15 @@ export const loads = pgTable("loads", {
   // reason as `transportOrder`.
   driver: text("driver"),
   entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
+  // Calendar date printed on the invoice — distinct from `entryDate` (when
+  // the truck physically arrived). A plain `date` column (string mode, not
+  // `timestamp`): an invoice date has no time component and must never be
+  // shifted by a host/runner timezone the way `entryDate` legitimately is
+  // (see lib/loads/entry-datetime.ts). Nullable only because loads created
+  // before this column existed were backfilled from `entryDate`'s calendar
+  // day (drizzle/0015) — new loads always require it
+  // (lib/actions/loads.ts).
+  nfDate: date("nf_date", { mode: "string" }),
   nfWeight: numeric("nf_weight").notNull(),
   materialId: uuid("material_id")
     .notNull()
