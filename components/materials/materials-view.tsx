@@ -6,6 +6,7 @@ import {
   createMaterialAction,
   renameMaterialAction,
 } from "@/lib/actions/materials";
+import { formatWeight } from "@/lib/format/weight";
 import { mapMaterialFieldErrors } from "@/lib/forms/material-error-map";
 import {
   MaterialFormDialog,
@@ -16,6 +17,7 @@ export type MaterialRow = {
   id: string;
   name: string;
   inStockCount: number;
+  inStockWeight: string;
 };
 
 function sortByName(rows: MaterialRow[]): MaterialRow[] {
@@ -40,7 +42,12 @@ export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
     setRows((current) =>
       sortByName([
         ...current,
-        { id: result.material.id, name: result.material.name, inStockCount: 0 },
+        {
+          id: result.material.id,
+          name: result.material.name,
+          inStockCount: 0,
+          inStockWeight: "0",
+        },
       ]),
     );
     return { success: true };
@@ -87,7 +94,8 @@ export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
             <span className="font-medium text-foreground">{material.name}</span>
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
-                {material.inStockCount} und. em estoque
+                {material.inStockCount} und. ·{" "}
+                {formatWeight(material.inStockWeight)} em estoque
               </span>
               <Button
                 variant="outline"
