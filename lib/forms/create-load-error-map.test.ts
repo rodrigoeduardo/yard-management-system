@@ -26,6 +26,8 @@ describe("mapCreateLoadFieldErrors", () => {
       entryDateTime: ["invalid"],
       nfWeight: ["invalid"],
       material: ["required"],
+      transportOrder: ["required"],
+      driver: ["required"],
     });
 
     expect(messages.entryDateTime).toBe(
@@ -33,6 +35,8 @@ describe("mapCreateLoadFieldErrors", () => {
     );
     expect(messages.nfWeight).toBe("Informe o peso da nota fiscal.");
     expect(messages.material).toBe("Informe o material.");
+    expect(messages.transportOrder).toBe("Informe a ordem de transporte.");
+    expect(messages.driver).toBe("Informe o motorista.");
   });
 
   it("returns an empty object when there are no field errors", () => {
