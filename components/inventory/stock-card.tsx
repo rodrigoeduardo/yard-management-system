@@ -2,8 +2,16 @@
 
 import { Card } from "@/components/ui/card";
 import { formatWeight } from "@/lib/format/weight";
+import { getStockTier } from "@/lib/inventory/stock";
 import { cn } from "@/lib/utils";
 import type { StockRow } from "./stock-table";
+
+/** Card border/background tint per removal-progress tier (issue #303). */
+const TIER_CARD_CLASS = {
+  "none-removed": "border-success bg-success/15",
+  partial: "border-warning bg-warning/20",
+  finished: "border-destructive bg-destructive/15",
+} as const;
 
 function MetricField({
   label,
@@ -54,7 +62,7 @@ export function StockCard({
       className={cn(
         "flex flex-col gap-[11px] px-4 py-3.5",
         onClick && "cursor-pointer",
-        row.finished && "border-destructive bg-destructive/15",
+        TIER_CARD_CLASS[getStockTier(row)],
       )}
     >
       <div className="flex items-center gap-[10px]">

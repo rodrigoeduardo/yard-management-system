@@ -10,6 +10,19 @@ const OPEN_ROW: StockRow = {
   material: "Sucata",
   itemCount: 4,
   remainingWeight: "250",
+  removedItemCount: 0,
+  finished: false,
+};
+
+const PARTIAL_ROW: StockRow = {
+  id: "3",
+  notaFiscal: "NF-003",
+  entryDate: "03/01/2026",
+  nfWeight: "800",
+  material: "Ferro",
+  itemCount: 4,
+  remainingWeight: "160",
+  removedItemCount: 6,
   finished: false,
 };
 
@@ -21,6 +34,7 @@ const FINISHED_ROW: StockRow = {
   material: "Papel",
   itemCount: 0,
   remainingWeight: "0",
+  removedItemCount: 10,
   finished: true,
 };
 
@@ -63,6 +77,31 @@ describe("StockTable", () => {
     expect(screen.getByText("500 Ton").className).not.toMatch(
       /\btext-destructive\b/,
     );
+  });
+
+  it("tints a row with no removals green", () => {
+    render(<StockTable rows={[OPEN_ROW]} />);
+
+    const row = screen.getByText("Sucata").closest('[data-slot="table-row"]');
+    expect(row?.className).toMatch(/\bbg-success\/\d+\b/);
+  });
+
+  it("tints a partially-removed, unfinished row yellow", () => {
+    render(<StockTable rows={[PARTIAL_ROW]} />);
+
+    const row = screen.getByText("Ferro").closest('[data-slot="table-row"]');
+    expect(row?.className).toMatch(/\bbg-warning\/\d+\b/);
+    expect(row?.className).not.toMatch(/\bbg-success\/\d+\b/);
+    expect(row?.className).not.toMatch(/\bbg-destructive\/\d+\b/);
+  });
+
+  it("still states item count and remaining weight in text for every tier", () => {
+    render(<StockTable rows={[OPEN_ROW, PARTIAL_ROW, FINISHED_ROW]} />);
+
+    expect(screen.getAllByText("4")).toHaveLength(2);
+    expect(screen.getByText("250 Ton")).toBeInTheDocument();
+    expect(screen.getByText("160 Ton")).toBeInTheDocument();
+    expect(screen.getByText("0 Ton")).toBeInTheDocument();
   });
 
   it("truncates a long material name with an ellipsis and exposes the full value via title", () => {
