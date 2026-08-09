@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "./index";
 import { items, loads, materials, removalItems, removals } from "./schema";
 
@@ -54,12 +54,15 @@ export type LastRemoval = {
 /**
  * Most-recent removal for the "última movimentação" card, with its item
  * count and NFs derived from the removal_items junction (read-only).
- * Returns null when no removal has happened yet.
+ * Returns null when no removal has happened yet. Cancelled removals
+ * (issue #310) are skipped — their items are back in stock, so showing one
+ * as the "last removal" would misrepresent the current state.
  */
 export async function getLastRemoval(): Promise<LastRemoval | null> {
   const [removal] = await db
     .select()
     .from(removals)
+    .where(isNull(removals.cancelledAt))
     .orderBy(desc(removals.createdAt))
     .limit(1);
 
