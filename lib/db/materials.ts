@@ -97,12 +97,14 @@ export type MaterialWithInStockCount = {
   id: string;
   name: string;
   inStockCount: number;
+  /** Sum of `in_stock` items' weight for this material, as a decimal string (e.g. "10.000"). */
+  inStockWeight: string;
 };
 
 /**
- * Every persisted material with its count of `in_stock` items, including
- * materials with no loads at all (count 0). Ordered by name for the
- * Materials page listing.
+ * Every persisted material with its count of `in_stock` items and their
+ * summed weight, including materials with no loads at all (count 0, weight
+ * "0"). Ordered by name for the Materials page listing.
  */
 export async function getMaterialsWithInStockCounts(): Promise<
   MaterialWithInStockCount[]
@@ -112,6 +114,7 @@ export async function getMaterialsWithInStockCounts(): Promise<
       id: materials.id,
       name: materials.name,
       inStockCount: sql<number>`count(${items.id}) filter (where ${items.status} = 'in_stock')::int`,
+      inStockWeight: sql<string>`coalesce(sum(${items.weight}) filter (where ${items.status} = 'in_stock'), 0)::text`,
     })
     .from(materials)
     .leftJoin(loads, eq(loads.materialId, materials.id))
