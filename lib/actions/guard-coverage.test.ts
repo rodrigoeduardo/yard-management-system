@@ -59,6 +59,7 @@ const MODULES: Record<string, { guarded: string[]; exempt: string[] }> = {
     exempt: [],
   },
   "./removals": { guarded: ["removeItems"], exempt: [] },
+  "./removal-cancel": { guarded: ["cancelRemovalAction"], exempt: [] },
   "./pedido-image": {
     guarded: ["uploadPedidoImage"],
     exempt: ["getPedidoImageSignedUrl"],

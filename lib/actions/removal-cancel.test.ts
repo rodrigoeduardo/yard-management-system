@@ -126,3 +126,63 @@ describe("cancelRemovalAction", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("cancelRemovalAction viewer guard", () => {
+  const loadIds: string[] = [];
+  const removalIds: string[] = [];
+  const originalFlag = process.env.FEATURE_REMOVAL_CANCEL;
+
+  afterEach(async () => {
+    if (originalFlag === undefined) {
+      delete process.env.FEATURE_REMOVAL_CANCEL;
+    } else {
+      process.env.FEATURE_REMOVAL_CANCEL = originalFlag;
+    }
+    vi.resetModules();
+    vi.doUnmock("@/lib/auth/current-role");
+
+    while (removalIds.length > 0) {
+      const id = removalIds.pop()!;
+      await db.delete(removalItems).where(eq(removalItems.removalId, id));
+      await db.delete(removals).where(eq(removals.id, id));
+    }
+    while (loadIds.length > 0) {
+      const id = loadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it("refuses a viewer session without touching the database", async () => {
+    process.env.FEATURE_REMOVAL_CANCEL = "true";
+    vi.resetModules();
+    vi.doMock("@/lib/auth/current-role", () => ({
+      getCurrentUserRole: vi.fn(async () => "viewer"),
+    }));
+    const { cancelRemovalAction: cancelAsViewer } = await import(
+      "./removal-cancel"
+    );
+
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Viewer Guard Driver",
+      vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/viewer-guard.jpg",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    const result = await cancelAsViewer(removal.id);
+
+    expect(result.success).toBe(false);
+
+    const reloadedLoad = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, load.load.id));
+    expect(reloadedLoad[0].itemCount).toBe(0);
+  });
+});

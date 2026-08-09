@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { cancelRemoval } from "@/lib/db/removals";
 import { isRemovalCancelEnabled } from "@/lib/removals/feature-flags";
+import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const cancelRemovalSchema = z.uuid();
 
@@ -15,6 +16,10 @@ const cancelRemovalSchema = z.uuid();
  * calls.
  */
 export async function cancelRemovalAction(removalId: string) {
+  if (await isViewerWriteRefused()) {
+    return { success: false as const, error: VIEWER_WRITE_ERROR_MESSAGE };
+  }
+
   if (!isRemovalCancelEnabled()) {
     return {
       success: false as const,
