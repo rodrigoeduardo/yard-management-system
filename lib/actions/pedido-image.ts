@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { createSupabaseSsrServerClient } from "@/lib/supabase/ssr-server";
+import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const PEDIDO_IMAGES_BUCKET = "removal-pedidos";
 
@@ -33,6 +34,10 @@ export type UploadPedidoImageResult =
 export async function uploadPedidoImage(
   formData: FormData,
 ): Promise<UploadPedidoImageResult> {
+  if (await isViewerWriteRefused()) {
+    return { success: false, error: VIEWER_WRITE_ERROR_MESSAGE };
+  }
+
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     return { success: false, error: "Anexe a imagem do Pedido." };

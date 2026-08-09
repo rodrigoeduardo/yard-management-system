@@ -45,8 +45,18 @@
 
 - Applies only when `DEMO_MODE` is not set — see [Demo Mode](#demo-mode) below for the flag-enabled deployment.
 - Signup is closed to outsiders: `/register` requires a shared invite code (env var `REGISTER_INVITE_CODE`), checked with a constant-time comparison. A wrong or missing code shows a Portuguese error and creates no account.
-- There is no admin UI or approval queue — access is granted or revoked by rotating the invite code.
+- There is no admin UI or approval queue — access is granted or revoked by rotating the invite code(s) (see roles below).
 - On a valid code, the account is created with `user_metadata.display_name` set from the name field. If email confirmation is enabled on the Supabase project, the user sees a confirmation notice instead of landing directly in the app.
+
+### Roles: operator and viewer (`auth`)
+
+- Two roles exist: **operator** (default, full read/write) and **viewer** (read-only).
+- A second, optional invite code — env var `VIEWER_INVITE_CODE` — registers a viewer account instead of an operator. It is checked the same way as `REGISTER_INVITE_CODE` (a second valid code at `/register`, constant-time comparison).
+- When `VIEWER_INVITE_CODE` is unset, the viewer path does not exist: only the operator code is accepted, and behavior is identical to a deployment with no viewer role at all. This is the kill switch — access is revoked deployment-wide by unsetting it.
+- Registering with the viewer code sets `user_metadata.app_role = "viewer"`. Registering with the operator code leaves `app_role` unset — absent `app_role` means operator, so every pre-existing account (created before this role existed) is unaffected and stays an operator.
+- Every server action in `lib/actions/` that writes refuses to run for a viewer session, returning a Portuguese error before any database access — see `lib/actions/guard.ts`. Read paths (the inventory view, materials list, removal receipts, etc.) are unaffected: a viewer can read the whole app.
+- Access is granted or revoked per role by rotating the corresponding code: rotate `REGISTER_INVITE_CODE` to control new operator signups, rotate (or unset) `VIEWER_INVITE_CODE` to control new viewer signups. Rotating a code has no effect on accounts already created — there is no way to change an existing account's role short of direct database access (out of scope for this app).
+- Database-level (RLS) enforcement of the viewer role is a separate concern: the app connects directly to Postgres, so existing RLS policies do not constrain it. The guard in `lib/actions/` is the only enforcement point today.
 
 ## Demo Mode (`auth`, `demo`)
 

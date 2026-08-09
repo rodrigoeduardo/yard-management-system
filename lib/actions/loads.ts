@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { insertLoadWithItems } from "@/lib/db/loads";
 import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
+import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const createLoadSchema = z
   .object({
@@ -51,6 +52,17 @@ function toCreateLoadError(
 }
 
 export async function createLoad(input: CreateLoadInput) {
+  if (await isViewerWriteRefused()) {
+    return {
+      success: false as const,
+      error: {
+        formErrors: [VIEWER_WRITE_ERROR_MESSAGE],
+        fieldErrors: {},
+        itemWeightErrors: {},
+      },
+    };
+  }
+
   const parsed = createLoadSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false as const, error: toCreateLoadError(parsed.error) };

@@ -7,6 +7,7 @@ import {
   MaterialNameConflictError,
   renameMaterial,
 } from "@/lib/db/materials";
+import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const materialNameSchema = z.object({
   name: z.string().trim().min(1),
@@ -17,6 +18,13 @@ export type CreateMaterialInput = z.input<typeof materialNameSchema>;
 const DUPLICATE_ISSUE = "duplicate";
 
 export async function createMaterialAction(input: CreateMaterialInput) {
+  if (await isViewerWriteRefused()) {
+    return {
+      success: false as const,
+      error: { formErrors: [VIEWER_WRITE_ERROR_MESSAGE], fieldErrors: {} },
+    };
+  }
+
   const parsed = materialNameSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.flatten() };
@@ -48,6 +56,13 @@ const renameMaterialSchema = z.object({
 export type RenameMaterialInput = z.input<typeof renameMaterialSchema>;
 
 export async function renameMaterialAction(input: RenameMaterialInput) {
+  if (await isViewerWriteRefused()) {
+    return {
+      success: false as const,
+      error: { formErrors: [VIEWER_WRITE_ERROR_MESSAGE], fieldErrors: {} },
+    };
+  }
+
   const parsed = renameMaterialSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.flatten() };
