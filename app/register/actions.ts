@@ -15,12 +15,12 @@ function requireEnv(name: string): string {
 }
 
 /**
- * Constant-time invite-code check. Compares against the expected code even
- * on a length mismatch so a wrong-length guess doesn't short-circuit before
- * the timing-safe comparison runs, which would leak the expected length.
+ * Constant-time comparison. Compares against the expected code even on a
+ * length mismatch so a wrong-length guess doesn't short-circuit before the
+ * timing-safe comparison runs, which would leak the expected length.
  */
-function isValidInviteCode(candidate: string): boolean {
-  const expected = Buffer.from(requireEnv("REGISTER_INVITE_CODE"));
+function timingSafeEquals(expectedValue: string, candidate: string): boolean {
+  const expected = Buffer.from(expectedValue);
   const provided = Buffer.from(candidate);
 
   if (expected.length !== provided.length) {
@@ -29,6 +29,28 @@ function isValidInviteCode(candidate: string): boolean {
   }
 
   return timingSafeEqual(expected, provided);
+}
+
+type RegistrationRole = "operator" | "viewer";
+
+/**
+ * Resolves which role (if any) the submitted invite code grants. The
+ * operator code (REGISTER_INVITE_CODE) is always checked; the viewer code
+ * (VIEWER_INVITE_CODE) is optional — when unset, the viewer path does not
+ * exist at all, so any candidate other than the operator code is invalid,
+ * identical to pre-viewer behavior. Both comparisons are constant-time.
+ */
+function resolveInviteCodeRole(candidate: string): RegistrationRole | null {
+  if (timingSafeEquals(requireEnv("REGISTER_INVITE_CODE"), candidate)) {
+    return "operator";
+  }
+
+  const viewerCode = process.env.VIEWER_INVITE_CODE;
+  if (viewerCode && timingSafeEquals(viewerCode, candidate)) {
+    return "viewer";
+  }
+
+  return null;
 }
 
 export async function register(formData: FormData): Promise<void> {
@@ -43,7 +65,8 @@ export async function register(formData: FormData): Promise<void> {
     redirect("/register?error=invalid_input");
   }
 
-  if (!isValidInviteCode(parsed.data.inviteCode)) {
+  const role = resolveInviteCodeRole(parsed.data.inviteCode);
+  if (role === null) {
     redirect("/register?error=invalid_code");
   }
 
@@ -53,7 +76,10 @@ export async function register(formData: FormData): Promise<void> {
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { display_name: parsed.data.name },
+      data: {
+        display_name: parsed.data.name,
+        ...(role === "viewer" ? { app_role: "viewer" } : {}),
+      },
     },
   });
 
