@@ -13,6 +13,17 @@ const OPEN_ROW: StockRow = {
   material: "Sucata",
   itemCount: 4,
   remainingWeight: "250",
+  removedItemCount: 0,
+  finished: false,
+};
+
+const PARTIAL_ROW: StockRow = {
+  ...OPEN_ROW,
+  id: "3",
+  notaFiscal: "145.814",
+  itemCount: 4,
+  remainingWeight: "160",
+  removedItemCount: 6,
   finished: false,
 };
 
@@ -24,6 +35,7 @@ const FINISHED_ROW: StockRow = {
   driver: "João Silva",
   itemCount: 0,
   remainingWeight: "0",
+  removedItemCount: 10,
   finished: true,
 };
 
@@ -76,5 +88,23 @@ describe("StockCard", () => {
     expect(screen.getByText("1000 Ton").className).not.toMatch(
       /\btext-destructive\b/,
     );
+  });
+
+  it("tints a card with no removals green", () => {
+    render(<StockCard row={OPEN_ROW} />);
+
+    const card = screen.getByText("Material: Sucata").closest('[data-slot="card"]');
+    expect(card?.className).toMatch(/\bbg-success\/\d+\b/);
+    expect(card?.className).toMatch(/\bborder-success\b/);
+  });
+
+  it("tints a partially-removed, unfinished card yellow", () => {
+    render(<StockCard row={PARTIAL_ROW} />);
+
+    const card = screen.getByText("Material: Sucata").closest('[data-slot="card"]');
+    expect(card?.className).toMatch(/\bbg-warning\/\d+\b/);
+    expect(card?.className).toMatch(/\bborder-warning\b/);
+    expect(card?.className).not.toMatch(/\bbg-success\/\d+\b/);
+    expect(card?.className).not.toMatch(/\bbg-destructive\/\d+\b/);
   });
 });

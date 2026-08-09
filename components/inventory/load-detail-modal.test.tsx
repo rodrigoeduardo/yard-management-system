@@ -19,6 +19,7 @@ const LOAD: StockRow = {
   material: "Sucata",
   itemCount: 1,
   remainingWeight: "250",
+  removedItemCount: 0,
   finished: false,
 };
 

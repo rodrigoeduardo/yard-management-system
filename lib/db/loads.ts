@@ -112,6 +112,8 @@ export type StockPageParams = {
 
 export type StockRow = Omit<typeof loads.$inferSelect, "materialId"> & {
   material: string;
+  /** Count of this load's items with `status = 'removed'` (issue #303). */
+  removedItemCount: number;
 };
 
 export type StockPageResult = {
@@ -161,6 +163,21 @@ export async function listStockPage({
   const column = STOCK_ORDER_COLUMNS[order];
   const direction = dir === "asc" ? asc : desc;
 
+  // Pre-aggregated per-load removed-item count. Joined (not inlined) so the
+  // `loads`×`materials` join above stays 1:1 — joining `items` directly
+  // would multiply rows before pagination/ordering runs.
+  const removedCounts = db
+    .select({
+      loadId: items.loadId,
+      removedItemCount:
+        sql<number>`count(*) filter (where ${items.status} = 'removed')::int`.as(
+          "removed_item_count",
+        ),
+    })
+    .from(items)
+    .groupBy(items.loadId)
+    .as("removed_counts");
+
   const selectColumns = {
     id: loads.id,
     notaFiscal: loads.notaFiscal,
@@ -175,6 +192,7 @@ export async function listStockPage({
     remainingWeight: loads.remainingWeight,
     createdAt: loads.createdAt,
     updatedAt: loads.updatedAt,
+    removedItemCount: sql<number>`coalesce(${removedCounts.removedItemCount}, 0)`,
   };
 
   const [rows, countRows] = await Promise.all([
@@ -182,6 +200,7 @@ export async function listStockPage({
       .select(selectColumns)
       .from(loads)
       .innerJoin(materials, eq(loads.materialId, materials.id))
+      .leftJoin(removedCounts, eq(loads.id, removedCounts.loadId))
       .where(whereClause)
       .orderBy(direction(column), desc(loads.id))
       .limit(pageSize)

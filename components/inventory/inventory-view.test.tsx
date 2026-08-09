@@ -25,6 +25,7 @@ const STOCK_ROW: StockRow = {
   material: "Sucata",
   itemCount: 4,
   remainingWeight: "250,00 t",
+  removedItemCount: 0,
   finished: false,
 };
 

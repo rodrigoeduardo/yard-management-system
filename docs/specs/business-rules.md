@@ -76,7 +76,7 @@
 
 ## Inventory View (`inventory-view`)
 
-- **Table 1 — current stock**: loads ordered by last modification (most recent on top). Columns: NF, Entry Date, NF Weight, Material (fixed) + Item Count, Remaining Weight (variable). When both Item Count and Remaining Weight reach zero, display the row in red (load finished) — no badge.
+- **Table 1 — current stock**: loads ordered by last modification (most recent on top). Columns: NF, Entry Date, NF Weight, Material (fixed) + Item Count, Remaining Weight (variable). Row/card colour follows a three-tier removal-progress rule, no badge in any tier: **green** when no items have been removed yet (`removedItemCount === 0`); **yellow** when some items are removed but the load is not finished; **red** when the load is finished (Item Count and Remaining Weight both zero). A load whose removals were all cancelled goes back to `removedItemCount === 0` and renders green again. Colour is derived per row and is never a sort key; Item Count and Remaining Weight are always also shown as text.
 - **Table 2 — removal log**: removals ordered by last modification (most recent on top). Columns: Exit Date, Driver, Vehicle Plate, Total Removed Weight, NFs involved in the removal.
 - Both tables are read-only.
 - **Dashboard**: shows the count of unique materials currently in stock as "Materiais no Pátio", linking to the Materials page; "Cargas Ativas" links to the Estoque (inventory) page.
