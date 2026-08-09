@@ -11,6 +11,7 @@ import { sumDecimalStrings } from "@/lib/db/decimal";
 import { insertLoadWithItems } from "@/lib/db/loads";
 import { removeScannedItems } from "@/lib/db/removals";
 import { items, loads, removalItems, removals } from "@/lib/db/schema";
+import { getCurrentEntryDateValue } from "@/lib/loads/entry-datetime";
 
 /** Default marker prefix identifying synthetic rows created by this script. */
 export const DEFAULT_SEED_PREFIX = "SEED-";
@@ -59,6 +60,18 @@ export function seedMaterial(index: number): string {
 
 export function seedEntryDate(index: number, now: Date = new Date()): Date {
   return new Date(now.getTime() - index * 86_400_000);
+}
+
+/**
+ * Deterministic NF date (`YYYY-MM-DD`) for the load at `index` — one day
+ * before its entry date, so synthetic seed data visibly distinguishes NF
+ * date from entry date (issue #305), same convention as
+ * `scripts/lib/demo-dataset.ts`.
+ */
+export function seedNfDate(index: number, now: Date = new Date()): string {
+  return getCurrentEntryDateValue(
+    new Date(now.getTime() - (index + 1) * 86_400_000),
+  );
 }
 
 /**
@@ -140,6 +153,7 @@ export async function seedDemoData(
       notaFiscal,
       transportOrder: buildSeedTransportOrder(prefix, i),
       driver: buildSeedLoadDriver(prefix, i),
+      nfDate: seedNfDate(i, now),
       entryDate: seedEntryDate(i, now),
       // Consistent with the per-item weights (business rules only require
       // consistency, not that NF weight equal the item-weight sum).

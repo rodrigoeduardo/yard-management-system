@@ -3,7 +3,10 @@
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { insertLoadWithItems } from "@/lib/db/loads";
-import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
+import {
+  combineEntryDateTimeValue,
+  isValidCalendarDateValue,
+} from "@/lib/loads/entry-datetime";
 import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const createLoadSchema = z
@@ -11,6 +14,7 @@ const createLoadSchema = z
     notaFiscal: z.string().min(1),
     transportOrder: z.string().min(1),
     driver: z.string().min(1),
+    nfDate: z.string().min(1),
     entryDateTime: z.string().min(1),
     nfWeight: z.number().positive(),
     material: z.string().min(1),
@@ -20,6 +24,10 @@ const createLoadSchema = z
   .refine((data) => combineEntryDateTimeValue(data.entryDateTime) !== null, {
     message: "Informe uma data e hora de entrada válidas.",
     path: ["entryDateTime"],
+  })
+  .refine((data) => isValidCalendarDateValue(data.nfDate), {
+    message: "Informe uma data da nota fiscal válida.",
+    path: ["nfDate"],
   });
 
 export type CreateLoadInput = z.input<typeof createLoadSchema>;
@@ -92,6 +100,7 @@ export async function createLoad(input: CreateLoadInput) {
       notaFiscal: parsed.data.notaFiscal,
       transportOrder: parsed.data.transportOrder,
       driver: parsed.data.driver,
+      nfDate: parsed.data.nfDate,
       entryDate,
       nfWeight: parsed.data.nfWeight.toString(),
       material: parsed.data.material,

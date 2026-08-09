@@ -6,6 +6,7 @@ import {
   getCurrentEntryDateTimeValue,
   getCurrentEntryDateValue,
   getCurrentEntryTimeValue,
+  isValidCalendarDateValue,
 } from "./entry-datetime";
 
 describe("combineEntryDateTime", () => {
@@ -122,5 +123,20 @@ describe("combineEntryDateTimeValue", () => {
 
   it("returns null for a datetime-local value with an out-of-range time", () => {
     expect(combineEntryDateTimeValue("2026-07-17T25:00")).toBeNull();
+  });
+});
+
+describe("isValidCalendarDateValue", () => {
+  it("accepts a well-formed, real calendar date", () => {
+    expect(isValidCalendarDateValue("2026-07-17")).toBe(true);
+  });
+
+  it("rejects a malformed value", () => {
+    expect(isValidCalendarDateValue("17/07/2026")).toBe(false);
+    expect(isValidCalendarDateValue("")).toBe(false);
+  });
+
+  it("rejects a calendar date that does not exist", () => {
+    expect(isValidCalendarDateValue("2026-02-30")).toBe(false);
   });
 });

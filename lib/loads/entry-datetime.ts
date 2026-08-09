@@ -23,6 +23,33 @@ export function getCurrentEntryDateTimeValue(now: Date = new Date()): string {
 }
 
 /**
+ * Whether a `YYYY-MM-DD` value (as produced by `<input type="date">`) is
+ * well-formed and denotes a real calendar date (e.g. rejects 2026-02-30).
+ * Shared by {@link combineEntryDateTime}'s date-component check and by
+ * plain-date fields that have no time component of their own (e.g.
+ * `nfDate` — `lib/actions/loads.ts`).
+ */
+export function isValidCalendarDateValue(value: string): boolean {
+  const match = DATE_RE.exec(value);
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  // Validate via UTC-based construction so the rollover check is itself
+  // independent of the host's default timezone.
+  const utcNaive = new Date(Date.UTC(year, month - 1, day));
+  return (
+    utcNaive.getUTCFullYear() === year &&
+    utcNaive.getUTCMonth() === month - 1 &&
+    utcNaive.getUTCDate() === day
+  );
+}
+
+/**
  * Combines a `YYYY-MM-DD` date value and an `HH:mm` time value (as produced by
  * `<input type="date">` / `<input type="time">`), both understood as a
  * wall-clock reading in the yard's timezone (`YARD_TIME_ZONE`, pinned in

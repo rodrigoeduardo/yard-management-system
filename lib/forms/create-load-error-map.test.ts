@@ -25,6 +25,7 @@ describe("mapCreateLoadFieldErrors", () => {
   it("maps every known field independently", () => {
     const messages = mapCreateLoadFieldErrors({
       entryDateTime: ["invalid"],
+      nfDate: ["invalid"],
       nfWeight: ["invalid"],
       material: ["required"],
       transportOrder: ["required"],
@@ -34,6 +35,7 @@ describe("mapCreateLoadFieldErrors", () => {
     expect(messages.entryDateTime).toBe(
       "Informe uma data e hora de entrada válidas.",
     );
+    expect(messages.nfDate).toBe("Informe a data da nota fiscal.");
     expect(messages.nfWeight).toBe("Informe o peso da nota fiscal.");
     expect(messages.material).toBe("Informe o material.");
     expect(messages.transportOrder).toBe("Informe a ordem de transporte.");

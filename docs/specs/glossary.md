@@ -12,6 +12,8 @@
 | Corrida | (kept as-is) | Heat/batch identifier read off an item at intake; varies item to item within the same load. Entered alongside the item's weight and printed on its label, directly below the weight line. Nullable — items created before this field existed keep it `NULL`. Descriptive only: it does not participate in scan/removal matching. |
 | Remoção | Removal | An action that takes items out of the yard: one exit date + one driver, N scanned items, possibly from different loads. |
 | Ordem de Transporte | Transport Order | Transport order reference from the inbound paperwork; recorded per load, alongside the NF. |
+| Data da Nota Fiscal | NF Date | Calendar date printed on the invoice (`loads.nfDate`, a `date` column — no time, never timezone-shifted). Distinct from Entry Date: the invoice date and the day the truck physically arrived are different facts. |
+| Data de Entrada | Entry Date | Date and time the load physically entered the yard (`loads.entryDate`), shown in the yard's local timezone. Distinct from NF Date above. |
 | Motorista (Carga) | Driver (Load) | Person who brought the load in; recorded per load at intake (`loads.driver`). Distinct from the removal's Motorista below — same column name, disambiguated by context. |
 | Motorista (Remoção) | Driver (Removal) | Person transporting removed items; recorded per removal action (`removals.driver`). |
 | Placa do veículo | Vehicle Plate | License plate of the vehicle transporting removed items; recorded per removal action, required at the form level. |

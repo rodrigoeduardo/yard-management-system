@@ -51,3 +51,23 @@ export function formatYardDate(date: Date): string {
     timeZone: YARD_TIME_ZONE,
   });
 }
+
+const CALENDAR_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Formats a plain `YYYY-MM-DD` calendar date value (as stored in a
+ * `date`-typed column, e.g. `loads.nfDate`) as `dd/mm/aaaa`. Unlike
+ * `formatYardDate`, this never goes through a `Date` object or a `timeZone`
+ * conversion — a calendar date has no time component to begin with, so
+ * there is nothing to shift. That makes it safe by construction against the
+ * host/runner timezone, which a `Date`-based formatter would need to pin
+ * against (see `YARD_TIME_ZONE`).
+ */
+export function formatCalendarDate(value: string): string {
+  const match = CALENDAR_DATE_RE.exec(value);
+  if (!match) {
+    return value;
+  }
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
+}

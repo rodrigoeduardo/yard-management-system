@@ -82,6 +82,14 @@ export function LoadDetailModal({
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">
+                  Data da Nota Fiscal
+                </dt>
+                <dd className="font-mono text-[15px] font-bold">
+                  {load.nfDate}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-xs text-muted-foreground">
                   Data de Entrada
                 </dt>
                 <dd className="font-mono text-[15px] font-bold">

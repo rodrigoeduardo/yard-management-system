@@ -1,5 +1,5 @@
 {
-  "id": "6229ad2b-65f6-4322-b33c-93963399e69a",
+  "id": "2b2d2840-c28e-4e25-8a29-8ab80fe0abb8",
   "prevId": "544d5ddc-7291-4f42-93cb-c918706242a0",
   "version": "7",
   "dialect": "postgresql",
@@ -94,12 +94,6 @@
           "type": "numeric",
           "primaryKey": false,
           "notNull": true
-        },
-        "corrida": {
-          "name": "corrida",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "status": {
           "name": "status",
@@ -205,6 +199,12 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
+        },
+        "nf_date": {
+          "name": "nf_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
         },
         "nf_weight": {
           "name": "nf_weight",

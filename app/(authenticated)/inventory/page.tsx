@@ -3,7 +3,7 @@ import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
 import type { StockRow } from "@/components/inventory/stock-table";
 import { listStockPage } from "@/lib/db/loads";
 import { listRemovalNfs, listRemovalsPage } from "@/lib/db/removal-log";
-import { formatEntryDateTime } from "@/lib/format/datetime";
+import { formatCalendarDate, formatEntryDateTime } from "@/lib/format/datetime";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
@@ -28,6 +28,7 @@ export default async function InventoryPage({
     notaFiscal: load.notaFiscal,
     transportOrder: load.transportOrder ?? "—",
     driver: load.driver ?? "—",
+    nfDate: load.nfDate ? formatCalendarDate(load.nfDate) : "—",
     entryDate: formatEntryDateTime(load.entryDate),
     nfWeight: load.nfWeight,
     material: load.material,

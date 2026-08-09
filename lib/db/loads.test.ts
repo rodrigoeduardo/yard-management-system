@@ -24,6 +24,7 @@ describe("insertLoadWithItems", () => {
       notaFiscal,
       transportOrder: "OT-0001",
       driver: "João Silva",
+      nfDate: "2026-01-01",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -51,6 +52,7 @@ describe("insertLoadWithItems", () => {
       notaFiscal,
       transportOrder: "OT-0002",
       driver: "João Silva",
+      nfDate: "2026-01-01",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -70,6 +72,7 @@ describe("insertLoadWithItems", () => {
         notaFiscal,
         transportOrder: "OT-0003",
         driver: "João Silva",
+        nfDate: "2026-01-01",
         entryDate: new Date("2026-01-01"),
         nfWeight: "500",
         material: "Aço",
@@ -92,6 +95,7 @@ describe("insertLoadWithItems", () => {
       notaFiscal,
       transportOrder: "OT-0004",
       driver: "João Silva",
+      nfDate: "2026-01-01",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -115,6 +119,7 @@ describe("insertLoadWithItems", () => {
       notaFiscal,
       transportOrder: "OT-0005",
       driver: "João Silva",
+      nfDate: "2026-01-01",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -137,6 +142,7 @@ describe("insertLoadWithItems", () => {
       notaFiscal,
       transportOrder: "OT-4821",
       driver: "Maria Souza",
+      nfDate: "2026-01-01",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -151,6 +157,29 @@ describe("insertLoadWithItems", () => {
       .where(eq(loads.id, load.id));
     expect(row.transportOrder).toBe("OT-4821");
     expect(row.driver).toBe("Maria Souza");
+  });
+
+  it("persists the submitted NF date, distinct from the entry date", async () => {
+    const notaFiscal = `NF-NFDATE-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-4821",
+      driver: "Maria Souza",
+      nfDate: "2026-07-10",
+      entryDate: new Date("2026-07-12T14:30:00Z"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10"],
+      itemCorridas: ["C-1"],
+    });
+    createdLoadIds.push(load.id);
+
+    const [row] = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, load.id));
+    expect(row.nfDate).toBe("2026-07-10");
   });
 });
 
