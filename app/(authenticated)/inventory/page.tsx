@@ -34,6 +34,7 @@ export default async function InventoryPage({
     material: load.material,
     itemCount: load.itemCount,
     remainingWeight: load.remainingWeight,
+    removedItemCount: load.removedItemCount,
     finished: isLoadFinished(load),
   }));
 

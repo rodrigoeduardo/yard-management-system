@@ -463,4 +463,64 @@ describe("listStockPage", () => {
     },
     20000,
   );
+
+  it("returns removedItemCount reflecting each load's removed items", async () => {
+    const marker = randomUUID();
+    const load = await seedLoad({
+      notaFiscal: `NF-REMOVED-${marker}`,
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "100",
+      material: "Aço",
+      itemCount: 4,
+      remainingWeight: "40",
+    });
+    await db.insert(items).values([
+      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "removed" },
+    ]);
+
+    const result = await listStockPage({
+      q: `NF-REMOVED-${marker}`,
+      order: "entryDate",
+      dir: "asc",
+      page: 1,
+    });
+
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]?.removedItemCount).toBe(6);
+  });
+
+  it("returns removedItemCount 0 for a load with no items removed", async () => {
+    const marker = randomUUID();
+    const load = await seedLoad({
+      notaFiscal: `NF-NOTREMOVED-${marker}`,
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "100",
+      material: "Aço",
+      itemCount: 2,
+      remainingWeight: "20",
+    });
+    await db.insert(items).values([
+      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "in_stock" },
+    ]);
+
+    const result = await listStockPage({
+      q: `NF-NOTREMOVED-${marker}`,
+      order: "entryDate",
+      dir: "asc",
+      page: 1,
+    });
+
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]?.removedItemCount).toBe(0);
+  });
 });

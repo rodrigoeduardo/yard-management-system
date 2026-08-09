@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatWeight } from "@/lib/format/weight";
+import { getStockTier } from "@/lib/inventory/stock";
 import { cn } from "@/lib/utils";
 
 export type StockRow = {
@@ -32,8 +33,17 @@ export type StockRow = {
   material: string;
   itemCount: number;
   remainingWeight: string;
+  /** Count of this load's items with `status = 'removed'` (issue #303). */
+  removedItemCount: number;
   finished: boolean;
 };
+
+/** Row background tint per removal-progress tier (issue #303). */
+const TIER_ROW_CLASS = {
+  "none-removed": "bg-success/10 hover:bg-success/10",
+  partial: "bg-warning/15 hover:bg-warning/15",
+  finished: "bg-destructive/10 hover:bg-destructive/10",
+} as const;
 
 const HEADER_CLASS =
   "h-auto px-5 py-3 text-[11px] font-bold tracking-[0.04em] text-muted-foreground uppercase";
@@ -168,7 +178,7 @@ export function StockTable({
               }
               className={cn(
                 onRowClick && "cursor-pointer",
-                row.original.finished && "bg-destructive/10 hover:bg-destructive/10",
+                TIER_ROW_CLASS[getStockTier(row.original)],
               )}
             >
               {row.getVisibleCells().map((cell) => (
