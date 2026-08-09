@@ -125,6 +125,10 @@ export async function listRemovalsPage({
         totalRemovedWeight: removals.totalRemovedWeight,
         createdAt: removals.createdAt,
         itemCount: itemCountExpr,
+        // Exposed so the Histórico row can render a "Cancelada" marker
+        // (issue #310). Cancelled removals stay in the list — the paper
+        // trail is preserved — they're only marked, not filtered out.
+        cancelledAt: removals.cancelledAt,
       })
       .from(removals)
       .where(whereClause)
