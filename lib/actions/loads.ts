@@ -15,6 +15,7 @@ const createLoadSchema = z
     nfWeight: z.number().positive(),
     material: z.string().min(1),
     itemWeights: z.array(z.number().positive()).min(1).max(20),
+    itemCorridas: z.array(z.string().min(1)).min(1).max(20),
   })
   .refine((data) => combineEntryDateTimeValue(data.entryDateTime) !== null, {
     message: "Informe uma data e hora de entrada válidas.",
@@ -23,12 +24,15 @@ const createLoadSchema = z
 
 export type CreateLoadInput = z.input<typeof createLoadSchema>;
 
+type PerItemField = "itemWeights" | "itemCorridas";
+
 export type CreateLoadError = {
   formErrors: string[];
   fieldErrors: Partial<
-    Record<Exclude<keyof CreateLoadInput, "itemWeights">, string[]>
+    Record<Exclude<keyof CreateLoadInput, PerItemField>, string[]>
   >;
   itemWeightErrors: Record<number, string[]>;
+  itemCorridaErrors: Record<number, string[]>;
 };
 
 function toCreateLoadError(
@@ -37,18 +41,28 @@ function toCreateLoadError(
   const { formErrors, fieldErrors } = error.flatten();
   const restFieldErrors: CreateLoadError["fieldErrors"] = {};
   for (const field of Object.keys(fieldErrors) as (keyof typeof fieldErrors)[]) {
-    if (field === "itemWeights") continue;
+    if (field === "itemWeights" || field === "itemCorridas") continue;
     restFieldErrors[field] = fieldErrors[field];
   }
 
   const itemWeightErrors: Record<number, string[]> = {};
+  const itemCorridaErrors: Record<number, string[]> = {};
   for (const issue of error.issues) {
     const [field, index] = issue.path;
-    if (field !== "itemWeights" || typeof index !== "number") continue;
-    (itemWeightErrors[index] ??= []).push(issue.message);
+    if (typeof index !== "number") continue;
+    if (field === "itemWeights") {
+      (itemWeightErrors[index] ??= []).push(issue.message);
+    } else if (field === "itemCorridas") {
+      (itemCorridaErrors[index] ??= []).push(issue.message);
+    }
   }
 
-  return { formErrors, fieldErrors: restFieldErrors, itemWeightErrors };
+  return {
+    formErrors,
+    fieldErrors: restFieldErrors,
+    itemWeightErrors,
+    itemCorridaErrors,
+  };
 }
 
 export async function createLoad(input: CreateLoadInput) {
@@ -59,6 +73,7 @@ export async function createLoad(input: CreateLoadInput) {
         formErrors: [VIEWER_WRITE_ERROR_MESSAGE],
         fieldErrors: {},
         itemWeightErrors: {},
+        itemCorridaErrors: {},
       },
     };
   }
@@ -81,6 +96,7 @@ export async function createLoad(input: CreateLoadInput) {
       nfWeight: parsed.data.nfWeight.toString(),
       material: parsed.data.material,
       itemWeights: parsed.data.itemWeights.map((weight) => weight.toString()),
+      itemCorridas: parsed.data.itemCorridas,
     },
     userId,
   );
