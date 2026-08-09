@@ -46,4 +46,11 @@ describe("DemoBanner", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("renders nothing on the inventory overview print route even when demo mode is on", () => {
+    usePathname.mockReturnValue("/inventory/print");
+    const { container } = render(<DemoBanner demoMode contactUrl="https://example.com/contact" />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
 });
