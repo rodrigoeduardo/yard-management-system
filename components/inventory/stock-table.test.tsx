@@ -19,6 +19,8 @@ const OPEN_ROW: StockRow = {
 const PARTIAL_ROW: StockRow = {
   id: "3",
   notaFiscal: "NF-003",
+  transportOrder: "OT-0002",
+  driver: "Maria Souza",
   entryDate: "03/01/2026",
   nfWeight: "800",
   material: "Ferro",
