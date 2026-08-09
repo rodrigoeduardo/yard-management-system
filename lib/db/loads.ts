@@ -22,6 +22,12 @@ export type CreateLoadData = {
   /** An existing material's id, or a name to find-or-create — see `resolveMaterialId`. */
   material: string;
   itemWeights: string[];
+  /**
+   * Parallel to `itemWeights` — `itemCorridas[i]` is the heat/batch
+   * identifier for `itemWeights[i]`. `null` persists as a NULL corrida
+   * (#307).
+   */
+  itemCorridas: (string | null)[];
 };
 
 export async function insertLoadWithItems(
@@ -48,9 +54,10 @@ export async function insertLoadWithItems(
       .returning();
 
     await tx.insert(items).values(
-      data.itemWeights.map((weight) => ({
+      data.itemWeights.map((weight, index) => ({
         loadId: load.id,
         weight,
+        corrida: data.itemCorridas[index] ?? null,
       })),
     );
 
