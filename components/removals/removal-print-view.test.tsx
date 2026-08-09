@@ -9,6 +9,12 @@ const summary: RemovalReceiptSummary = {
   driver: "John Doe",
   vehiclePlate: "ABC1234",
   totalRemovedWeight: "15.5 Ton",
+  cancelledAt: null,
+};
+
+const cancelledSummary: RemovalReceiptSummary = {
+  ...summary,
+  cancelledAt: "06/03/2026 · 12:30",
 };
 
 const items: RemovalReceiptItemDetail[] = [
@@ -184,5 +190,46 @@ describe("RemovalPrintView", () => {
     expect(rows.length).toBe(1);
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getByText("12.5 Ton")).toBeInTheDocument();
+  });
+});
+
+describe("RemovalPrintView cancellation marking (issue #311)", () => {
+  it("shows the cancellation marking and timestamp for a cancelled removal", () => {
+    render(
+      <RemovalPrintView
+        summary={cancelledSummary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={items}
+      />,
+    );
+
+    expect(screen.getByText("REMOÇÃO CANCELADA")).toBeInTheDocument();
+    expect(screen.getByText(/06\/03\/2026/)).toBeInTheDocument();
+  });
+
+  it("does not show any cancellation marking for an active removal", () => {
+    render(
+      <RemovalPrintView
+        summary={summary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={items}
+      />,
+    );
+
+    expect(screen.queryByText("REMOÇÃO CANCELADA")).not.toBeInTheDocument();
+  });
+
+  it("renders the cancellation marking as a bordered/outlined banner, not a filled background, so it survives printing without print-color-adjust", () => {
+    render(
+      <RemovalPrintView
+        summary={cancelledSummary}
+        pedidoImageUrl="https://example.com/pedido.png"
+        items={items}
+      />,
+    );
+
+    const banner = screen.getByText("REMOÇÃO CANCELADA").closest("div");
+    expect(banner?.className).toMatch(/\bborder\b/);
+    expect(banner?.className).not.toMatch(/print-color-adjust/);
   });
 });
