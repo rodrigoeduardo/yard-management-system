@@ -226,6 +226,55 @@ describe("getMaterialsWithInStockCounts", () => {
     const sorted = [...names].sort((a, b) => a.localeCompare(b));
     expect(names).toEqual(sorted);
   });
+
+  it("includes a material with zero in-stock items, reporting a weight of \"0\"", async () => {
+    const name = `Zinco-${randomUUID()}`;
+    const created = await resolveMaterialId(db, name);
+    createdMaterialIds.push(created.id);
+
+    const rows = await getMaterialsWithInStockCounts();
+
+    const row = rows.find((r) => r.id === created.id);
+    expect(row).toBeDefined();
+    expect(row?.inStockWeight).toBe("0");
+  });
+
+  it("sums only in_stock item weights as a decimal string, excluding removed items", async () => {
+    const name = `Chumbo-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal: `NF-MAT-WEIGHT-${randomUUID()}`,
+      transportOrder: "OT-100004",
+      driver: "Pedro Souza",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "100",
+      material: name,
+      itemWeights: ["0.1", "0.2", "50"],
+    });
+    createdLoadIds.push(load.id);
+
+    const [loadRow] = await db
+      .select({ materialId: loads.materialId })
+      .from(loads)
+      .where(eq(loads.id, load.id));
+    createdMaterialIds.push(loadRow.materialId);
+
+    const loadItems = await db
+      .select()
+      .from(items)
+      .where(eq(items.loadId, load.id));
+    // Remove the 50 item, leaving only 0.1 and 0.2 in stock.
+    const removed = loadItems.find((item) => item.weight === "50");
+    await db
+      .update(items)
+      .set({ status: "removed" })
+      .where(eq(items.id, removed!.id));
+
+    const rows = await getMaterialsWithInStockCounts();
+
+    const row = rows.find((r) => r.id === loadRow.materialId);
+    expect(row?.inStockWeight).toBe("0.3");
+  });
 });
 
 describe("createMaterial", () => {

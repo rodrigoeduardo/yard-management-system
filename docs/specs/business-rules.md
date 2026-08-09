@@ -18,6 +18,7 @@
 - **Material** is a persisted entity with a single property, **name** (unique).
 - The load form selects an existing material or stages a new one; a staged new material is persisted only when the load is submitted (same transaction as the load).
 - A **Materials** page lists every material with the count of its `in_stock` items, and allows adding or editing materials inline on that page.
+- Each material row also shows the summed weight of its `in_stock` items (removed items excluded), rendered through the [weight display](#weight-display) format, e.g. `10 und. · 10.000 Ton em estoque`. A material with no in-stock items shows a zero weight, not a blank.
 
 ## Add Load (`load-intake`)
 

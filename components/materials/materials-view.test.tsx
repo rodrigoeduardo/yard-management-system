@@ -13,18 +13,18 @@ vi.mock("@/lib/actions/materials", () => ({
 import { MaterialsView } from "./materials-view";
 
 const MATERIALS = [
-  { id: "mat-1", name: "Alumínio", inStockCount: 3 },
-  { id: "mat-2", name: "Cobre", inStockCount: 0 },
+  { id: "mat-1", name: "Alumínio", inStockCount: 3, inStockWeight: "10.000" },
+  { id: "mat-2", name: "Cobre", inStockCount: 0, inStockWeight: "0" },
 ];
 
 describe("MaterialsView", () => {
-  it("lists every material with its in-stock count, including zero", () => {
+  it("lists every material with its in-stock count and weight, including zero", () => {
     render(<MaterialsView materials={MATERIALS} />);
 
     expect(screen.getByText("Alumínio")).toBeInTheDocument();
     expect(screen.getByText("Cobre")).toBeInTheDocument();
-    expect(screen.getByText("3 und. em estoque")).toBeInTheDocument();
-    expect(screen.getByText("0 und. em estoque")).toBeInTheDocument();
+    expect(screen.getByText("3 und. · 10.000 Ton em estoque")).toBeInTheDocument();
+    expect(screen.getByText("0 und. · 0 Ton em estoque")).toBeInTheDocument();
   });
 
   it("shows an empty state when there are no materials", () => {
