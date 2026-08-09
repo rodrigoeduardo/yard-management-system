@@ -96,6 +96,10 @@ export const removals = pgTable("removals", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  // Set together, inside the same cancellation transaction, when an operator
+  // reverses a removal (issue #310). Both null means the removal stands.
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  cancelledBy: uuid("cancelled_by"),
 });
 
 export const removalItems = pgTable(

@@ -11,6 +11,7 @@ const ROW: RemovalLogRow = {
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
+  cancelled: false,
 };
 
 describe("RemovalCard", () => {
@@ -48,5 +49,17 @@ describe("RemovalCard", () => {
     fireEvent.click(screen.getByRole("button"));
 
     expect(onClick).toHaveBeenCalledWith(ROW);
+  });
+
+  it("marks a cancelled removal as Cancelada (issue #310)", () => {
+    render(<RemovalCard row={{ ...ROW, cancelled: true }} />);
+
+    expect(screen.getByText("Cancelada")).toBeInTheDocument();
+  });
+
+  it("does not show a Cancelada marker for an active removal", () => {
+    render(<RemovalCard row={ROW} />);
+
+    expect(screen.queryByText("Cancelada")).not.toBeInTheDocument();
   });
 });

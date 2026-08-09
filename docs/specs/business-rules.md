@@ -40,6 +40,14 @@
 - On completion, compute **Total Removed Weight** = sum of the weights of all items removed in the action.
 - The Pedido image is uploaded to Supabase Storage on removal submit; the removal record stores only the storage object path, never the image bytes. An upload failure blocks submit but preserves the rest of the removal input (exit date, driver, vehicle plate, scanned items) so the operator can retry without re-entering anything.
 - Each removal has a printable/shareable **comprovante de remoção** (receipt), reachable from the removal detail modal on the Estoque page (`/removals/<id>/receipt`). It shows: Exit Date + time, Driver, Vehicle Plate, Total Removed Weight; the attached Pedido reference image (always present — required at removal time, see above); and a removed-items table (item number, NF, material, weight). No client fields — the client entity was removed (#264–#268). PT-BR text throughout; printable via the browser's print dialog.
+- **Cancelling a removal** (behind `FEATURE_REMOVAL_CANCEL`, default off — #310): an operator can reverse a removal exactly, e.g. when the wrong items were scanned or the customer's order was cancelled after the truck left. Cancellation, in one transaction:
+  - stamps the removal with `cancelled_at`/`cancelled_by`;
+  - sets every item of that removal back to `in_stock`; and
+  - credits each affected load's Item Count and Remaining Weight back by that removal's own contribution (a removal spanning multiple loads credits each load only its own items).
+  - Cancelling an already-cancelled removal is rejected — no double credit.
+  - The removal record itself is never deleted: it stays in the Histórico de Remoções, visibly marked **Cancelada**, and its receipt remains reachable — the paper trail is preserved. A cancelled removal is excluded from read paths that treat "removed" as gone (e.g. the home dashboard's last-movement card).
+  - Re-removing one of the returned items afterwards works normally, as a new removal.
+  - Out of scope: partially cancelling a removal (individual items), editing a removal's driver/plate/date, and marking the cancellation on the receipt itself.
 
 ## Registration (`auth`)
 

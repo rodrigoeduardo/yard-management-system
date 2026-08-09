@@ -10,6 +10,7 @@ const ROW: RemovalLogRow = {
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 3,
+  cancelled: false,
 };
 
 describe("RemovalLogTable", () => {
@@ -103,5 +104,17 @@ describe("RemovalLogTable", () => {
       total += Number(match?.[1]);
     }
     expect(total).toBe(100);
+  });
+
+  it("marks a cancelled removal's row as Cancelada (issue #310)", () => {
+    render(<RemovalLogTable rows={[{ ...ROW, cancelled: true }]} />);
+
+    expect(screen.getByText("Cancelada")).toBeInTheDocument();
+  });
+
+  it("does not show a Cancelada marker for an active removal", () => {
+    render(<RemovalLogTable rows={[ROW]} />);
+
+    expect(screen.queryByText("Cancelada")).not.toBeInTheDocument();
   });
 });

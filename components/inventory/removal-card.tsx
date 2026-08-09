@@ -37,6 +37,11 @@ export function RemovalCard({
           ·
         </span>
         <span className="text-[13px] text-muted-foreground">{row.driver}</span>
+        {row.cancelled ? (
+          <span className="text-[10px] font-bold uppercase tracking-[0.04em] text-destructive">
+            Cancelada
+          </span>
+        ) : null}
         <span className="ml-auto font-mono text-[14px] font-bold text-accent-foreground">
           {formatWeight(row.totalRemovedWeight)}
         </span>

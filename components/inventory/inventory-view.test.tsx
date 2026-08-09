@@ -36,6 +36,7 @@ const REMOVAL_ROW: RemovalLogRow = {
   totalRemovedWeight: "100,00 t",
   notasFiscais: "NF-001",
   itemCount: 3,
+  cancelled: false,
 };
 
 const STOCK_QUERY: StockQueryState = {
