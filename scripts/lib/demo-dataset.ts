@@ -13,6 +13,7 @@ import { sumDecimalStrings } from "@/lib/db/decimal";
 import { insertLoadWithItems } from "@/lib/db/loads";
 import { removeScannedItems } from "@/lib/db/removals";
 import { items, loads, removals } from "@/lib/db/schema";
+import { getCurrentEntryDateValue } from "@/lib/loads/entry-datetime";
 
 export type DemoLoadSpec = {
   /** Plausible Nota Fiscal number; also the idempotency key for this load. */
@@ -23,6 +24,10 @@ export type DemoLoadSpec = {
   driver: string;
   material: string;
   entryDaysAgo: number;
+  /** Calendar date printed on the invoice — one day ahead of `entryDaysAgo`
+   * (the NF is dated the day before the truck physically arrives), so demo
+   * data visibly distinguishes NF date from entry date (issue #305). */
+  nfDaysAgo: number;
   itemWeights: string[];
 };
 
@@ -92,6 +97,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(1),
     material: "Sucata de Ferro",
     entryDaysAgo: 14,
+    nfDaysAgo: 15,
     itemWeights: demoItemWeights(1, 16),
   },
   {
@@ -100,6 +106,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(2),
     material: "Alumínio",
     entryDaysAgo: 13,
+    nfDaysAgo: 14,
     itemWeights: demoItemWeights(2, 17),
   },
   {
@@ -108,6 +115,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(3),
     material: "Cobre",
     entryDaysAgo: 12,
+    nfDaysAgo: 13,
     itemWeights: demoItemWeights(3, 15),
   },
   {
@@ -116,6 +124,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(4),
     material: "Papelão Ondulado",
     entryDaysAgo: 11,
+    nfDaysAgo: 12,
     itemWeights: demoItemWeights(4, 18),
   },
   {
@@ -124,6 +133,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(5),
     material: "Plástico PET",
     entryDaysAgo: 10,
+    nfDaysAgo: 11,
     itemWeights: demoItemWeights(5, 15),
   },
   {
@@ -132,6 +142,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     driver: demoLoadDriver(6),
     material: "Sucata de Aço Inox",
     entryDaysAgo: 9,
+    nfDaysAgo: 10,
     itemWeights: demoItemWeights(6, 16),
   },
 ];
@@ -201,6 +212,7 @@ export async function seedDemoDataset(
       notaFiscal: spec.notaFiscal,
       transportOrder: spec.transportOrder,
       driver: spec.driver,
+      nfDate: getCurrentEntryDateValue(daysAgo(spec.nfDaysAgo, now)),
       entryDate: daysAgo(spec.entryDaysAgo, now),
       // Consistent with the per-item weights (business rules only require
       // consistency, not that NF weight equal the item-weight sum).
