@@ -49,3 +49,6 @@ next-env.d.ts
 tools/demo-video/*
 
 docs/evidences
+
+tmp
+.playwright-mcp
