@@ -8,7 +8,8 @@
 |---|---|---|
 | Nota Fiscal (NF) | (kept as-is) | Brazilian legal invoice document. Identifies a load. Not unique forever, but unique among open loads in practice. |
 | Carga | Load | A shipment of material that arrives in the yard under one NF, split into individually tracked items. |
-| Item | Item | One physical unit of a load, with its own weight and QR code. |
+| Item | Item | One physical unit of a load, with its own weight, Corrida, and QR code. |
+| Corrida | (kept as-is) | Heat/batch identifier read off an item at intake; varies item to item within the same load. Entered alongside the item's weight and printed on its label, directly below the weight line. Nullable — items created before this field existed keep it `NULL`. Descriptive only: it does not participate in scan/removal matching. |
 | Remoção | Removal | An action that takes items out of the yard: one exit date + one driver, N scanned items, possibly from different loads. |
 | Ordem de Transporte | Transport Order | Transport order reference from the inbound paperwork; recorded per load, alongside the NF. |
 | Motorista (Carga) | Driver (Load) | Person who brought the load in; recorded per load at intake (`loads.driver`). Distinct from the removal's Motorista below — same column name, disambiguated by context. |

@@ -24,10 +24,11 @@
 
 - Creates a `load` object with: **Nota Fiscal (NF)**, **Ordem de Transporte**, **Motorista** (inbound driver — distinct from the removal's Motorista), **Entry Date**, **NF Weight**, **Material**, **Item Count**. Ordem de Transporte and Motorista are required at intake; loads created before this field existed keep them `NULL` and display `—`.
 - From Item Count, the form generates N fields for each item's individual weight (typically 15–18 items, recommended maximum 20).
-- All other parameters (NF, entry date, material) are shared by every item in the load; only weight varies per item.
+- All other parameters (NF, entry date, material) are shared by every item in the load; only weight and **Corrida** vary per item.
+- Each item also carries a **Corrida** (heat/batch identifier), entered alongside its weight; both are required before the load can be submitted. Items created before this field existed keep `corrida` `NULL` — the label and QR payload degrade cleanly for them (no empty Corrida line). Corrida is descriptive only: it does not participate in scan/removal matching, and is out of scope for the stock table and removal receipt.
 - The sum of individual item weights produces the load's **Remaining Weight**. It does **not** need to match the NF Weight.
-- On completion, generate one QR code per item containing: an identifier (e.g. "Item 1 - <NF>"), the material, and the item's weight.
-- QR codes are printed one per label, sized for the Elgin L42 Pro Full label printer (100×50 mm labels) — not laid out in a batch on a single page.
+- On completion, generate one QR code per item containing: an identifier (e.g. "Item 1 - <NF>"), the material, the item's weight, and its Corrida (when present).
+- QR codes are printed one per label, sized for the Elgin L42 Pro Full label printer (100×50 mm labels) — not laid out in a batch on a single page. The label shows identifier, material, weight, then Corrida (when present), in that order.
 
 ## Load Removal (`load-removal`)
 
