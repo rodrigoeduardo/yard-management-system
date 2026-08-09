@@ -1,12 +1,17 @@
 import type { CreateLoadInput } from "@/lib/actions/loads";
 
-type TopLevelField = Exclude<keyof CreateLoadInput, "itemWeights">;
+type TopLevelField = Exclude<
+  keyof CreateLoadInput,
+  "itemWeights" | "itemCorridas"
+>;
 
 type FieldErrors = Partial<Record<TopLevelField, string[]>>;
 
 export type CreateLoadFieldMessages = Partial<Record<TopLevelField, string>>;
 
 export type CreateLoadItemWeightMessages = Record<number, string>;
+
+export type CreateLoadItemCorridaMessages = Record<number, string>;
 
 const FIELD_MESSAGES: Record<TopLevelField, string> = {
   notaFiscal: "Informe a nota fiscal.",
@@ -40,6 +45,21 @@ export function mapCreateLoadItemWeightErrors(
     const index = Number(key);
     if (itemWeightErrors[index]?.length) {
       messages[index] = `Informe um peso válido para o item ${index + 1}.`;
+    }
+  }
+
+  return messages;
+}
+
+export function mapCreateLoadItemCorridaErrors(
+  itemCorridaErrors: Record<number, string[]>,
+): CreateLoadItemCorridaMessages {
+  const messages: CreateLoadItemCorridaMessages = {};
+
+  for (const key of Object.keys(itemCorridaErrors)) {
+    const index = Number(key);
+    if (itemCorridaErrors[index]?.length) {
+      messages[index] = `Informe a corrida do item ${index + 1}.`;
     }
   }
 

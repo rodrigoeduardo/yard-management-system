@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mapCreateLoadFieldErrors,
+  mapCreateLoadItemCorridaErrors,
   mapCreateLoadItemWeightErrors,
 } from "./create-load-error-map";
 
@@ -73,5 +74,37 @@ describe("mapCreateLoadItemWeightErrors", () => {
 
   it("returns an empty object when there are no item-weight errors", () => {
     expect(mapCreateLoadItemWeightErrors({})).toEqual({});
+  });
+});
+
+describe("mapCreateLoadItemCorridaErrors", () => {
+  it("maps an item-corrida error to its own index", () => {
+    const messages = mapCreateLoadItemCorridaErrors({
+      1: ["String must contain at least 1 character(s)"],
+    });
+
+    expect(messages[1]).toBe("Informe a corrida do item 2.");
+  });
+
+  it("omits indexes with no errors", () => {
+    const messages = mapCreateLoadItemCorridaErrors({
+      1: ["invalid"],
+    });
+
+    expect(messages[0]).toBeUndefined();
+  });
+
+  it("maps multiple indexes independently", () => {
+    const messages = mapCreateLoadItemCorridaErrors({
+      0: ["invalid"],
+      2: ["invalid"],
+    });
+
+    expect(messages[0]).toBe("Informe a corrida do item 1.");
+    expect(messages[2]).toBe("Informe a corrida do item 3.");
+  });
+
+  it("returns an empty object when there are no item-corrida errors", () => {
+    expect(mapCreateLoadItemCorridaErrors({})).toEqual({});
   });
 });
