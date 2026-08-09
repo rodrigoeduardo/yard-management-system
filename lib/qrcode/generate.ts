@@ -26,6 +26,7 @@ export async function getLoadItemQrCodes(
         notaFiscal: load.notaFiscal,
         material: load.material,
         weight: item.weight,
+        corrida: item.corrida,
       });
 
       return {

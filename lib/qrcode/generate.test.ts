@@ -59,6 +59,7 @@ describe("getLoadItemQrCodes", () => {
       nfWeight: "500",
       material: "Aço",
       itemWeights: ["10", "20"],
+      itemCorridas: ["C-4471", "C-9902"],
     });
     createdLoadIds.push(load.id);
 
@@ -78,5 +79,31 @@ describe("getLoadItemQrCodes", () => {
     expect(decodedPayloads.map((p) => p.qrToken).sort()).toEqual(
       qrCodes.map((qr) => qr.qrToken).sort(),
     );
+    expect(decodedPayloads.map((p) => p.corrida).sort()).toEqual([
+      "C-4471",
+      "C-9902",
+    ]);
+  });
+
+  it("omits corrida from the payload for an item whose corrida is NULL", async () => {
+    const notaFiscal = `NF-QR-NOCORRIDA-${Date.now()}`;
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-123457",
+      driver: "João da Silva",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10"],
+      itemCorridas: [null],
+    });
+    createdLoadIds.push(load.id);
+
+    const qrCodes = await getLoadItemQrCodes(load.id);
+    const [decoded] = qrCodes.map((qr) =>
+      decodeItemQrPayload(decodeQrDataUrl(qr.dataUrl)),
+    );
+
+    expect(decoded.corrida).toBeUndefined();
   });
 });
