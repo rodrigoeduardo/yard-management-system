@@ -44,6 +44,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 20, 30],
+      itemCorridas: ["C-1", "C-2", "C-3"],
     });
 
     expect(result.success).toBe(true);
@@ -52,6 +53,60 @@ describe("createLoad", () => {
 
     expect(result.load.itemCount).toBe(3);
     expect(result.load.remainingWeight).toBe("60");
+  });
+
+  it("persists each item's corrida matching what was typed for that item number", async () => {
+    const notaFiscal = `NF-ACTION-CORRIDA-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDateTime: "2026-01-01T09:30",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10, 20],
+      itemCorridas: ["C-4471", "C-9902"],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error("expected success");
+    createdLoadIds.push(result.load.id);
+
+    const { items: loadItems } = await (
+      await import("@/lib/db/loads")
+    ).getLoadWithItems(result.load.id);
+    expect(loadItems.map((item) => item.corrida).sort()).toEqual([
+      "C-4471",
+      "C-9902",
+    ]);
+  });
+
+  it("rejects a payload with an empty corrida for one item, without touching the database", async () => {
+    const notaFiscal = `NF-ACTION-NOCORRIDA-${randomUUID()}`;
+
+    const result = await createLoad({
+      notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDateTime: "2026-01-01T09:30",
+      nfWeight: 500,
+      material: "Aço",
+      itemWeights: [10, 20, 30],
+      itemCorridas: ["C-1", "", "C-3"],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(result.error.itemCorridaErrors[1]).toBeDefined();
+
+    const rows = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.notaFiscal, notaFiscal));
+    expect(rows).toHaveLength(0);
   });
 
   it("persists the chosen hour and minute instead of forcing midnight", async () => {
@@ -66,6 +121,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(true);
@@ -88,6 +144,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -111,6 +168,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -130,6 +188,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: Array.from({ length: 21 }, () => 10),
+      itemCorridas: Array.from({ length: 21 }, (_, i) => `C-${i}`),
     });
 
     expect(result.success).toBe(false);
@@ -151,6 +210,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],
+      itemCorridas: ["C-1", "C-2"],
     });
 
     expect(result.success).toBe(false);
@@ -166,6 +226,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0, 30],
+      itemCorridas: ["C-1", "C-2", "C-3"],
     });
 
     expect(result.success).toBe(false);
@@ -185,6 +246,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10, 0],
+      itemCorridas: ["C-1", "C-2"],
     });
 
     expect(result.success).toBe(false);
@@ -205,6 +267,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -230,6 +293,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -255,6 +319,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(true);
@@ -281,6 +346,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -304,6 +370,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(false);
@@ -323,6 +390,7 @@ describe("createLoad", () => {
       nfWeight: 500,
       material: "Aço",
       itemWeights: [10],
+      itemCorridas: ["C-1"],
     });
 
     expect(result.success).toBe(true);

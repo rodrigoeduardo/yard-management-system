@@ -8,6 +8,10 @@ const itemQrPayloadSchema = z.object({
   notaFiscal: z.string().optional(),
   material: z.string(),
   weight: z.string(),
+  // Optional for the same reason as notaFiscal: already-printed codes (or
+  // items created before this field existed) never carried it. New codes
+  // carry it only when the item has a non-null corrida.
+  corrida: z.string().optional(),
 });
 
 export type ItemQrPayload = z.infer<typeof itemQrPayloadSchema>;
@@ -18,6 +22,7 @@ export function buildItemQrPayload(params: {
   notaFiscal: string;
   material: string;
   weight: string;
+  corrida?: string | null;
 }): ItemQrPayload {
   return {
     qrToken: params.qrToken,
@@ -25,6 +30,7 @@ export function buildItemQrPayload(params: {
     notaFiscal: params.notaFiscal,
     material: params.material,
     weight: params.weight,
+    ...(params.corrida ? { corrida: params.corrida } : {}),
   };
 }
 

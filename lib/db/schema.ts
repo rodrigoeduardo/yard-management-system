@@ -75,6 +75,11 @@ export const items = pgTable(
       .notNull()
       .references(() => loads.id),
     weight: numeric("weight").notNull(),
+    // Heat/batch identifier read off the item at intake. Varies item to item
+    // within the same load, unlike every other Add Load field (#307).
+    // Nullable — items created before this column existed keep it NULL, and
+    // the label/QR payload degrade cleanly for them (no empty Corrida line).
+    corrida: text("corrida"),
     status: text("status", { enum: ["in_stock", "removed"] })
       .notNull()
       .default("in_stock"),

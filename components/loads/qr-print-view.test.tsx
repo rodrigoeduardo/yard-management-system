@@ -247,6 +247,46 @@ describe("QrPrintView", () => {
     expect(textColumn?.className).toMatch(/\bprint:w-\[46mm\]/);
   });
 
+  it("renders the corrida line directly below the weight line when the item has a corrida", () => {
+    const withCorrida: LoadItemQrCode[] = [
+      {
+        itemId: "item-corrida",
+        qrToken: "token-corrida",
+        payload: {
+          qrToken: "token-corrida",
+          identifier: "Item 1 - NF-123456",
+          notaFiscal: "NF-123456",
+          material: "Aço",
+          weight: "10.5",
+          corrida: "C-4471",
+        },
+        dataUrl: "data:image/png;base64,itemcorrida",
+      },
+    ];
+
+    render(<QrPrintView summary={summary} qrCodes={withCorrida} />);
+
+    const weight = screen.getByText("10.5 Ton");
+    const corrida = screen.getByText("C-4471");
+    const textColumn = weight.parentElement;
+
+    expect(textColumn).not.toBeNull();
+    expect(corrida.parentElement).toBe(textColumn);
+    const children = Array.from(textColumn?.children ?? []);
+    expect(children.indexOf(weight)).toBeLessThan(children.indexOf(corrida));
+
+    const cards = document.querySelectorAll('[data-testid="qr-grid"] > *');
+    expect(cards[0].className).toMatch(/print:w-\[100mm\]/);
+    expect(cards[0].className).toMatch(/print:h-\[50mm\]/);
+  });
+
+  it("draws no corrida line, and still renders, for an item with a NULL corrida", () => {
+    render(<QrPrintView summary={summary} qrCodes={qrCodes} />);
+
+    expect(screen.getByText("10.5 Ton")).toBeInTheDocument();
+    expect(screen.queryByText(/^C-/)).not.toBeInTheDocument();
+  });
+
   it("keeps the print geometry classes unchanged on the card and QR image", () => {
     const { container } = render(
       <QrPrintView summary={summary} qrCodes={qrCodes} />,

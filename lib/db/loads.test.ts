@@ -29,6 +29,7 @@ describe("insertLoadWithItems", () => {
       nfWeight: "500",
       material: "Aço",
       itemWeights: ["10", "20", "30"],
+      itemCorridas: ["C-1", "C-2", "C-3"],
     });
     createdLoadIds.push(load.id);
 
@@ -56,6 +57,7 @@ describe("insertLoadWithItems", () => {
       nfWeight: "500",
       material: "Aço",
       itemWeights: ["10.1", "20.2"],
+      itemCorridas: ["C-1", "C-2"],
     });
     createdLoadIds.push(load.id);
 
@@ -75,6 +77,7 @@ describe("insertLoadWithItems", () => {
         nfWeight: "500",
         material: "Aço",
         itemWeights: ["10", null as unknown as string],
+        itemCorridas: ["C-1", "C-2"],
       }),
     ).rejects.toThrow();
 
@@ -83,6 +86,53 @@ describe("insertLoadWithItems", () => {
       .from(loads)
       .where(eq(loads.notaFiscal, notaFiscal));
     expect(loadRows).toHaveLength(0);
+  });
+
+  it("persists each item's corrida matching what was submitted for that item", async () => {
+    const notaFiscal = `NF-CORRIDA-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-0004",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10", "20"],
+      itemCorridas: ["C-4471", "C-9902"],
+    });
+    createdLoadIds.push(load.id);
+
+    const itemRows = await db
+      .select()
+      .from(items)
+      .where(eq(items.loadId, load.id))
+      .orderBy(items.sequence);
+    expect(itemRows.map((i) => i.corrida)).toEqual(["C-4471", "C-9902"]);
+  });
+
+  it("persists a NULL corrida for an item whose corrida is not provided", async () => {
+    const notaFiscal = `NF-CORRIDA-NULL-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-0005",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10"],
+      itemCorridas: [null],
+    });
+    createdLoadIds.push(load.id);
+
+    const [item] = await db
+      .select()
+      .from(items)
+      .where(eq(items.loadId, load.id));
+    expect(item.corrida).toBeNull();
   });
 
   it("persists the submitted transport order and driver", async () => {
@@ -97,6 +147,7 @@ describe("insertLoadWithItems", () => {
       nfWeight: "500",
       material: "Aço",
       itemWeights: ["10"],
+      itemCorridas: ["C-1"],
     });
     createdLoadIds.push(load.id);
 
@@ -120,6 +171,7 @@ describe("insertLoadWithItems", () => {
       nfWeight: "500",
       material: "Aço",
       itemWeights: ["10"],
+      itemCorridas: ["C-1"],
     });
     createdLoadIds.push(load.id);
 

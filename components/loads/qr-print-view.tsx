@@ -128,6 +128,11 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
               <span className="text-center font-mono text-xs font-semibold text-accent-foreground md:text-[12.5px] print:text-left print:text-[4.5mm] print:leading-[5mm]">
                 {qr.payload.weight} Ton
               </span>
+              {qr.payload.corrida && (
+                <span className="text-center font-mono text-xs text-muted-foreground md:text-[12.5px] print:text-left print:text-[4mm] print:leading-[4.5mm]">
+                  {qr.payload.corrida}
+                </span>
+              )}
             </div>
           </Card>
         ))}

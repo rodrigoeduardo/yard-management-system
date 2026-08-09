@@ -175,6 +175,7 @@ describe("audit_log.user_id", () => {
           nfWeight: "1",
           material: "steel",
           itemWeights: ["1"],
+          itemCorridas: ["C-1"],
         },
         userId,
       );
@@ -216,6 +217,7 @@ describe("audit_log.user_id", () => {
         nfWeight: "1",
         material: "steel",
         itemWeights: ["1"],
+        itemCorridas: ["C-1"],
       });
       createdLoadIds.push(load.id);
 
