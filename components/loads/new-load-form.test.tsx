@@ -32,6 +32,9 @@ function fillDadosAndContinue() {
   fireEvent.change(screen.getByLabelText("Motorista"), {
     target: { value: "João Silva" },
   });
+  fireEvent.change(screen.getByLabelText("Data da Nota Fiscal"), {
+    target: { value: "2026-01-01" },
+  });
   fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
     target: { value: "2026-01-01T09:15" },
   });
@@ -67,7 +70,7 @@ describe("NewLoadForm", () => {
     );
   });
 
-  it("renders Nota Fiscal, Ordem de Transporte, Motorista, then Data e hora de entrada in that DOM order", () => {
+  it("renders Nota Fiscal, Ordem de Transporte, Motorista, Data da Nota Fiscal, then Data e hora de entrada in that DOM order", () => {
     render(<NewLoadForm materials={MATERIALS} />);
 
     const panel = screen.getByTestId("load-form-dados-panel");
@@ -78,6 +81,7 @@ describe("NewLoadForm", () => {
           "Nota Fiscal",
           "Ordem de Transporte",
           "Motorista",
+          "Data da Nota Fiscal",
           "Data e hora de entrada",
         ].includes(text ?? ""),
       );
@@ -86,6 +90,7 @@ describe("NewLoadForm", () => {
       "Nota Fiscal",
       "Ordem de Transporte",
       "Motorista",
+      "Data da Nota Fiscal",
       "Data e hora de entrada",
     ]);
   });
@@ -209,6 +214,20 @@ describe("NewLoadForm", () => {
 
     expect(screen.getByLabelText("Data e hora de entrada")).toHaveValue(
       "2026-07-17T14:05",
+    );
+
+    vi.useRealTimers();
+  });
+
+  it("defaults Data da Nota Fiscal to today's date on mount", () => {
+    const now = new Date(2026, 6, 17, 14, 5);
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+
+    render(<NewLoadForm materials={MATERIALS} />);
+
+    expect(screen.getByLabelText("Data da Nota Fiscal")).toHaveValue(
+      "2026-07-17",
     );
 
     vi.useRealTimers();

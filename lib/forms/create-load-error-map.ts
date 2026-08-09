@@ -12,6 +12,7 @@ const FIELD_MESSAGES: Record<TopLevelField, string> = {
   notaFiscal: "Informe a nota fiscal.",
   transportOrder: "Informe a ordem de transporte.",
   driver: "Informe o motorista.",
+  nfDate: "Informe a data da nota fiscal.",
   entryDateTime: "Informe uma data e hora de entrada válidas.",
   nfWeight: "Informe o peso da nota fiscal.",
   material: "Informe o material.",

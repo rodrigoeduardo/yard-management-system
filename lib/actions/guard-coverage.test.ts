@@ -102,6 +102,7 @@ describe("lib/actions guard coverage", () => {
           notaFiscal: "NF-1",
           transportOrder: "OT-000001",
           driver: "João da Silva",
+          nfDate: "2026-01-01",
           entryDateTime: "2026-01-01T09:00",
           nfWeight: 100,
           material: "Aço",
