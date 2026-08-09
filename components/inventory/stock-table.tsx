@@ -19,10 +19,14 @@ import { cn } from "@/lib/utils";
 export type StockRow = {
   id: string;
   notaFiscal: string;
-  // Not rendered as a stock table column (out of scope for #304) — carried
-  // only for the load detail modal, already resolved to "—" when NULL.
+  // Not rendered as a stock table column (out of scope for #304/#305) —
+  // carried only for the load detail modal, already resolved to "—" when
+  // NULL.
   transportOrder: string;
   driver: string;
+  // Formatted dd/mm/aaaa (already resolved to "—" when NULL), or "—" for
+  // pre-existing rows without a backfilled value.
+  nfDate: string;
   entryDate: string;
   nfWeight: string;
   material: string;

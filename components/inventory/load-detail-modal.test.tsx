@@ -14,6 +14,7 @@ const LOAD: StockRow = {
   notaFiscal: "NF-001",
   transportOrder: "OT-0001",
   driver: "João Silva",
+  nfDate: "05/01/2026",
   entryDate: "01/01/2026",
   nfWeight: "1000",
   material: "Sucata",
@@ -44,6 +45,17 @@ describe("LoadDetailModal", () => {
     );
 
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("renders both the NF date and the entry date, clearly labelled and distinct", () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    expect(screen.getByText("Data da Nota Fiscal")).toBeInTheDocument();
+    expect(screen.getByText("05/01/2026")).toBeInTheDocument();
+    expect(screen.getByText("Data de Entrada")).toBeInTheDocument();
+    expect(screen.getByText("01/01/2026")).toBeInTheDocument();
   });
 
   it("renders the NF weight and remaining weight with the Ton unit", () => {
