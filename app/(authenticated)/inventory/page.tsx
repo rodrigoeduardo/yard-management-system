@@ -26,6 +26,8 @@ export default async function InventoryPage({
   const stockRows: StockRow[] = stockPage.rows.map((load) => ({
     id: load.id,
     notaFiscal: load.notaFiscal,
+    transportOrder: load.transportOrder ?? "—",
+    driver: load.driver ?? "—",
     entryDate: formatEntryDateTime(load.entryDate),
     nfWeight: load.nfWeight,
     material: load.material,

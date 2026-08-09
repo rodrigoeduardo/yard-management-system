@@ -5,7 +5,9 @@ import { db } from "@/lib/db";
 import { loads, removals } from "@/lib/db/schema";
 import {
   buildSeedDriver,
+  buildSeedLoadDriver,
   buildSeedNotaFiscal,
+  buildSeedTransportOrder,
   cleanDemoData,
   generateItemWeights,
   seedDemoData,
@@ -22,6 +24,18 @@ describe("buildSeedNotaFiscal", () => {
 describe("buildSeedDriver", () => {
   it("prefixes and zero-pads the removal index", () => {
     expect(buildSeedDriver("SEED-", 1)).toBe("SEED-DRIVER-0001");
+  });
+});
+
+describe("buildSeedTransportOrder", () => {
+  it("prefixes and zero-pads the load index", () => {
+    expect(buildSeedTransportOrder("SEED-", 1)).toBe("SEED-OT-0001");
+  });
+});
+
+describe("buildSeedLoadDriver", () => {
+  it("prefixes and zero-pads the load index", () => {
+    expect(buildSeedLoadDriver("SEED-", 1)).toBe("SEED-LOAD-DRIVER-0001");
   });
 });
 
@@ -84,6 +98,10 @@ describe("seedDemoData", () => {
         // one item was removed from each seeded load
         expect(load.itemCount).toBeGreaterThanOrEqual(14);
         expect(load.itemCount).toBeLessThanOrEqual(17);
+        expect(load.transportOrder).toMatch(new RegExp(`^${prefix}OT-\\d{4}$`));
+        expect(load.driver).toMatch(
+          new RegExp(`^${prefix}LOAD-DRIVER-\\d{4}$`),
+        );
       }
 
       const seedRemovals = await db

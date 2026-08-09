@@ -1,5 +1,5 @@
 {
-  "id": "93f07d72-8a73-42e1-86fa-59d1d9f47e16",
+  "id": "95d0c8af-17ec-4d4f-861b-a96f8221a4cc",
   "prevId": "89cdb998-6d23-452a-8531-6de345aaf12a",
   "version": "7",
   "dialect": "postgresql",
@@ -181,6 +181,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "transport_order": {
+          "name": "transport_order",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver": {
+          "name": "driver",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "entry_date": {
           "name": "entry_date",
@@ -414,18 +426,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "cancelled_at": {
-          "name": "cancelled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cancelled_by": {
-          "name": "cancelled_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},

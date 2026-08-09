@@ -70,6 +70,18 @@ export function LoadDetailModal({
               </div>
               <div className="flex flex-col gap-0.5">
                 <dt className="text-xs text-muted-foreground">
+                  Ordem de Transporte
+                </dt>
+                <dd className="font-mono text-[15px] font-bold">
+                  {load.transportOrder}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-xs text-muted-foreground">Motorista</dt>
+                <dd className="text-[15px] font-bold">{load.driver}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-xs text-muted-foreground">
                   Data de Entrada
                 </dt>
                 <dd className="font-mono text-[15px] font-bold">

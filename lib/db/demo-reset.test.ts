@@ -129,6 +129,12 @@ describe("resetDemoData", () => {
         const load = loadRows.find((l) => l.notaFiscal === spec.notaFiscal);
         expect(load).toBeDefined();
 
+        // reset_demo_data() must seed Ordem de Transporte and Motorista the
+        // same way scripts/lib/demo-dataset.ts does (#304), so demo loads
+        // look identical regardless of which seeding path created them.
+        expect(load!.transportOrder).toBe(spec.transportOrder);
+        expect(load!.driver).toBe(spec.driver);
+
         // Every item ever seeded for this load still exists as a row
         // (removal only flips `status`, never deletes).
         const loadItems = await db

@@ -35,6 +35,8 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
   useTopLoaderTask(isPending);
   const [step, setStep] = useState<Step>("dados");
   const [notaFiscal, setNotaFiscal] = useState("");
+  const [transportOrder, setTransportOrder] = useState("");
+  const [driver, setDriver] = useState("");
   const [entryDateTime, setEntryDateTime] = useState(() =>
     getCurrentEntryDateTimeValue(),
   );
@@ -81,6 +83,8 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
 
   const dadosValid =
     notaFiscal.trim() !== "" &&
+    transportOrder.trim() !== "" &&
+    driver.trim() !== "" &&
     entryDateTime.trim() !== "" &&
     nfWeight.trim() !== "" &&
     Number.isFinite(Number(nfWeight)) &&
@@ -108,6 +112,8 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
     startTransition(async () => {
       const result = await createLoad({
         notaFiscal,
+        transportOrder,
+        driver,
         entryDateTime,
         nfWeight: Number(nfWeight),
         material,
@@ -192,6 +198,51 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
               {fieldErrors.notaFiscal && (
                 <p role="alert" className="text-sm text-destructive">
                   {fieldErrors.notaFiscal}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="transportOrder"
+                className="text-sm font-medium text-foreground"
+              >
+                Ordem de Transporte
+              </label>
+              <Input
+                id="transportOrder"
+                mono
+                placeholder="000.000"
+                value={transportOrder}
+                onChange={(e) => setTransportOrder(e.target.value)}
+                required
+                className="h-12 px-3.5 text-[15px] md:h-11 md:text-sm"
+              />
+              {fieldErrors.transportOrder && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.transportOrder}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="driver"
+                className="text-sm font-medium text-foreground"
+              >
+                Motorista
+              </label>
+              <Input
+                id="driver"
+                placeholder="Nome do motorista"
+                value={driver}
+                onChange={(e) => setDriver(e.target.value)}
+                required
+                className="h-12 px-3.5 text-[15px] md:h-11 md:text-sm"
+              />
+              {fieldErrors.driver && (
+                <p role="alert" className="text-sm text-destructive">
+                  {fieldErrors.driver}
                 </p>
               )}
             </div>

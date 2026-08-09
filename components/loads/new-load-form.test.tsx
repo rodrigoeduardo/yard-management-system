@@ -26,6 +26,12 @@ function fillDadosAndContinue() {
   fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
     target: { value: "NF-123" },
   });
+  fireEvent.change(screen.getByLabelText("Ordem de Transporte"), {
+    target: { value: "OT-456" },
+  });
+  fireEvent.change(screen.getByLabelText("Motorista"), {
+    target: { value: "João Silva" },
+  });
   fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
     target: { value: "2026-01-01T09:15" },
   });
@@ -59,6 +65,57 @@ describe("NewLoadForm", () => {
     expect(screen.getByLabelText("Material").className).not.toMatch(
       /\bfont-mono\b/,
     );
+  });
+
+  it("renders Nota Fiscal, Ordem de Transporte, Motorista, then Data e hora de entrada in that DOM order", () => {
+    render(<NewLoadForm materials={MATERIALS} />);
+
+    const panel = screen.getByTestId("load-form-dados-panel");
+    const labels = Array.from(panel.querySelectorAll("label"))
+      .map((label) => label.textContent)
+      .filter((text): text is string =>
+        [
+          "Nota Fiscal",
+          "Ordem de Transporte",
+          "Motorista",
+          "Data e hora de entrada",
+        ].includes(text ?? ""),
+      );
+
+    expect(labels).toEqual([
+      "Nota Fiscal",
+      "Ordem de Transporte",
+      "Motorista",
+      "Data e hora de entrada",
+    ]);
+  });
+
+  it("shows field errors for Ordem de Transporte and Motorista returned from createLoad", async () => {
+    const { createLoad } = await import("@/lib/actions/loads");
+    vi.mocked(createLoad).mockResolvedValue({
+      success: false,
+      error: {
+        formErrors: ["invalid"],
+        fieldErrors: {
+          transportOrder: ["Informe a ordem de transporte."],
+          driver: ["Informe o motorista."],
+        },
+        itemWeightErrors: {},
+      },
+    });
+
+    const { container } = render(<NewLoadForm materials={MATERIALS} />);
+    fillDadosAndContinue();
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "10" },
+    });
+
+    fireEvent.submit(container.querySelector("form")!);
+
+    expect(
+      await screen.findByText("Informe a ordem de transporte."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Informe o motorista.")).toBeInTheDocument();
   });
 
   it("renders the item count as a +/- stepper starting at 1, clamped to 1..20", () => {
@@ -157,7 +214,7 @@ describe("NewLoadForm", () => {
     vi.useRealTimers();
   });
 
-  it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Peso da Nota Fiscal, and Material are all valid", () => {
+  it("disables the mobile Continuar para pesos CTA until Nota Fiscal, Ordem de Transporte, Motorista, Peso da Nota Fiscal, and Material are all valid", () => {
     render(<NewLoadForm materials={MATERIALS} />);
 
     const cta = screen.getByRole("button", { name: "Continuar para pesos" });
@@ -166,6 +223,16 @@ describe("NewLoadForm", () => {
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-123" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Ordem de Transporte"), {
+      target: { value: "OT-456" },
+    });
+    expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
     });
     expect(cta).toBeDisabled();
 
@@ -190,6 +257,12 @@ describe("NewLoadForm", () => {
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-123" },
+    });
+    fireEvent.change(screen.getByLabelText("Ordem de Transporte"), {
+      target: { value: "OT-456" },
+    });
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
     });
     fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
       target: { value: "100" },
@@ -257,6 +330,12 @@ describe("NewLoadForm", () => {
 
     fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
       target: { value: "NF-1" },
+    });
+    fireEvent.change(screen.getByLabelText("Ordem de Transporte"), {
+      target: { value: "OT-456" },
+    });
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
     });
     fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
       target: { value: "2026-01-01T09:00" },
