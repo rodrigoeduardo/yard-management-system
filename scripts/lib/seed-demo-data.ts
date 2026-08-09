@@ -76,6 +76,21 @@ export function generateItemWeights(
   });
 }
 
+/**
+ * Deterministic, marker-prefixed per-item Corrida values for the load at
+ * `index`, same seeding strategy as `generateItemWeights` (#307).
+ */
+export function generateItemCorridas(
+  prefix: string,
+  index: number,
+  count: number = seedItemCount(index),
+): string[] {
+  return Array.from({ length: count }, (_, itemIndex) => {
+    const heat = 1000 + ((index * 401 + itemIndex * 53) % 9000);
+    return `${prefix}C-${heat}`;
+  });
+}
+
 export type SeedOptions = {
   loadCount?: number;
   removalCount?: number;
@@ -131,6 +146,7 @@ export async function seedDemoData(
       nfWeight: sumDecimalStrings(itemWeights),
       material: seedMaterial(i),
       itemWeights,
+      itemCorridas: generateItemCorridas(prefix, i, itemWeights.length),
     });
     loadsCreated += 1;
   }

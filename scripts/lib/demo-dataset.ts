@@ -24,6 +24,7 @@ export type DemoLoadSpec = {
   material: string;
   entryDaysAgo: number;
   itemWeights: string[];
+  itemCorridas: string[];
 };
 
 /**
@@ -79,6 +80,17 @@ function demoItemWeights(seed: number, count: number): string[] {
   });
 }
 
+/**
+ * Deterministic per-item Corrida values, same seeding strategy as
+ * `demoItemWeights` — stable across re-runs of the seed script (#307).
+ */
+function demoItemCorridas(seed: number, count: number): string[] {
+  return Array.from({ length: count }, (_, itemIndex) => {
+    const heat = 4000 + ((seed * 613 + itemIndex * 97) % 5000);
+    return `C-${heat}`;
+  });
+}
+
 /** NF of the one load seeded fully removed (item_count = 0, remaining_weight = 0). */
 export const FINISHED_LOAD_NOTA_FISCAL = "000123460";
 
@@ -93,6 +105,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Sucata de Ferro",
     entryDaysAgo: 14,
     itemWeights: demoItemWeights(1, 16),
+    itemCorridas: demoItemCorridas(1, 16),
   },
   {
     notaFiscal: "000123457",
@@ -101,6 +114,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Alumínio",
     entryDaysAgo: 13,
     itemWeights: demoItemWeights(2, 17),
+    itemCorridas: demoItemCorridas(2, 17),
   },
   {
     notaFiscal: "000123458",
@@ -109,6 +123,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Cobre",
     entryDaysAgo: 12,
     itemWeights: demoItemWeights(3, 15),
+    itemCorridas: demoItemCorridas(3, 15),
   },
   {
     notaFiscal: "000123459",
@@ -117,6 +132,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Papelão Ondulado",
     entryDaysAgo: 11,
     itemWeights: demoItemWeights(4, 18),
+    itemCorridas: demoItemCorridas(4, 18),
   },
   {
     notaFiscal: FINISHED_LOAD_NOTA_FISCAL,
@@ -125,6 +141,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Plástico PET",
     entryDaysAgo: 10,
     itemWeights: demoItemWeights(5, 15),
+    itemCorridas: demoItemCorridas(5, 15),
   },
   {
     notaFiscal: "000123461",
@@ -133,6 +150,7 @@ export const DEMO_LOADS: DemoLoadSpec[] = [
     material: "Sucata de Aço Inox",
     entryDaysAgo: 9,
     itemWeights: demoItemWeights(6, 16),
+    itemCorridas: demoItemCorridas(6, 16),
   },
 ];
 
@@ -207,6 +225,7 @@ export async function seedDemoDataset(
       nfWeight: sumDecimalStrings(spec.itemWeights),
       material: spec.material,
       itemWeights: spec.itemWeights,
+      itemCorridas: spec.itemCorridas,
     });
     loadsCreated += 1;
   }

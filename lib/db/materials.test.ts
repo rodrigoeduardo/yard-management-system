@@ -122,6 +122,7 @@ describe("materials backfill mapping (via insertLoadWithItems)", () => {
       nfWeight: "100",
       material: name,
       itemWeights: ["10"],
+      itemCorridas: ["C-1"],
     });
     createdLoadIds.push(loadA.id);
 
@@ -133,6 +134,7 @@ describe("materials backfill mapping (via insertLoadWithItems)", () => {
       nfWeight: "100",
       material: name.toUpperCase(),
       itemWeights: ["10"],
+      itemCorridas: ["C-1"],
     });
     createdLoadIds.push(loadB.id);
 
@@ -195,6 +197,7 @@ describe("getMaterialsWithInStockCounts", () => {
       nfWeight: "100",
       material: name,
       itemWeights: ["10", "20", "30"],
+      itemCorridas: ["C-1", "C-2", "C-3"],
     });
     createdLoadIds.push(load.id);
 
@@ -250,6 +253,7 @@ describe("getMaterialsWithInStockCounts", () => {
       nfWeight: "100",
       material: name,
       itemWeights: ["0.1", "0.2", "50"],
+      itemCorridas: ["C-1", "C-2", "C-3"],
     });
     createdLoadIds.push(load.id);
 
@@ -381,6 +385,7 @@ describe("renameMaterial", () => {
       nfWeight: "50",
       material: name,
       itemWeights: ["5"],
+      itemCorridas: ["C-1"],
     });
 
     const [loadRow] = await db

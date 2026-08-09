@@ -106,6 +106,7 @@ describe("lib/actions guard coverage", () => {
           nfWeight: 100,
           material: "Aço",
           itemWeights: [10],
+          itemCorridas: ["C-1"],
         });
       },
     ],
