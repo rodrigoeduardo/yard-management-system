@@ -127,4 +127,40 @@ describe("register action", () => {
       "REDIRECT:/register?error=signup_failed",
     );
   });
+
+  it("signs up with app_role: viewer in user metadata when the viewer invite code is used", async () => {
+    signUpMock.mockResolvedValue({ data: { session: null }, error: null });
+    const { register } = await import("./actions");
+    const formData = validFormData({
+      inviteCode: requireTestEnv("VIEWER_INVITE_CODE"),
+    });
+
+    await expect(register(formData)).rejects.toThrow(
+      "REDIRECT:/register?success=confirm_email",
+    );
+
+    expect(signUpMock).toHaveBeenCalledWith({
+      email: "maria@example.com",
+      password: "correct-horse",
+      options: {
+        data: { display_name: "Maria Souza", app_role: "viewer" },
+      },
+    });
+  });
+
+  it("rejects the viewer invite code as invalid when VIEWER_INVITE_CODE is unset", async () => {
+    const viewerCode = requireTestEnv("VIEWER_INVITE_CODE");
+    delete process.env.VIEWER_INVITE_CODE;
+    try {
+      const { register } = await import("./actions");
+      const formData = validFormData({ inviteCode: viewerCode });
+
+      await expect(register(formData)).rejects.toThrow(
+        "REDIRECT:/register?error=invalid_code",
+      );
+      expect(signUpMock).not.toHaveBeenCalled();
+    } finally {
+      process.env.VIEWER_INVITE_CODE = viewerCode;
+    }
+  });
 });

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { removeScannedItems } from "@/lib/db/removals";
 import { combineEntryDateTimeValue } from "@/lib/loads/entry-datetime";
+import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
 const removeItemsSchema = z
   .object({
@@ -21,6 +22,13 @@ const removeItemsSchema = z
 export type RemoveItemsInput = z.input<typeof removeItemsSchema>;
 
 export async function removeItems(input: RemoveItemsInput) {
+  if (await isViewerWriteRefused()) {
+    return {
+      success: false as const,
+      error: { formErrors: [VIEWER_WRITE_ERROR_MESSAGE], fieldErrors: {} },
+    };
+  }
+
   const parsed = removeItemsSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false as const, error: parsed.error.flatten() };
