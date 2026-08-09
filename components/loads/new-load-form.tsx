@@ -13,8 +13,10 @@ import { useTopLoaderTask } from "@/components/ui/top-loader";
 import { createLoad } from "@/lib/actions/loads";
 import {
   type CreateLoadFieldMessages,
+  type CreateLoadItemCorridaMessages,
   type CreateLoadItemWeightMessages,
   mapCreateLoadFieldErrors,
+  mapCreateLoadItemCorridaErrors,
   mapCreateLoadItemWeightErrors,
 } from "@/lib/forms/create-load-error-map";
 import { getCurrentEntryDateTimeValue } from "@/lib/loads/entry-datetime";
@@ -45,9 +47,12 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
   const [materialDisplay, setMaterialDisplay] = useState("");
   const [itemCount, setItemCount] = useState(1);
   const [itemWeights, setItemWeights] = useState<string[]>([""]);
+  const [itemCorridas, setItemCorridas] = useState<string[]>([""]);
   const [fieldErrors, setFieldErrors] = useState<CreateLoadFieldMessages>({});
   const [itemWeightErrors, setItemWeightErrors] =
     useState<CreateLoadItemWeightMessages>({});
+  const [itemCorridaErrors, setItemCorridaErrors] =
+    useState<CreateLoadItemCorridaMessages>({});
   const [formError, setFormError] = useState<string | undefined>();
 
   function handleBack() {
@@ -66,10 +71,23 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
       while (next.length < count) next.push("");
       return next;
     });
+    setItemCorridas((current) => {
+      const next = current.slice(0, count);
+      while (next.length < count) next.push("");
+      return next;
+    });
   }
 
   function handleItemWeightChange(index: number, value: string) {
     setItemWeights((current) => {
+      const next = [...current];
+      next[index] = value;
+      return next;
+    });
+  }
+
+  function handleItemCorridaChange(index: number, value: string) {
+    setItemCorridas((current) => {
       const next = [...current];
       next[index] = value;
       return next;
@@ -91,22 +109,23 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
     Number(nfWeight) > 0 &&
     material.trim() !== "";
 
-  const filledWeightCount = itemWeights.filter(
-    (weight) => weight.trim() !== "",
+  const filledItemCount = itemWeights.filter(
+    (weight, index) =>
+      weight.trim() !== "" && (itemCorridas[index] ?? "").trim() !== "",
   ).length;
-  const allWeightsEntered =
-    itemCount > 0 && filledWeightCount === itemCount;
+  const allItemsComplete = itemCount > 0 && filledItemCount === itemCount;
   const remainingWeight = itemWeights.reduce((sum, weight) => {
     const parsed = Number(weight);
     return sum + (Number.isFinite(parsed) ? parsed : 0);
   }, 0);
-  const weightFillPercent =
-    itemCount > 0 ? Math.round((filledWeightCount / itemCount) * 100) : 0;
+  const itemFillPercent =
+    itemCount > 0 ? Math.round((filledItemCount / itemCount) * 100) : 0;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setFieldErrors({});
     setItemWeightErrors({});
+    setItemCorridaErrors({});
     setFormError(undefined);
 
     startTransition(async () => {
@@ -118,12 +137,16 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
         nfWeight: Number(nfWeight),
         material,
         itemWeights: itemWeights.map((weight) => Number(weight)),
+        itemCorridas,
       });
 
       if (!result.success) {
         setFieldErrors(mapCreateLoadFieldErrors(result.error.fieldErrors));
         setItemWeightErrors(
           mapCreateLoadItemWeightErrors(result.error.itemWeightErrors),
+        );
+        setItemCorridaErrors(
+          mapCreateLoadItemCorridaErrors(result.error.itemCorridaErrors),
         );
         if (result.error.formErrors.length > 0) {
           setFormError("Verifique os campos e tente novamente.");
@@ -375,7 +398,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
             <div className="hidden items-baseline justify-between md:flex">
               <SectionLabel>Peso de Cada Item</SectionLabel>
               <span className="text-xs text-muted-foreground">
-                {filledWeightCount} de {itemCount} preenchidos
+                {filledItemCount} de {itemCount} preenchidos
               </span>
             </div>
 
@@ -427,6 +450,23 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
                       {itemWeightErrors[index]}
                     </p>
                   )}
+                  <Input
+                    type="text"
+                    mono
+                    placeholder="Ex: C-4471"
+                    aria-label={`Corrida do item ${index + 1}`}
+                    value={itemCorridas[index] ?? ""}
+                    onChange={(e) =>
+                      handleItemCorridaChange(index, e.target.value)
+                    }
+                    required
+                    className="h-[46px] px-3 text-[15px] md:h-[42px] md:text-sm"
+                  />
+                  {itemCorridaErrors[index] && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {itemCorridaErrors[index]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -457,7 +497,7 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
               </div>
               <Button
                 type="submit"
-                disabled={isPending || !allWeightsEntered}
+                disabled={isPending || !allItemsComplete}
                 className="h-12 w-full rounded-[13px] px-6 text-[14.5px]"
               >
                 {isPending
@@ -514,25 +554,25 @@ export function NewLoadForm({ materials }: NewLoadFormProps) {
               </div>
               <div
                 role="progressbar"
-                aria-label="Progresso do preenchimento dos pesos"
+                aria-label="Progresso do preenchimento dos itens"
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={weightFillPercent}
+                aria-valuenow={itemFillPercent}
                 className="h-1.5 w-full overflow-hidden rounded-pill bg-muted"
               >
                 <div
                   className="h-full rounded-pill bg-primary transition-all"
-                  style={{ width: `${weightFillPercent}%` }}
+                  style={{ width: `${itemFillPercent}%` }}
                 />
               </div>
               <span className="text-[11.5px] text-muted-foreground">
-                {filledWeightCount} de {itemCount} itens preenchidos · não
+                {filledItemCount} de {itemCount} itens preenchidos · não
                 precisa ser igual ao peso da NF
               </span>
             </Card>
             <Button
               type="submit"
-              disabled={isPending || !allWeightsEntered}
+              disabled={isPending || !allItemsComplete}
               className="h-[52px] w-full rounded-[14px] text-[15px]"
             >
               {isPending

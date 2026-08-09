@@ -101,6 +101,7 @@ describe("NewLoadForm", () => {
           driver: ["Informe o motorista."],
         },
         itemWeightErrors: {},
+        itemCorridaErrors: {},
       },
     });
 
@@ -156,6 +157,33 @@ describe("NewLoadForm", () => {
     fireEvent.click(increment);
 
     expect(screen.getAllByLabelText(/Peso do item \d+/)).toHaveLength(4);
+  });
+
+  it("renders one per-item Corrida field per weight field, with an accessible label naming the item number", () => {
+    render(<NewLoadForm materials={MATERIALS} />);
+
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+    fireEvent.click(increment);
+
+    expect(screen.getAllByLabelText(/Corrida do item \d+/)).toHaveLength(3);
+    expect(screen.getByLabelText("Corrida do item 1")).toBeInTheDocument();
+    expect(screen.getByLabelText("Corrida do item 3")).toBeInTheDocument();
+  });
+
+  it("places each item's Corrida field inside that item's own group, alongside its weight field", () => {
+    render(<NewLoadForm materials={MATERIALS} />);
+
+    const weightGroup = screen
+      .getByLabelText("Peso do item 1")
+      .closest('[data-testid^="pesos-item-"]');
+    const corridaGroup = screen
+      .getByLabelText("Corrida do item 1")
+      .closest('[data-testid^="pesos-item-"]');
+
+    expect(weightGroup).toBe(corridaGroup);
   });
 
   it("shrinks the weight fields back down when the item count decreases", () => {
@@ -319,6 +347,7 @@ describe("NewLoadForm", () => {
         formErrors: [],
         fieldErrors: {},
         itemWeightErrors: { 1: ["Number must be greater than 0"] },
+        itemCorridaErrors: {},
       },
     });
 
@@ -357,6 +386,12 @@ describe("NewLoadForm", () => {
     fireEvent.change(screen.getByLabelText("Peso do item 2"), {
       target: { value: "0" },
     });
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "C-1" },
+    });
+    fireEvent.change(screen.getByLabelText("Corrida do item 2"), {
+      target: { value: "C-2" },
+    });
 
     fireEvent.submit(container.querySelector("form")!);
 
@@ -368,6 +403,71 @@ describe("NewLoadForm", () => {
       .closest('[data-testid^="pesos-item-"]');
     const item1Group = screen
       .getByLabelText("Peso do item 1")
+      .closest('[data-testid^="pesos-item-"]');
+
+    expect(item2Group?.contains(error)).toBe(true);
+    expect(item1Group?.contains(error)).toBe(false);
+  });
+
+  it("shows an item-corrida error next to the specific invalid item's input", async () => {
+    const { createLoad } = await import("@/lib/actions/loads");
+    vi.mocked(createLoad).mockResolvedValue({
+      success: false,
+      error: {
+        formErrors: [],
+        fieldErrors: {},
+        itemWeightErrors: {},
+        itemCorridaErrors: { 1: ["String must contain at least 1 character(s)"] },
+      },
+    });
+
+    const { container } = render(<NewLoadForm materials={MATERIALS} />);
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+
+    fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
+      target: { value: "NF-1" },
+    });
+    fireEvent.change(screen.getByLabelText("Ordem de Transporte"), {
+      target: { value: "OT-456" },
+    });
+    fireEvent.change(screen.getByLabelText("Motorista"), {
+      target: { value: "João Silva" },
+    });
+    fireEvent.change(screen.getByLabelText("Data e hora de entrada"), {
+      target: { value: "2026-01-01T09:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Peso da Nota Fiscal"), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText("Material"), {
+      target: { value: "Aço" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continuar para pesos" }),
+    );
+
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText("Peso do item 2"), {
+      target: { value: "20" },
+    });
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "C-1" },
+    });
+
+    fireEvent.submit(container.querySelector("form")!);
+
+    const error = await screen.findByText("Informe a corrida do item 2.");
+    const item2Group = screen
+      .getByLabelText("Corrida do item 2")
+      .closest('[data-testid^="pesos-item-"]');
+    const item1Group = screen
+      .getByLabelText("Corrida do item 1")
       .closest('[data-testid^="pesos-item-"]');
 
     expect(item2Group?.contains(error)).toBe(true);
@@ -422,7 +522,7 @@ describe("NewLoadForm", () => {
     expect(item1.closest("div")?.textContent).toMatch(/\bTon\b/);
   });
 
-  it("shows a live Peso Restante vs Peso da NF summary with a fill-progress bar, recomputed on each keystroke", () => {
+  it("shows a live Peso Restante vs Peso da NF summary, recomputed on each weight keystroke", () => {
     render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
@@ -435,9 +535,6 @@ describe("NewLoadForm", () => {
     );
     expect(screen.getByTestId("pesos-nf-weight")).toHaveTextContent("100");
 
-    const progressBar = screen.getByRole("progressbar");
-    expect(progressBar).toHaveAttribute("aria-valuenow", "0");
-
     fireEvent.change(screen.getByLabelText("Peso do item 1"), {
       target: { value: "30" },
     });
@@ -445,7 +542,6 @@ describe("NewLoadForm", () => {
     expect(screen.getByTestId("pesos-remaining-weight")).toHaveTextContent(
       "30",
     );
-    expect(progressBar).toHaveAttribute("aria-valuenow", "50");
 
     fireEvent.change(screen.getByLabelText("Peso do item 2"), {
       target: { value: "20" },
@@ -454,10 +550,41 @@ describe("NewLoadForm", () => {
     expect(screen.getByTestId("pesos-remaining-weight")).toHaveTextContent(
       "50",
     );
+  });
+
+  it("advances the fill-progress bar only once an item's weight AND corrida are both filled", () => {
+    render(<NewLoadForm materials={MATERIALS} />);
+    const increment = screen.getByRole("button", {
+      name: "Aumentar quantidade de itens",
+    });
+    fireEvent.click(increment);
+    fillDadosAndContinue();
+
+    const progressBar = screen.getByRole("progressbar");
+    expect(progressBar).toHaveAttribute("aria-valuenow", "0");
+
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "30" },
+    });
+    expect(progressBar).toHaveAttribute("aria-valuenow", "0");
+
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "C-1" },
+    });
+    expect(progressBar).toHaveAttribute("aria-valuenow", "50");
+
+    fireEvent.change(screen.getByLabelText("Peso do item 2"), {
+      target: { value: "20" },
+    });
+    expect(progressBar).toHaveAttribute("aria-valuenow", "50");
+
+    fireEvent.change(screen.getByLabelText("Corrida do item 2"), {
+      target: { value: "C-2" },
+    });
     expect(progressBar).toHaveAttribute("aria-valuenow", "100");
   });
 
-  it("disables the primary CTA until all weights are entered, and labels it with the item count", () => {
+  it("disables the primary CTA until every item's weight AND corrida are entered, and labels it with the item count", () => {
     render(<NewLoadForm materials={MATERIALS} />);
     const increment = screen.getByRole("button", {
       name: "Aumentar quantidade de itens",
@@ -478,6 +605,16 @@ describe("NewLoadForm", () => {
 
     fireEvent.change(screen.getByLabelText("Peso do item 2"), {
       target: { value: "20" },
+    });
+    for (const cta of submitCtas) expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "C-1" },
+    });
+    for (const cta of submitCtas) expect(cta).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Corrida do item 2"), {
+      target: { value: "C-2" },
     });
     for (const cta of submitCtas) expect(cta).toBeEnabled();
   });
@@ -501,6 +638,9 @@ describe("NewLoadForm", () => {
     fillDadosAndContinue();
     fireEvent.change(screen.getByLabelText("Peso do item 1"), {
       target: { value: "100" },
+    });
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "C-1" },
     });
 
     const submitCtas = screen.getAllByRole("button", {
