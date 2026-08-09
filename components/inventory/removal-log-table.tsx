@@ -47,10 +47,12 @@ const columns: ColumnDef<RemovalLogRow>[] = [
     accessorKey: "exitDate",
     header: "Data de Saída",
     cell: ({ row }) => (
-      <span className="flex items-center gap-2 whitespace-nowrap">
-        <span className="font-mono font-bold">{row.original.exitDate}</span>
+      <span className="flex flex-col gap-0.5">
+        <span className="block whitespace-nowrap font-mono font-bold">
+          {row.original.exitDate}
+        </span>
         {row.original.cancelled ? (
-          <span className="text-[10px] font-bold uppercase tracking-[0.04em] text-destructive">
+          <span className="w-fit text-[10px] font-bold uppercase tracking-[0.04em] text-destructive">
             Cancelada
           </span>
         ) : null}
