@@ -5,6 +5,8 @@ import { StockTable, type StockRow } from "./stock-table";
 const OPEN_ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
+  transportOrder: "OT-0001",
+  driver: "João Silva",
   entryDate: "01/01/2026",
   nfWeight: "1000",
   material: "Sucata",
@@ -29,6 +31,8 @@ const PARTIAL_ROW: StockRow = {
 const FINISHED_ROW: StockRow = {
   id: "2",
   notaFiscal: "NF-002",
+  transportOrder: "OT-0001",
+  driver: "João Silva",
   entryDate: "02/01/2026",
   nfWeight: "500",
   material: "Papel",

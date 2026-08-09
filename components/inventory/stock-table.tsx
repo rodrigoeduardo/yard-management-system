@@ -20,6 +20,10 @@ import { cn } from "@/lib/utils";
 export type StockRow = {
   id: string;
   notaFiscal: string;
+  // Not rendered as a stock table column (out of scope for #304) — carried
+  // only for the load detail modal, already resolved to "—" when NULL.
+  transportOrder: string;
+  driver: string;
   entryDate: string;
   nfWeight: string;
   material: string;

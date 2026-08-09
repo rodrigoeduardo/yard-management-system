@@ -12,6 +12,8 @@ vi.mock("@/lib/actions/load-items", () => ({
 const LOAD: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
+  transportOrder: "OT-0001",
+  driver: "João Silva",
   entryDate: "01/01/2026",
   nfWeight: "1000",
   material: "Sucata",
@@ -22,6 +24,29 @@ const LOAD: StockRow = {
 };
 
 describe("LoadDetailModal", () => {
+  it("renders the transport order and driver", () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    expect(screen.getByText("OT-0001")).toBeInTheDocument();
+    expect(screen.getByText("João Silva")).toBeInTheDocument();
+  });
+
+  it("renders '—' for transport order and driver on a pre-existing load without throwing", () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <LoadDetailModal
+        load={{ ...LOAD, transportOrder: "—", driver: "—" }}
+        open
+        onOpenChange={() => {}}
+      />,
+    );
+
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
+  });
+
   it("renders the NF weight and remaining weight with the Ton unit", () => {
     fetchLoadItems.mockResolvedValue({ success: true, items: [] });
 

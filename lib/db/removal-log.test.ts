@@ -139,6 +139,35 @@ describe("removal log queries", () => {
   );
 
   describe("listRemovalsPage", () => {
+    it("exposes cancelledAt so the Histórico can mark a cancelled removal (issue #310)", async () => {
+      const load = await insertLoadWithItems(["10"]);
+      loadIds.push(load.load.id);
+
+      const removal = await removeScannedItems({
+        exitDate: new Date("2026-02-01"),
+        driver: `Cancelled Log Driver ${randomUUID()}`,
+        vehiclePlate: "AAA1111",
+        pedidoImagePath: "removal-pedidos/test.jpg",
+        qrTokens: [load.items[0].qrToken],
+      });
+      removalIds.push(removal.id);
+
+      await db
+        .update(removals)
+        .set({ cancelledAt: new Date("2026-02-02") })
+        .where(eq(removals.id, removal.id));
+
+      const result = await listRemovalsPage({
+        q: removal.driver,
+        order: "exitDate",
+        dir: "desc",
+        page: 1,
+      });
+
+      expect(result.rows).toHaveLength(1);
+      expect(result.rows[0].cancelledAt).toBeInstanceOf(Date);
+    });
+
     it(
       "matches the search term against the driver or an NF of a removed item, case-insensitively",
       async () => {

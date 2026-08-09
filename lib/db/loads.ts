@@ -13,6 +13,10 @@ import { buildStockFilterConditions } from "./stock-filters";
 
 export type CreateLoadData = {
   notaFiscal: string;
+  /** Ordem de Transporte read off the inbound paperwork alongside the NF. */
+  transportOrder: string;
+  /** Inbound driver — distinct from `removals.driver` (the outbound driver). */
+  driver: string;
   entryDate: Date;
   nfWeight: string;
   /** An existing material's id, or a name to find-or-create — see `resolveMaterialId`. */
@@ -33,6 +37,8 @@ export async function insertLoadWithItems(
       .insert(loads)
       .values({
         notaFiscal: data.notaFiscal,
+        transportOrder: data.transportOrder,
+        driver: data.driver,
         entryDate: data.entryDate,
         nfWeight: data.nfWeight,
         materialId: material.id,
@@ -57,6 +63,8 @@ export async function getLoadWithItems(loadId: string) {
     .select({
       id: loads.id,
       notaFiscal: loads.notaFiscal,
+      transportOrder: loads.transportOrder,
+      driver: loads.driver,
       entryDate: loads.entryDate,
       nfWeight: loads.nfWeight,
       material: materials.name,
@@ -173,6 +181,10 @@ export async function listStockPage({
   const selectColumns = {
     id: loads.id,
     notaFiscal: loads.notaFiscal,
+    // Not rendered as stock table columns (out of scope for #304) — carried
+    // through only so the load detail modal can show them.
+    transportOrder: loads.transportOrder,
+    driver: loads.driver,
     entryDate: loads.entryDate,
     nfWeight: loads.nfWeight,
     material: materials.name,

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
 import { resolveMaterialId } from "./materials";
-import { getRemovalById, removeScannedItems } from "./removals";
+import { cancelRemoval, getRemovalById, removeScannedItems } from "./removals";
 import { items, loads, removalItems, removals } from "./schema";
 
 async function insertLoadWithItems(itemWeights: string[]) {
@@ -215,6 +215,140 @@ describe("removeScannedItems", () => {
       .from(removals)
       .where(eq(removals.id, removal.id));
     expect(reloaded[0].pedidoImagePath).toBe("pedidos/pedido-image-test.jpg");
+  });
+});
+
+describe("cancelRemoval", () => {
+  const loadIds: string[] = [];
+  const removalIds: string[] = [];
+
+  afterEach(async () => {
+    while (removalIds.length > 0) {
+      const id = removalIds.pop()!;
+      await db.delete(removalItems).where(eq(removalItems.removalId, id));
+      await db.delete(removals).where(eq(removals.id, id));
+    }
+    while (loadIds.length > 0) {
+      const id = loadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it(
+    "credits a load's itemCount and remainingWeight back exactly and returns items to stock",
+    async () => {
+      const load = await insertLoadWithItems(["10", "20", "30"]);
+      loadIds.push(load.load.id);
+
+      const removal = await removeScannedItems({
+        exitDate: new Date("2026-02-01"),
+        driver: "Cancel Test Driver",
+        vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/cancel-test.jpg",
+        qrTokens: [load.items[0].qrToken, load.items[1].qrToken],
+      });
+      removalIds.push(removal.id);
+
+      const cancelled = await cancelRemoval(removal.id);
+
+      expect(cancelled.cancelledAt).not.toBeNull();
+
+      const reloadedLoad = await db
+        .select()
+        .from(loads)
+        .where(eq(loads.id, load.load.id));
+      expect(reloadedLoad[0].itemCount).toBe(3);
+      expect(reloadedLoad[0].remainingWeight).toBe("60");
+
+      const reloadedItems = await db
+        .select()
+        .from(items)
+        .where(eq(items.loadId, load.load.id));
+      expect(reloadedItems.every((item) => item.status === "in_stock")).toBe(
+        true,
+      );
+    },
+    20000,
+  );
+
+  it(
+    "credits each affected load its own items only when a removal spans two loads",
+    async () => {
+      const loadA = await insertLoadWithItems(["10", "20"]);
+      const loadB = await insertLoadWithItems(["5"]);
+      loadIds.push(loadA.load.id, loadB.load.id);
+
+      const removal = await removeScannedItems({
+        exitDate: new Date("2026-02-01"),
+        driver: "Cancel Multi Load Driver",
+        vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/cancel-multi.jpg",
+        qrTokens: [loadA.items[0].qrToken, loadB.items[0].qrToken],
+      });
+      removalIds.push(removal.id);
+
+      await cancelRemoval(removal.id);
+
+      const reloadedLoadA = await db
+        .select()
+        .from(loads)
+        .where(eq(loads.id, loadA.load.id));
+      expect(reloadedLoadA[0].itemCount).toBe(2);
+      expect(reloadedLoadA[0].remainingWeight).toBe("30");
+
+      const reloadedLoadB = await db
+        .select()
+        .from(loads)
+        .where(eq(loads.id, loadB.load.id));
+      expect(reloadedLoadB[0].itemCount).toBe(1);
+      expect(reloadedLoadB[0].remainingWeight).toBe("5");
+    },
+    20000,
+  );
+
+  it("rejects cancelling an already-cancelled removal and moves no counters", async () => {
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Double Cancel Driver",
+      vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/double-cancel.jpg",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    await cancelRemoval(removal.id);
+
+    await expect(cancelRemoval(removal.id)).rejects.toThrow();
+
+    const reloadedLoad = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, load.load.id));
+    expect(reloadedLoad[0].itemCount).toBe(1);
+    expect(reloadedLoad[0].remainingWeight).toBe("10");
+  });
+
+  it("stamps cancelledBy with the acting user id", async () => {
+    const load = await insertLoadWithItems(["10"]);
+    loadIds.push(load.load.id);
+
+    const removal = await removeScannedItems({
+      exitDate: new Date("2026-02-01"),
+      driver: "Cancelled By Driver",
+      vehiclePlate: "ABC1234",
+      pedidoImagePath: "removal-pedidos/cancelled-by.jpg",
+      qrTokens: [load.items[0].qrToken],
+    });
+    removalIds.push(removal.id);
+
+    const userId = randomUUID();
+    const cancelled = await cancelRemoval(removal.id, userId);
+
+    expect(cancelled.cancelledBy).toBe(userId);
   });
 });
 

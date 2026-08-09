@@ -53,6 +53,8 @@ describe("getLoadItemQrCodes", () => {
     const notaFiscal = `NF-QR-${Date.now()}`;
     const load = await insertLoadWithItems({
       notaFiscal,
+      transportOrder: "OT-123456",
+      driver: "João da Silva",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",

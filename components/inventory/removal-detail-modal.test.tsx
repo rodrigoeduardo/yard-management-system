@@ -1,12 +1,22 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RemovalDetailModal } from "./removal-detail-modal";
 import type { RemovalLogRow } from "./removal-log-table";
 
 const fetchRemovalItems = vi.fn();
+const cancelRemovalAction = vi.fn();
+const refresh = vi.fn();
 
 vi.mock("@/lib/actions/removal-items", () => ({
   fetchRemovalItems: (removalId: string) => fetchRemovalItems(removalId),
+}));
+
+vi.mock("@/lib/actions/removal-cancel", () => ({
+  cancelRemovalAction: (removalId: string) => cancelRemovalAction(removalId),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh }),
 }));
 
 const REMOVAL: RemovalLogRow = {
@@ -17,6 +27,7 @@ const REMOVAL: RemovalLogRow = {
   totalRemovedWeight: "100",
   notasFiscais: "NF-001",
   itemCount: 1,
+  cancelled: false,
 };
 
 describe("RemovalDetailModal", () => {
@@ -266,5 +277,94 @@ describe("RemovalDetailModal", () => {
     const icon = link.querySelector("svg");
     expect(icon).not.toBeNull();
     expect(icon).toHaveAttribute("aria-hidden", "true");
+  });
+});
+
+describe("RemovalDetailModal cancellation (issue #310)", () => {
+  it("shows no cancellation control when removalCancelEnabled is not passed (flag off)", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    expect(screen.queryByText("Cancelar remoção")).not.toBeInTheDocument();
+  });
+
+  it("shows a Cancelar remoção control when removalCancelEnabled is true and the removal is active", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal
+        removal={REMOVAL}
+        open
+        onOpenChange={() => {}}
+        removalCancelEnabled
+      />,
+    );
+
+    expect(screen.getByText("Cancelar remoção")).toBeInTheDocument();
+  });
+
+  it("requires an explicit confirmation step before calling cancelRemovalAction", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal
+        removal={REMOVAL}
+        open
+        onOpenChange={() => {}}
+        removalCancelEnabled
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Cancelar remoção"));
+
+    expect(cancelRemovalAction).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/confirma o cancelamento/i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Confirmar cancelamento"));
+
+    expect(cancelRemovalAction).toHaveBeenCalledWith("r1");
+  });
+
+  it("shows a Cancelada marker and no control for an already-cancelled removal", () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+
+    render(
+      <RemovalDetailModal
+        removal={{ ...REMOVAL, cancelled: true }}
+        open
+        onOpenChange={() => {}}
+        removalCancelEnabled
+      />,
+    );
+
+    expect(screen.getByText("Cancelada")).toBeInTheDocument();
+    expect(screen.queryByText("Cancelar remoção")).not.toBeInTheDocument();
+  });
+
+  it("refreshes after a successful cancellation and shows the Cancelada marker", async () => {
+    fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
+    cancelRemovalAction.mockResolvedValue({ success: true, removal: {} });
+
+    render(
+      <RemovalDetailModal
+        removal={REMOVAL}
+        open
+        onOpenChange={() => {}}
+        removalCancelEnabled
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Cancelar remoção"));
+    fireEvent.click(screen.getByText("Confirmar cancelamento"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Cancelada")).toBeInTheDocument();
+    });
+    expect(refresh).toHaveBeenCalled();
   });
 });

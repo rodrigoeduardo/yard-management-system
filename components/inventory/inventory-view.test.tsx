@@ -18,6 +18,8 @@ vi.mock("next/navigation", () => ({
 const STOCK_ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
+  transportOrder: "OT-0001",
+  driver: "João Silva",
   entryDate: "01/01/2026",
   nfWeight: "1.000,00 t",
   material: "Sucata",
@@ -35,6 +37,7 @@ const REMOVAL_ROW: RemovalLogRow = {
   totalRemovedWeight: "100,00 t",
   notasFiscais: "NF-001",
   itemCount: 3,
+  cancelled: false,
 };
 
 const STOCK_QUERY: StockQueryState = {

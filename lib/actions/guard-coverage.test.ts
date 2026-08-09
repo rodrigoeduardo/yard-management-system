@@ -59,6 +59,7 @@ const MODULES: Record<string, { guarded: string[]; exempt: string[] }> = {
     exempt: [],
   },
   "./removals": { guarded: ["removeItems"], exempt: [] },
+  "./removal-cancel": { guarded: ["cancelRemovalAction"], exempt: [] },
   "./pedido-image": {
     guarded: ["uploadPedidoImage"],
     exempt: ["getPedidoImageSignedUrl"],
@@ -99,6 +100,8 @@ describe("lib/actions guard coverage", () => {
         const { createLoad } = await import("./loads");
         return createLoad({
           notaFiscal: "NF-1",
+          transportOrder: "OT-000001",
+          driver: "João da Silva",
           entryDateTime: "2026-01-01T09:00",
           nfWeight: 100,
           material: "Aço",

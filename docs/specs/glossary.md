@@ -10,7 +10,9 @@
 | Carga | Load | A shipment of material that arrives in the yard under one NF, split into individually tracked items. |
 | Item | Item | One physical unit of a load, with its own weight and QR code. |
 | Remoção | Removal | An action that takes items out of the yard: one exit date + one driver, N scanned items, possibly from different loads. |
-| Motorista | Driver | Person transporting removed items; recorded per removal action. |
+| Ordem de Transporte | Transport Order | Transport order reference from the inbound paperwork; recorded per load, alongside the NF. |
+| Motorista (Carga) | Driver (Load) | Person who brought the load in; recorded per load at intake (`loads.driver`). Distinct from the removal's Motorista below — same column name, disambiguated by context. |
+| Motorista (Remoção) | Driver (Removal) | Person transporting removed items; recorded per removal action (`removals.driver`). |
 | Placa do veículo | Vehicle Plate | License plate of the vehicle transporting removed items; recorded per removal action, required at the form level. |
 | Material | Material | A persisted entity (`name`) that categorizes a load's contents; selected or created inline on the load form. |
 | Peso da Nota Fiscal | NF Weight | Total weight stated on the invoice. Reference only — need not equal the sum of item weights. |

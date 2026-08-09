@@ -16,6 +16,8 @@ vi.mock("next/navigation", () => ({
 const ROW: StockRow = {
   id: "1",
   notaFiscal: "NF-001",
+  transportOrder: "OT-0001",
+  driver: "João Silva",
   entryDate: "01/01/2026",
   nfWeight: "1.000,00 t",
   material: "Sucata",

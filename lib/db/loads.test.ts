@@ -22,6 +22,8 @@ describe("insertLoadWithItems", () => {
 
     const load = await insertLoadWithItems({
       notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -46,6 +48,8 @@ describe("insertLoadWithItems", () => {
 
     const load = await insertLoadWithItems({
       notaFiscal,
+      transportOrder: "OT-0002",
+      driver: "João Silva",
       entryDate: new Date("2026-01-01"),
       nfWeight: "500",
       material: "Aço",
@@ -62,6 +66,8 @@ describe("insertLoadWithItems", () => {
     await expect(
       insertLoadWithItems({
         notaFiscal,
+        transportOrder: "OT-0003",
+        driver: "João Silva",
         entryDate: new Date("2026-01-01"),
         nfWeight: "500",
         material: "Aço",
@@ -74,6 +80,28 @@ describe("insertLoadWithItems", () => {
       .from(loads)
       .where(eq(loads.notaFiscal, notaFiscal));
     expect(loadRows).toHaveLength(0);
+  });
+
+  it("persists the submitted transport order and driver", async () => {
+    const notaFiscal = `NF-TRANSPORT-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-4821",
+      driver: "Maria Souza",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10"],
+    });
+    createdLoadIds.push(load.id);
+
+    const [row] = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, load.id));
+    expect(row.transportOrder).toBe("OT-4821");
+    expect(row.driver).toBe("Maria Souza");
   });
 });
 

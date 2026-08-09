@@ -237,6 +237,41 @@ describe("getLastRemoval", () => {
     expect(lastRemoval).not.toBeNull();
     expect(lastRemoval!.vehiclePlate).toBeNull();
   });
+
+  it("skips a cancelled removal, falling back to the next most-recent one (issue #310)", async () => {
+    const load = await insertLoad({ itemCount: 1, remainingWeight: "10" });
+    loadIds.push(load.id);
+
+    const [earlierRemoval] = await db
+      .insert(removals)
+      .values({
+        exitDate: new Date("2026-02-01"),
+        driver: "Earlier Removal Driver",
+        vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/earlier.jpg",
+        totalRemovedWeight: "10",
+      })
+      .returning();
+    removalIds.push(earlierRemoval.id);
+
+    const [cancelledRemoval] = await db
+      .insert(removals)
+      .values({
+        exitDate: new Date("2026-02-02"),
+        driver: "Cancelled Removal Driver",
+        vehiclePlate: "ABC1234",
+        pedidoImagePath: "removal-pedidos/cancelled.jpg",
+        totalRemovedWeight: "10",
+        cancelledAt: new Date("2026-02-03"),
+      })
+      .returning();
+    removalIds.push(cancelledRemoval.id);
+
+    const lastRemoval = await getLastRemoval();
+
+    expect(lastRemoval).not.toBeNull();
+    expect(lastRemoval!.id).toBe(earlierRemoval.id);
+  });
 });
 
 describe("getLastLoad", () => {
