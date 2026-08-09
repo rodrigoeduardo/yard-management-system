@@ -22,6 +22,7 @@ const PARTIAL_ROW: StockRow = {
   notaFiscal: "NF-003",
   transportOrder: "OT-0002",
   driver: "Maria Souza",
+  nfDate: "2026-01-03",
   entryDate: "03/01/2026",
   nfWeight: "800",
   material: "Ferro",
