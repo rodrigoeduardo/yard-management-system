@@ -120,6 +120,13 @@
       "when": 1786331200002,
       "tag": "0016_boring_phantom_reporter",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786335923656,
+      "tag": "0017_viewer_role_enforcement",
+      "breakpoints": true
     }
   ]
 }
