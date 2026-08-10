@@ -1,4 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
+import { resolveAppRole } from "./current-role";
+
+describe("resolveAppRole", () => {
+  it("resolves to viewer when app_role is viewer", () => {
+    expect(resolveAppRole({ user_metadata: { app_role: "viewer" } })).toBe(
+      "viewer",
+    );
+  });
+
+  it("resolves to operator when app_role is absent", () => {
+    expect(resolveAppRole({ user_metadata: {} })).toBe("operator");
+  });
+
+  it("resolves to operator for null/undefined users", () => {
+    expect(resolveAppRole(null)).toBe("operator");
+    expect(resolveAppRole(undefined)).toBe("operator");
+  });
+});
 
 function fakeCookieStore() {
   return {

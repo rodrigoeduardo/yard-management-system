@@ -29,4 +29,19 @@ describe("ActionCards", () => {
 
     expect(screen.getByText("Ações")).toBeInTheDocument();
   });
+
+  it("hides Entrada and Saída for a viewer session, keeping Ver Estoque (issue #314)", () => {
+    render(<ActionCards isViewer />);
+
+    expect(screen.queryByRole("link", { name: /Entrada/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Saída/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ver Estoque/ })).toBeInTheDocument();
+  });
+
+  it("shows every card for an operator session by default", () => {
+    render(<ActionCards />);
+
+    expect(screen.getByRole("link", { name: /Entrada/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Saída/ })).toBeInTheDocument();
+  });
 });

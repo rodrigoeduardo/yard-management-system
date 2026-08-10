@@ -27,7 +27,14 @@ function sortByName(rows: MaterialRow[]): MaterialRow[] {
 const GENERIC_ADD_ERROR = "Não foi possível adicionar o material.";
 const GENERIC_RENAME_ERROR = "Não foi possível salvar o material.";
 
-export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
+export function MaterialsView({
+  materials,
+  isViewer = false,
+}: {
+  materials: MaterialRow[];
+  /** Issue #314. Server-computed session role, passed down — never read process.env or the session here. */
+  isViewer?: boolean;
+}) {
   const [rows, setRows] = useState<MaterialRow[]>(materials);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<MaterialRow | null>(null);
@@ -76,9 +83,11 @@ export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setAddOpen(true)}>Adicionar material</Button>
-      </div>
+      {!isViewer && (
+        <div className="flex justify-end">
+          <Button onClick={() => setAddOpen(true)}>Adicionar material</Button>
+        </div>
+      )}
 
       <ul className="flex flex-col divide-y divide-border rounded-xl border border-border">
         {rows.length === 0 && (
@@ -97,19 +106,21 @@ export function MaterialsView({ materials }: { materials: MaterialRow[] }) {
                 {material.inStockCount} und. ·{" "}
                 {formatWeight(material.inStockWeight)} em estoque
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditing(material)}
-              >
-                Editar
-              </Button>
+              {!isViewer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditing(material)}
+                >
+                  Editar
+                </Button>
+              )}
             </div>
           </li>
         ))}
       </ul>
 
-      {addOpen && (
+      {!isViewer && addOpen && (
         <MaterialFormDialog
           open={addOpen}
           onOpenChange={setAddOpen}

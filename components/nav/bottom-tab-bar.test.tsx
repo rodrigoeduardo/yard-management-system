@@ -71,4 +71,23 @@ describe("BottomTabBar", () => {
 
     expect(screen.getByRole("navigation").className).toMatch(/\bprint:hidden\b/);
   });
+
+  it("hides Entrada and Saída for a viewer session (issue #314)", () => {
+    usePathname.mockReturnValue("/");
+    render(<BottomTabBar isViewer />);
+
+    expect(screen.queryByText("Entrada")).not.toBeInTheDocument();
+    expect(screen.queryByText("Saída")).not.toBeInTheDocument();
+    expect(screen.getByText("Início")).toBeInTheDocument();
+    expect(screen.getByText("Estoque")).toBeInTheDocument();
+    expect(screen.getByText("Materiais")).toBeInTheDocument();
+  });
+
+  it("shows every label for an operator session by default", () => {
+    usePathname.mockReturnValue("/");
+    render(<BottomTabBar />);
+
+    expect(screen.getByText("Entrada")).toBeInTheDocument();
+    expect(screen.getByText("Saída")).toBeInTheDocument();
+  });
 });

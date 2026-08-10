@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HOME_ENTRY_POINTS } from "./entry-points";
+import { HOME_ENTRY_POINTS, filterHomeEntryPointsForRole } from "./entry-points";
 
 describe("HOME_ENTRY_POINTS", () => {
   it("links to the load creation page labeled Entrada", () => {
@@ -28,5 +28,24 @@ describe("HOME_ENTRY_POINTS", () => {
 
   it("contains exactly the three core function entry points", () => {
     expect(HOME_ENTRY_POINTS).toHaveLength(3);
+  });
+});
+
+describe("filterHomeEntryPointsForRole", () => {
+  it("drops Entrada and Saída for a viewer, keeping Ver Estoque", () => {
+    const filtered = filterHomeEntryPointsForRole(HOME_ENTRY_POINTS, "viewer");
+
+    expect(filtered.map((entryPoint) => entryPoint.href)).toEqual([
+      "/inventory",
+    ]);
+  });
+
+  it("keeps every entry point for an operator", () => {
+    const filtered = filterHomeEntryPointsForRole(
+      HOME_ENTRY_POINTS,
+      "operator",
+    );
+
+    expect(filtered).toEqual(HOME_ENTRY_POINTS);
   });
 });

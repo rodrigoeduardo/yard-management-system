@@ -110,4 +110,26 @@ describe("MaterialsView", () => {
     });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it("hides Adicionar material and Editar for a viewer session, keeping counts visible (issue #314)", () => {
+    render(<MaterialsView materials={MATERIALS} isViewer />);
+
+    expect(
+      screen.queryByRole("button", { name: "Adicionar material" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Editar" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Alumínio")).toBeInTheDocument();
+    expect(screen.getByText("3 und. · 10.000 Ton em estoque")).toBeInTheDocument();
+  });
+
+  it("shows the add/edit controls for an operator session by default", () => {
+    render(<MaterialsView materials={MATERIALS} />);
+
+    expect(
+      screen.getByRole("button", { name: "Adicionar material" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Editar" })).toHaveLength(2);
+  });
 });

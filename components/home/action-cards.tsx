@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { SectionLabel } from "@/components/ui/section-label";
 import { LinkLoaderReporter } from "@/components/ui/top-loader";
-import { HOME_ENTRY_POINTS } from "@/lib/home/entry-points";
+import { HOME_ENTRY_POINTS, filterHomeEntryPointsForRole } from "@/lib/home/entry-points";
 
 /**
  * The three home-dashboard action cards (icon + title + description),
@@ -12,13 +12,22 @@ import { HOME_ENTRY_POINTS } from "@/lib/home/entry-points";
  * routes. Mobile base stacks them as horizontal rows with a trailing
  * chevron; `md:` lays them out in a three-column grid of vertical cards
  * (no chevron), matching the design's mobile and desktop Início frames.
+ *
+ * `isViewer` (issue #314) is a boolean computed server-side from the
+ * session's role and passed down — drops the write-only Entrada/Saída
+ * cards, keeping Ver Estoque.
  */
-export function ActionCards() {
+export function ActionCards({ isViewer = false }: { isViewer?: boolean }) {
+  const entryPoints = filterHomeEntryPointsForRole(
+    HOME_ENTRY_POINTS,
+    isViewer ? "viewer" : "operator",
+  );
+
   return (
     <div className="flex flex-col gap-3 md:gap-4">
       <SectionLabel>Ações</SectionLabel>
       <div className="flex flex-col gap-3 md:grid md:grid-cols-3 md:gap-4">
-        {HOME_ENTRY_POINTS.map((entryPoint) => {
+        {entryPoints.map((entryPoint) => {
           const Icon = entryPoint.icon;
           return (
             <Link key={entryPoint.href} href={entryPoint.href}>

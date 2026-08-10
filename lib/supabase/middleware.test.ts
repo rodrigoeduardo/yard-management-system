@@ -96,6 +96,91 @@ describe("updateSession for an authenticated user", () => {
   });
 });
 
+describe("updateSession for a viewer session", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({
+            data: {
+              user: {
+                id: "viewer-user",
+                user_metadata: { app_role: "viewer" },
+              },
+            },
+          }),
+        },
+      }),
+    }));
+  });
+
+  it("redirects /loads/new to /inventory with a notice", async () => {
+    const { updateSession: updateSessionAsViewer } = await import(
+      "./middleware"
+    );
+    const request = new NextRequest("https://example.test/loads/new");
+
+    const response = await updateSessionAsViewer(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.test/inventory?notice=viewer-restricted",
+    );
+  });
+
+  it("redirects /removals/new to /inventory with a notice", async () => {
+    const { updateSession: updateSessionAsViewer } = await import(
+      "./middleware"
+    );
+    const request = new NextRequest("https://example.test/removals/new");
+
+    const response = await updateSessionAsViewer(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.test/inventory?notice=viewer-restricted",
+    );
+  });
+
+  it("does not redirect a viewer away from read routes", async () => {
+    const { updateSession: updateSessionAsViewer } = await import(
+      "./middleware"
+    );
+    const request = new NextRequest("https://example.test/inventory");
+
+    const response = await updateSessionAsViewer(request);
+
+    expect(response.status).not.toBe(307);
+  });
+});
+
+describe("updateSession for an operator session and a write route", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.doMock("@supabase/ssr", () => ({
+      createServerClient: () => ({
+        auth: {
+          getUser: async () => ({
+            data: { user: { id: "operator-user", user_metadata: {} } },
+          }),
+        },
+      }),
+    }));
+  });
+
+  it("does not redirect an operator away from /loads/new", async () => {
+    const { updateSession: updateSessionAsOperator } = await import(
+      "./middleware"
+    );
+    const request = new NextRequest("https://example.test/loads/new");
+
+    const response = await updateSessionAsOperator(request);
+
+    expect(response.status).not.toBe(307);
+  });
+});
+
 describe("updateSession in DEMO_MODE", () => {
   const ORIGINAL_ENV = { ...process.env };
 

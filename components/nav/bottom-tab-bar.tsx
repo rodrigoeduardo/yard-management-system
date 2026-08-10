@@ -7,7 +7,7 @@ import type { ComponentType } from "react";
 
 import { cn } from "@/lib/utils";
 import { LinkLoaderReporter } from "@/components/ui/top-loader";
-import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
+import { APP_NAV_ITEMS, filterNavItemsForRole, isNavItemActive } from "@/lib/nav/nav-items";
 
 const ICONS: Record<string, ComponentType<{ className?: string; strokeWidth?: number }>> = {
   "/": Home,
@@ -20,16 +20,26 @@ const ICONS: Record<string, ComponentType<{ className?: string; strokeWidth?: nu
 /**
  * Fixed bottom tab bar for mobile. Hidden at `md:` and up, where the
  * top-nav takes over.
+ *
+ * `isViewer` (issue #314) is a boolean computed server-side from the
+ * session's role and passed down — drops the write-only Entrada/Saída tabs.
  */
-export function BottomTabBar() {
+export function BottomTabBar({ isViewer = false }: { isViewer?: boolean }) {
   const pathname = usePathname();
+  const items = filterNavItemsForRole(
+    APP_NAV_ITEMS,
+    isViewer ? "viewer" : "operator",
+  );
 
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/[0.94] px-2.5 pt-2 pb-[22px] backdrop-blur md:hidden print:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 grid border-t border-border bg-card/[0.94] px-2.5 pt-2 pb-[22px] backdrop-blur md:hidden print:hidden",
+        items.length === 5 ? "grid-cols-5" : "grid-cols-3",
+      )}
     >
-      {APP_NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const Icon = ICONS[item.href];
         const active = isNavItemActive(pathname, item);
 
