@@ -5,6 +5,7 @@ import { DashboardStats } from "@/components/home/dashboard-stats";
 import { GreetingHeader } from "@/components/home/greeting-header";
 import { LastMovementCard } from "@/components/home/last-movement-card";
 import { MobileHomeHeader } from "@/components/home/mobile-header";
+import { getCurrentUserRole } from "@/lib/auth/current-role";
 import { getUserDisplayName } from "@/lib/auth/user-display-name";
 import { getUserInitials } from "@/lib/auth/user-initials";
 import { getDashboardStats, getLastLoad, getLastRemoval } from "@/lib/db/dashboard";
@@ -23,11 +24,13 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [stats, lastRemoval, lastLoad] = await Promise.all([
+  const [stats, lastRemoval, lastLoad, role] = await Promise.all([
     getDashboardStats(),
     getLastRemoval(),
     getLastLoad(),
+    getCurrentUserRole(),
   ]);
+  const isViewer = role === "viewer";
 
   const now = new Date();
   const greeting = getGreeting(now);
@@ -51,7 +54,7 @@ export default async function Home() {
         remainingWeight={stats.remainingWeight}
       />
 
-      <ActionCards />
+      <ActionCards isViewer={isViewer} />
 
       <LastMovementCard
         removal={
