@@ -1,12 +1,23 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LoadDetailModal } from "./load-detail-modal";
 import type { StockRow } from "./stock-table";
 
 const fetchLoadItems = vi.fn();
+const updateItemWeightAction = vi.fn();
+const refresh = vi.fn();
 
 vi.mock("@/lib/actions/load-items", () => ({
   fetchLoadItems: (loadId: string) => fetchLoadItems(loadId),
+}));
+
+vi.mock("@/lib/actions/item-weight", () => ({
+  updateItemWeightAction: (input: { itemId: string; weight: number }) =>
+    updateItemWeightAction(input),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh }),
 }));
 
 const LOAD: StockRow = {
@@ -141,5 +152,101 @@ describe("LoadDetailModal", () => {
     const heading = screen.getByRole("heading", { name: "Carga NF-001" });
     const dialogContent = heading.closest('[class*="rounded-[20px]"]');
     expect(dialogContent?.className).toContain("sm:max-w-[600px]");
+  });
+
+  it("hides weight edits while disabled and for removed items", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
+        { id: "item-2", identifier: "Item 2 - NF-001", weight: "30", status: "removed" },
+      ],
+    });
+
+    const { rerender } = render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} />,
+    );
+
+    await screen.findByText("Item 1 — Sucata");
+    expect(screen.queryByRole("button", { name: "Editar peso" })).not.toBeInTheDocument();
+
+    rerender(
+      <LoadDetailModal
+        load={LOAD}
+        open
+        onOpenChange={() => {}}
+        itemWeightEditEnabled
+      />,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Editar peso" })).toHaveLength(1);
+  });
+
+  it("shows a PT-BR error and avoids the action for invalid weight input", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
+      ],
+    });
+
+    render(
+      <LoadDetailModal
+        load={LOAD}
+        open
+        onOpenChange={() => {}}
+        itemWeightEditEnabled
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Editar peso" }));
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "abc" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar peso" }));
+
+    expect(updateItemWeightAction).not.toHaveBeenCalled();
+    expect(screen.getByText("Informe um peso maior que zero.")).toBeInTheDocument();
+  });
+
+  it("refreshes the modal data and inventory after a successful weight edit", async () => {
+    fetchLoadItems
+      .mockResolvedValueOnce({
+        success: true,
+        items: [
+          { id: "item-1", identifier: "Item 1 - NF-001", weight: "2", status: "in_stock" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        items: [
+          { id: "item-1", identifier: "Item 1 - NF-001", weight: "2.35", status: "in_stock" },
+        ],
+      });
+    updateItemWeightAction.mockResolvedValue({ success: true, item: {} });
+
+    render(
+      <LoadDetailModal
+        load={LOAD}
+        open
+        onOpenChange={() => {}}
+        itemWeightEditEnabled
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Editar peso" }));
+    fireEvent.change(screen.getByLabelText("Peso do item 1"), {
+      target: { value: "2.35" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar peso" }));
+
+    await waitFor(() => {
+      expect(updateItemWeightAction).toHaveBeenCalledWith({
+        itemId: "item-1",
+        weight: 2.35,
+      });
+    });
+    await waitFor(() => expect(screen.getByText("2.35 Ton")).toBeInTheDocument());
+    expect(refresh).toHaveBeenCalled();
   });
 });

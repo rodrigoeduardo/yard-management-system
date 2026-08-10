@@ -22,10 +22,12 @@ export function StockSection({
   rows,
   total,
   query,
+  itemWeightEditEnabled = false,
 }: {
   rows: StockRow[];
   total: number;
   query: StockQueryState;
+  itemWeightEditEnabled?: boolean;
 }) {
   const [selected, setSelected] = useState<StockRow | null>(null);
   const [open, setOpen] = useState(false);
@@ -118,7 +120,12 @@ export function StockSection({
         onPageChange={(page) => navigateStock({ page })}
       />
 
-      <LoadDetailModal load={selected} open={open} onOpenChange={setOpen} />
+      <LoadDetailModal
+        load={selected}
+        open={open}
+        onOpenChange={setOpen}
+        itemWeightEditEnabled={itemWeightEditEnabled}
+      />
     </>
   );
 }
