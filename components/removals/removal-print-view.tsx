@@ -28,6 +28,17 @@ export function RemovalPrintView({
 
   return (
     <div className="flex flex-col gap-6">
+      {summary.cancelledAt ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-[14px] border-2 border-destructive px-[18px] py-3 text-destructive">
+          <span className="text-[15px] font-bold tracking-[0.04em]">
+            REMOÇÃO CANCELADA
+          </span>
+          <span className="font-mono text-[13.5px]">
+            em {summary.cancelledAt}
+          </span>
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-3.5 print:hidden">
         <div className="flex flex-1 flex-col gap-1">
           <h1 className="text-[22px] font-bold text-foreground">

@@ -20,23 +20,34 @@ export type RemovalReceiptSummary = {
   driver: string;
   vehiclePlate: string;
   totalRemovedWeight: string;
+  /** Issue #311: formatted cancellation date/time, or null for an active removal. */
+  cancelledAt: string | null;
 };
 
 /**
  * Formats a removal's header fields for the printable receipt
  * (business-rules.md#load-removal). A legacy removal recorded before the
  * vehicle plate was required renders an em dash instead of a blank field.
+ *
+ * `cancelledAt` (issue #311, `FEATURE_REMOVAL_CANCEL` from #310) flows
+ * through as a formatted timestamp so `RemovalPrintView` can render the
+ * "REMOÇÃO CANCELADA" marking; it stays null for an active removal, which
+ * keeps the receipt unchanged.
  */
 export function formatRemovalReceiptSummary(removal: {
   exitDate: Date;
   driver: string;
   vehiclePlate: string | null;
   totalRemovedWeight: string;
+  cancelledAt: Date | null;
 }): RemovalReceiptSummary {
   return {
     exitDate: formatEntryDateTime(removal.exitDate),
     driver: removal.driver,
     vehiclePlate: removal.vehiclePlate ?? "—",
     totalRemovedWeight: formatWeight(removal.totalRemovedWeight),
+    cancelledAt: removal.cancelledAt
+      ? formatEntryDateTime(removal.cancelledAt)
+      : null,
   };
 }
