@@ -11,6 +11,7 @@ import { inventoryQueryString } from "@/lib/inventory/print";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
+import { isItemWeightEditEnabled } from "@/lib/inventory/feature-flags";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
 import { isRemovalCancelEnabled } from "@/lib/removals/feature-flags";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
@@ -102,6 +103,7 @@ export default async function InventoryPage({
         removalTotal={removalPage.total}
         removalQuery={removalQuery}
         removalCancelEnabled={isRemovalCancelEnabled() && !isViewer}
+        itemWeightEditEnabled={isItemWeightEditEnabled() && !isViewer}
       />
     </main>
   );

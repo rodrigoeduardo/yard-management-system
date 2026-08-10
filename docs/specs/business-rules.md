@@ -31,6 +31,11 @@
 - On completion, generate one QR code per item containing: an identifier (e.g. "Item 1 - <NF>"), the material, the item's weight, and its Corrida (when present).
 - QR codes are printed one per label, sized for the Elgin L42 Pro Full label printer (100×50 mm labels) — not laid out in a batch on a single page. The label shows identifier, material, weight, then Corrida (when present), in that order.
 
+## Corrections (`inventory-view`)
+
+- With `FEATURE_ITEM_WEIGHT_EDIT` enabled, an operator may correct only an in-stock item's weight. The load's Remaining Weight is recomputed as the exact sum of its in-stock item weights; Item Count does not change.
+- Removed items and every removal's recorded total remain immutable. A correction does not issue a new QR token, identifier, or label; existing printed labels remain stale, and a later reprint uses the corrected weight.
+
 ## Load Removal (`load-removal`)
 
 - A removal action starts with manual input of **Exit Date**, **Driver**, and **Vehicle Plate** ("Placa do veículo") — fixed for every item removed in that action. Vehicle Plate is required.

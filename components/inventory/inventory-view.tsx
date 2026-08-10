@@ -37,6 +37,7 @@ export function InventoryView({
   removalTotal,
   removalQuery,
   removalCancelEnabled = false,
+  itemWeightEditEnabled = false,
 }: {
   stockRows: StockRow[];
   stockTotal: number;
@@ -45,6 +46,7 @@ export function InventoryView({
   removalTotal: number;
   removalQuery: RemovalQueryState;
   removalCancelEnabled?: boolean;
+  itemWeightEditEnabled?: boolean;
 }) {
   const [segment, setSegment] = useState<Segment>("current");
 
@@ -70,7 +72,12 @@ export function InventoryView({
             {stockStatusLabel(stockQuery)}
           </span>
         </div>
-        <StockSection rows={stockRows} total={stockTotal} query={stockQuery} />
+        <StockSection
+          rows={stockRows}
+          total={stockTotal}
+          query={stockQuery}
+          itemWeightEditEnabled={itemWeightEditEnabled}
+        />
       </div>
 
       <div
