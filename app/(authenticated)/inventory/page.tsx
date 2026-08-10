@@ -1,6 +1,7 @@
 import { InventoryView } from "@/components/inventory/inventory-view";
 import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
 import type { StockRow } from "@/components/inventory/stock-table";
+import { getCurrentUserRole } from "@/lib/auth/current-role";
 import { listStockPage } from "@/lib/db/loads";
 import { listRemovalNfs, listRemovalsPage } from "@/lib/db/removal-log";
 import { formatCalendarDate, formatEntryDateTime } from "@/lib/format/datetime";
@@ -20,8 +21,14 @@ export default async function InventoryPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedSearchParams = await searchParams;
+  const showViewerRestrictedNotice =
+    resolvedSearchParams.notice === "viewer-restricted";
   const stockQuery = parseStockSearchParams(resolvedSearchParams);
-  const stockPage = await listStockPage(stockQuery);
+  const [stockPage, role] = await Promise.all([
+    listStockPage(stockQuery),
+    getCurrentUserRole(),
+  ]);
+  const isViewer = role === "viewer";
 
   const stockRows: StockRow[] = stockPage.rows.map((load) => ({
     id: load.id,
@@ -63,6 +70,14 @@ export default async function InventoryPage({
       )}
     >
       <h1 className="text-2xl font-semibold">Estoque</h1>
+      {showViewerRestrictedNotice && (
+        <p
+          role="status"
+          className="rounded-[12px] border border-border bg-accent px-4 py-3 text-sm font-medium text-accent-foreground"
+        >
+          Contas de visualização não podem cadastrar entradas ou saídas.
+        </p>
+      )}
       <InventoryView
         stockRows={stockRows}
         stockTotal={stockPage.total}
@@ -70,7 +85,7 @@ export default async function InventoryPage({
         removalRows={removalRows}
         removalTotal={removalPage.total}
         removalQuery={removalQuery}
-        removalCancelEnabled={isRemovalCancelEnabled()}
+        removalCancelEnabled={isRemovalCancelEnabled() && !isViewer}
       />
     </main>
   );
