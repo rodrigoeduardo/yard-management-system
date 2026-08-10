@@ -12,6 +12,7 @@ const stockRows: InventoryPrintStockRow[] = [
     material: "Aço",
     itemCount: 4,
     remainingWeight: "8.5",
+    finished: false,
   },
 ];
 
@@ -100,6 +101,22 @@ describe("InventoryPrintView", () => {
     );
 
     expect(screen.getByText(/cancelada/i)).toBeInTheDocument();
+  });
+
+  it("marks a finished load's stock row", () => {
+    render(
+      <InventoryPrintView
+        generatedAt="09/08/2026 · 15:00"
+        backHref="/inventory"
+        stockRows={[{ ...stockRows[0], itemCount: 0, remainingWeight: "0", finished: true }]}
+        stockTotal={1}
+        removalRows={[]}
+        removalTotal={0}
+        cap={500}
+      />,
+    );
+
+    expect(screen.getByText(/finalizad/i)).toBeInTheDocument();
   });
 
   it("shows no truncation note when the total is within the cap", () => {

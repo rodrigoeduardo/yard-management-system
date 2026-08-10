@@ -11,6 +11,7 @@ export type InventoryPrintStockRow = {
   material: string;
   itemCount: number;
   remainingWeight: string;
+  finished: boolean;
 };
 
 export type InventoryPrintRemovalRow = {
@@ -106,6 +107,11 @@ export function InventoryPrintView({
                   <tr key={row.id} className="print:break-inside-avoid">
                     <td className={`${CELL_CLASS} font-mono font-bold`}>
                       {row.notaFiscal}
+                      {row.finished ? (
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.04em] text-destructive">
+                          Finalizado
+                        </span>
+                      ) : null}
                     </td>
                     <td className={`${CELL_CLASS} font-mono`}>
                       {row.entryDate}

@@ -14,6 +14,7 @@ import {
   inventoryQueryString,
 } from "@/lib/inventory/print";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
+import { isLoadFinished } from "@/lib/inventory/stock";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
 
@@ -65,6 +66,7 @@ export default async function InventoryPrintPage({
     material: load.material,
     itemCount: load.itemCount,
     remainingWeight: load.remainingWeight,
+    finished: isLoadFinished(load),
   }));
 
   const removalRows: InventoryPrintRemovalRow[] = removalPage.rows.map(
