@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { InventoryView } from "@/components/inventory/inventory-view";
 import type { RemovalLogRow } from "@/components/inventory/removal-log-table";
 import type { StockRow } from "@/components/inventory/stock-table";
+import { buttonVariants } from "@/components/ui/button";
 import { listStockPage } from "@/lib/db/loads";
 import { listRemovalNfs, listRemovalsPage } from "@/lib/db/removal-log";
 import { formatCalendarDate, formatEntryDateTime } from "@/lib/format/datetime";
+import { inventoryQueryString } from "@/lib/inventory/print";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
@@ -41,6 +44,8 @@ export default async function InventoryPage({
   const removalQuery = parseRemovalSearchParams(resolvedSearchParams);
   const removalPage = await listRemovalsPage(removalQuery);
 
+  const printHref = `/inventory/print${inventoryQueryString(resolvedSearchParams)}`;
+
   const nfRows = await listRemovalNfs(removalPage.rows.map((r) => r.id));
   const nfsByRemoval = groupNfsByRemoval(nfRows);
 
@@ -62,7 +67,18 @@ export default async function InventoryPage({
         PAGE_CONTAINER_DESKTOP_CLASS,
       )}
     >
-      <h1 className="text-2xl font-semibold">Estoque</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Estoque</h1>
+        <Link
+          href={printHref}
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "print:hidden",
+          )}
+        >
+          Imprimir visão geral
+        </Link>
+      </div>
       <InventoryView
         stockRows={stockRows}
         stockTotal={stockPage.total}
