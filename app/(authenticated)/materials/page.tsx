@@ -1,4 +1,5 @@
 import { MaterialsView } from "@/components/materials/materials-view";
+import { getCurrentUserRole } from "@/lib/auth/current-role";
 import { getMaterialsWithInStockCounts } from "@/lib/db/materials";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
@@ -6,7 +7,10 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function MaterialsPage() {
-  const materials = await getMaterialsWithInStockCounts();
+  const [materials, role] = await Promise.all([
+    getMaterialsWithInStockCounts(),
+    getCurrentUserRole(),
+  ]);
 
   return (
     <main
@@ -16,7 +20,7 @@ export default async function MaterialsPage() {
       )}
     >
       <h1 className="text-2xl font-semibold">Materiais</h1>
-      <MaterialsView materials={materials} />
+      <MaterialsView materials={materials} isViewer={role === "viewer"} />
     </main>
   );
 }
