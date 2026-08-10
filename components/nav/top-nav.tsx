@@ -7,21 +7,35 @@ import { logout } from "@/app/login/actions";
 import { BrandLogo } from "@/components/nav/brand-logo";
 import { Button } from "@/components/ui/button";
 import { LinkLoaderReporter } from "@/components/ui/top-loader";
-import { APP_NAV_ITEMS, isNavItemActive } from "@/lib/nav/nav-items";
+import { APP_NAV_ITEMS, filterNavItemsForRole, isNavItemActive } from "@/lib/nav/nav-items";
 import { cn } from "@/lib/utils";
 
 /**
  * Desktop top-nav: logo, horizontal links, avatar initials, and the Sair
  * button. Hidden below `md:`, where the bottom tab bar takes over.
+ *
+ * `isViewer` (issue #314) is a boolean computed server-side from the
+ * session's role and passed down — this component never reads the session
+ * or `process.env` itself. It drops the write-only Entrada/Saída links.
  */
-export function TopNav({ initials }: { initials: string }) {
+export function TopNav({
+  initials,
+  isViewer = false,
+}: {
+  initials: string;
+  isViewer?: boolean;
+}) {
   const pathname = usePathname();
+  const items = filterNavItemsForRole(
+    APP_NAV_ITEMS,
+    isViewer ? "viewer" : "operator",
+  );
 
   return (
     <header className="hidden h-[60px] items-center gap-[26px] border-b border-border bg-card px-8 md:flex print:hidden">
       <BrandLogo />
       <nav className="flex items-center gap-1.5">
-        {APP_NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const active = isNavItemActive(pathname, item);
           return (
             <Link

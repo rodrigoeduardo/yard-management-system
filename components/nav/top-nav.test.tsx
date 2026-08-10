@@ -75,4 +75,23 @@ describe("TopNav", () => {
 
     expect(screen.getByRole("banner").className).toMatch(/\bprint:hidden\b/);
   });
+
+  it("hides Entrada and Saída for a viewer session, keeping other links (issue #314)", () => {
+    usePathname.mockReturnValue("/");
+    render(<TopNav initials="RS" isViewer />);
+
+    expect(screen.queryByRole("link", { name: "Entrada" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Saída" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Início" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Estoque" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Materiais" })).toBeInTheDocument();
+  });
+
+  it("shows every link for an operator session by default", () => {
+    usePathname.mockReturnValue("/");
+    render(<TopNav initials="RS" />);
+
+    expect(screen.getByRole("link", { name: "Entrada" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Saída" })).toBeInTheDocument();
+  });
 });

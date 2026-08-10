@@ -26,4 +26,9 @@ describe("authenticated layout nav shell", () => {
     expect(mainBlockMatch).not.toBeNull();
     expect(mainBlockMatch![0]).toMatch(/\bprint:pb-0\b/);
   });
+
+  it("resolves the session's role and passes isViewer down to Header (issue #314)", () => {
+    expect(source).toMatch(/getCurrentUserRole/);
+    expect(source).toMatch(/<Header[\s\S]*?isViewer=/);
+  });
 });

@@ -13,4 +13,11 @@ describe("Header", () => {
     expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
     expect(screen.getByRole("banner")).toBeInTheDocument();
   });
+
+  it("hides Entrada/Saída in both nav surfaces for a viewer session (issue #314)", () => {
+    render(<Header initials="RS" isViewer />);
+
+    expect(screen.queryByRole("link", { name: "Entrada" })).not.toBeInTheDocument();
+    expect(screen.queryAllByText("Saída")).toHaveLength(0);
+  });
 });
