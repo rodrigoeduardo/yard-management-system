@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveAppRole } from "@/lib/auth/current-role";
+import { isViewerRestrictedPath } from "@/lib/auth/viewer-restricted-routes";
 
 const PUBLIC_PATHS = ["/login", "/register"];
 
@@ -96,6 +98,19 @@ export async function updateSession(
 
   if (user && isPublic) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Issue #314: a viewer requesting a write-only route by hand (deep link,
+  // typed URL) never reaches the route — same defence-in-depth spirit as the
+  // guard in lib/actions/guard.ts, but for rendering instead of writes.
+  if (
+    user &&
+    resolveAppRole(user) === "viewer" &&
+    isViewerRestrictedPath(request.nextUrl.pathname)
+  ) {
+    const redirectUrl = new URL("/inventory", request.url);
+    redirectUrl.searchParams.set("notice", "viewer-restricted");
+    return NextResponse.redirect(redirectUrl);
   }
 
   return response;
