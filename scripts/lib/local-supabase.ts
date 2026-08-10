@@ -23,6 +23,12 @@ export const LOCAL_REGISTER_INVITE_CODE = "LOCAL-INTEGRATION-TEST";
 export const LOCAL_VIEWER_INVITE_CODE = "LOCAL-INTEGRATION-TEST-VIEWER";
 export const LOCAL_DEMO_USER_EMAIL = "demo-integration-test@yard.local";
 export const LOCAL_DEMO_USER_PASSWORD = "demo-integration-test-password";
+// A pre-registered viewer account (`user_metadata.app_role: "viewer"`) for
+// integration tests that need a real viewer session — e.g.
+// `lib/db/audit-context.test.ts` proving the database-level role switch
+// (issue #315). Seeded alongside the other fixed local test users.
+export const LOCAL_VIEWER_USER_EMAIL = "viewer-integration-test@yard.local";
+export const LOCAL_VIEWER_USER_PASSWORD = "viewer-integration-test-password";
 
 /**
  * The Supabase CLI reports the publishable key under different field names
@@ -69,6 +75,8 @@ export function buildTestEnvFileContents(status: LocalSupabaseStatus): string {
     `VIEWER_INVITE_CODE=${LOCAL_VIEWER_INVITE_CODE}`,
     `DEMO_USER_EMAIL=${LOCAL_DEMO_USER_EMAIL}`,
     `DEMO_USER_PASSWORD=${LOCAL_DEMO_USER_PASSWORD}`,
+    `VIEWER_USER_EMAIL=${LOCAL_VIEWER_USER_EMAIL}`,
+    `VIEWER_USER_PASSWORD=${LOCAL_VIEWER_USER_PASSWORD}`,
     "",
   ].join("\n");
 }

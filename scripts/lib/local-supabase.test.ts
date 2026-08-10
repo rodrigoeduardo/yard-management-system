@@ -7,6 +7,8 @@ import {
   LOCAL_TEST_USER_EMAIL,
   LOCAL_TEST_USER_PASSWORD,
   LOCAL_VIEWER_INVITE_CODE,
+  LOCAL_VIEWER_USER_EMAIL,
+  LOCAL_VIEWER_USER_PASSWORD,
   pickPublishableKey,
   pickServiceKey,
   type LocalSupabaseStatus,
@@ -87,5 +89,9 @@ describe("buildTestEnvFileContents", () => {
     );
     expect(contents).toContain(`DEMO_USER_EMAIL=${LOCAL_DEMO_USER_EMAIL}`);
     expect(contents).toContain(`DEMO_USER_PASSWORD=${LOCAL_DEMO_USER_PASSWORD}`);
+    expect(contents).toContain(`VIEWER_USER_EMAIL=${LOCAL_VIEWER_USER_EMAIL}`);
+    expect(contents).toContain(
+      `VIEWER_USER_PASSWORD=${LOCAL_VIEWER_USER_PASSWORD}`,
+    );
   });
 });

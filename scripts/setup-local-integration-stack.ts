@@ -6,7 +6,7 @@
  *   1. Starts the local stack (`supabase start`) if it isn't already up.
  *   2. Applies Drizzle migrations against it.
  *   3. Seeds (creates or resets) fixed local test auth users — the regular
- *      test user and the DEMO_MODE seeded demo user.
+ *      test user, the DEMO_MODE seeded demo user, and a viewer-role user.
  *   4. Writes `.env.test.local` (gitignored) with the connection details,
  *      which `vitest.setup.integration.ts` loads for the `integration`
  *      vitest project.
@@ -24,6 +24,8 @@ import {
   LOCAL_DEMO_USER_PASSWORD,
   LOCAL_TEST_USER_EMAIL,
   LOCAL_TEST_USER_PASSWORD,
+  LOCAL_VIEWER_USER_EMAIL,
+  LOCAL_VIEWER_USER_PASSWORD,
   pickServiceKey,
   type LocalSupabaseStatus,
 } from "./lib/local-supabase";
@@ -58,6 +60,7 @@ async function seedUser(
   admin: SupabaseClient,
   email: string,
   password: string,
+  userMetadata?: Record<string, string>,
 ): Promise<void> {
   const { data: existing, error: listError } = await admin.auth.admin.listUsers();
   if (listError) {
@@ -69,6 +72,7 @@ async function seedUser(
     const { error } = await admin.auth.admin.updateUserById(found.id, {
       password,
       email_confirm: true,
+      ...(userMetadata ? { user_metadata: userMetadata } : {}),
     });
     if (error) {
       throw new Error(`Failed to reset local user ${email}: ${error.message}`);
@@ -80,6 +84,7 @@ async function seedUser(
     email,
     password,
     email_confirm: true,
+    ...(userMetadata ? { user_metadata: userMetadata } : {}),
   });
   if (error) {
     throw new Error(`Failed to create local user ${email}: ${error.message}`);
@@ -90,6 +95,12 @@ async function seedTestUsers(apiUrl: string, serviceKey: string): Promise<void> 
   const admin = createClient(apiUrl, serviceKey);
   await seedUser(admin, LOCAL_TEST_USER_EMAIL, LOCAL_TEST_USER_PASSWORD);
   await seedUser(admin, LOCAL_DEMO_USER_EMAIL, LOCAL_DEMO_USER_PASSWORD);
+  // app_role: "viewer" — matches what `app/register/actions.ts` sets on
+  // sign-up via the viewer invite code, so a real viewer session is
+  // available to integration tests (e.g. `lib/db/audit-context.test.ts`).
+  await seedUser(admin, LOCAL_VIEWER_USER_EMAIL, LOCAL_VIEWER_USER_PASSWORD, {
+    app_role: "viewer",
+  });
 }
 
 async function main(): Promise<void> {
