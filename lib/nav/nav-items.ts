@@ -1,3 +1,6 @@
+import type { AppRole } from "@/lib/auth/current-role";
+import { isViewerRestrictedPath } from "@/lib/auth/viewer-restricted-routes";
+
 export interface AppNavItem {
   href: string;
   /** Short label used in the mobile bottom tab bar. */
@@ -36,4 +39,16 @@ export function isNavItemActive(pathname: string, item: AppNavItem): boolean {
     return pathname === "/";
   }
   return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`);
+}
+
+/**
+ * Filters out the write-only nav entries (Entrada, Saída) for a viewer
+ * session (issue #314). Operators see every entry unchanged.
+ */
+export function filterNavItemsForRole(
+  items: AppNavItem[],
+  role: AppRole,
+): AppNavItem[] {
+  if (role !== "viewer") return items;
+  return items.filter((item) => !isViewerRestrictedPath(item.href));
 }

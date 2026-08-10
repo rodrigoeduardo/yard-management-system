@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { APP_NAV_ITEMS, isNavItemActive } from "./nav-items";
+import { APP_NAV_ITEMS, filterNavItemsForRole, isNavItemActive } from "./nav-items";
 
 describe("APP_NAV_ITEMS", () => {
   it("has exactly five items, in Início / Entrada / Saída / Estoque / Materiais order", () => {
@@ -67,5 +67,23 @@ describe("isNavItemActive", () => {
 
   it("does not mark Materiais active on unrelated routes", () => {
     expect(isNavItemActive("/inventory", materialsItem)).toBe(false);
+  });
+});
+
+describe("filterNavItemsForRole", () => {
+  it("drops Entrada and Saída for a viewer", () => {
+    const filtered = filterNavItemsForRole(APP_NAV_ITEMS, "viewer");
+
+    expect(filtered.map((item) => item.mobileLabel)).toEqual([
+      "Início",
+      "Estoque",
+      "Materiais",
+    ]);
+  });
+
+  it("keeps every item for an operator", () => {
+    const filtered = filterNavItemsForRole(APP_NAV_ITEMS, "operator");
+
+    expect(filtered).toEqual(APP_NAV_ITEMS);
   });
 });
