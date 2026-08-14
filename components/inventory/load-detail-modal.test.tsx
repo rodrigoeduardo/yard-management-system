@@ -86,6 +86,7 @@ describe("LoadDetailModal", () => {
         {
           id: "item-1",
           identifier: "Item 1 - NF-001",
+          number: 1,
           weight: "50",
           status: "in_stock",
         },
@@ -99,12 +100,12 @@ describe("LoadDetailModal", () => {
     });
   });
 
-  it("labels each item row 'Item {n} — {material}', indexed by position", async () => {
+  it("labels each item row 'Item {n} — {material}' using the item's persisted number", async () => {
     fetchLoadItems.mockResolvedValue({
       success: true,
       items: [
-        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
-        { id: "item-2", identifier: "Item 2 - NF-001", weight: "30", status: "removed" },
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
+        { id: "item-2", identifier: "Item 2 - NF-001", number: 2, weight: "30", status: "removed" },
       ],
     });
 
@@ -116,12 +117,30 @@ describe("LoadDetailModal", () => {
     expect(screen.getByText("Item 2 — Sucata")).toBeInTheDocument();
   });
 
+  it("renders each item's persisted number, not its position in the array", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 5 - NF-001", number: 5, weight: "50", status: "in_stock" },
+        { id: "item-2", identifier: "Item 2 - NF-001", number: 2, weight: "30", status: "in_stock" },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Item 5 — Sucata")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Item 2 — Sucata")).toBeInTheDocument();
+    expect(screen.queryByText("Item 1 — Sucata")).not.toBeInTheDocument();
+  });
+
   it("colors 'Em estoque' status green and 'Removido' status red", async () => {
     fetchLoadItems.mockResolvedValue({
       success: true,
       items: [
-        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
-        { id: "item-2", identifier: "Item 2 - NF-001", weight: "30", status: "removed" },
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
+        { id: "item-2", identifier: "Item 2 - NF-001", number: 2, weight: "30", status: "removed" },
       ],
     });
 
@@ -158,8 +177,8 @@ describe("LoadDetailModal", () => {
     fetchLoadItems.mockResolvedValue({
       success: true,
       items: [
-        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
-        { id: "item-2", identifier: "Item 2 - NF-001", weight: "30", status: "removed" },
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
+        { id: "item-2", identifier: "Item 2 - NF-001", number: 2, weight: "30", status: "removed" },
       ],
     });
 
@@ -186,7 +205,7 @@ describe("LoadDetailModal", () => {
     fetchLoadItems.mockResolvedValue({
       success: true,
       items: [
-        { id: "item-1", identifier: "Item 1 - NF-001", weight: "50", status: "in_stock" },
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
       ],
     });
 
@@ -214,13 +233,13 @@ describe("LoadDetailModal", () => {
       .mockResolvedValueOnce({
         success: true,
         items: [
-          { id: "item-1", identifier: "Item 1 - NF-001", weight: "2", status: "in_stock" },
+          { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "2", status: "in_stock" },
         ],
       })
       .mockResolvedValueOnce({
         success: true,
         items: [
-          { id: "item-1", identifier: "Item 1 - NF-001", weight: "2.35", status: "in_stock" },
+          { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "2.35", status: "in_stock" },
         ],
       });
     updateItemWeightAction.mockResolvedValue({ success: true, item: {} });

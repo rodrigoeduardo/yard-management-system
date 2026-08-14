@@ -174,11 +174,11 @@ export function LoadDetailModal({
                 </p>
               ) : (
                 <ul className="divide-y divide-border">
-                  {items.map((item, index) => (
+                  {items.map((item) => (
                     <li key={item.id} className="px-[18px] py-3.5 text-[13.5px]">
                       <div className="grid grid-cols-[1fr_110px_110px] items-center gap-2.5">
                       <span className="font-semibold">
-                        Item {index + 1} — {load.material}
+                        Item {item.number} — {load.material}
                       </span>
                       <span className="text-right font-mono">
                         {formatWeight(item.weight)}
@@ -198,7 +198,7 @@ export function LoadDetailModal({
                         editingItemId === item.id ? (
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             <label className="sr-only" htmlFor={`item-weight-${item.id}`}>
-                              Peso do item {index + 1}
+                              Peso do item {item.number}
                             </label>
                             <input
                               id={`item-weight-${item.id}`}

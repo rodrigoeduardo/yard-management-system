@@ -5,6 +5,7 @@ import { items, loads } from "./schema";
 export type LoadItemDetail = {
   id: string;
   identifier: string;
+  number: number;
   weight: string;
   status: "in_stock" | "removed";
 };
@@ -29,6 +30,7 @@ export async function getLoadItems(loadId: string): Promise<LoadItemDetail[]> {
   return loadItems.map((item) => ({
     id: item.id,
     identifier: `Item ${item.number} - ${load.notaFiscal}`,
+    number: item.number,
     weight: item.weight,
     status: item.status,
   }));
