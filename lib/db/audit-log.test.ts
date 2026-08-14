@@ -108,7 +108,7 @@ describe("audit_log triggers", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10" })
+      .values({ loadId: load.id, weight: "10", number: 1 })
       .returning();
     createdItemIds.push(item.id);
 

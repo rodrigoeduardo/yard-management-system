@@ -92,9 +92,18 @@ export const items = pgTable(
     // same `now()` timestamp, so queries that need insertion order (e.g.
     // numbering an item within its load) order by this column instead.
     sequence: bigserial("sequence", { mode: "number" }).notNull().unique(),
+    // The number printed on the item's physical label ("Item <number> -
+    // <NF>"), assigned 1..N in intake form order (#336). Immutable for the
+    // life of the item — removals, cancellations and weight corrections
+    // never change it. Backfilled from `sequence` for pre-existing rows
+    // (drizzle/0018), which is the best available evidence of original
+    // insertion order but does not retro-restore labels printed before
+    // `sequence` existed (drizzle/0006) — see that migration's notes.
+    number: integer("number").notNull(),
   },
   (table) => [
     check("items_status_check", sql`${table.status} in ('in_stock', 'removed')`),
+    uniqueIndex("items_load_id_number_idx").on(table.loadId, table.number),
   ],
 );
 

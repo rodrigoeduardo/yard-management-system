@@ -26,7 +26,13 @@ async function insertLoadWithItems(
 
   const insertedItems = await db
     .insert(items)
-    .values(itemWeights.map((weight) => ({ loadId: load.id, weight })))
+    .values(
+      itemWeights.map((weight, index) => ({
+        loadId: load.id,
+        weight,
+        number: index + 1,
+      })),
+    )
     .returning();
 
   return { load, items: insertedItems, notaFiscal };
@@ -156,6 +162,34 @@ describe("getRemovalItems", () => {
     const result = await getRemovalItems(randomUUID());
 
     expect(result).toEqual([]);
+  });
+
+  it("reads the persisted number directly rather than recounting the load's items", async () => {
+    // Only one item remains in the load (as if the other two of a
+    // three-item load were already removed and the surviving item is the
+    // third one numbered at intake) — a stale counter-based implementation
+    // would mislabel it "Item 1" instead of "Item 3".
+    const load = await insertLoadWithItems(["30"]);
+    loadIds.push(load.load.id);
+    await db
+      .update(items)
+      .set({ number: 3 })
+      .where(eq(items.id, load.items[0].id));
+
+    const removal = await insertRemoval([load.items[0].id]);
+    removalIds.push(removal.id);
+
+    const result = await getRemovalItems(removal.id);
+
+    expect(result).toEqual([
+      {
+        id: load.items[0].id,
+        identifier: `Item 3 - ${load.notaFiscal}`,
+        weight: "30",
+        notaFiscal: load.notaFiscal,
+        material: "Aço",
+      },
+    ]);
   });
 });
 

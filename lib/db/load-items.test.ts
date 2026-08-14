@@ -35,11 +35,11 @@ describe("getLoadItems", () => {
 
     const [first] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10" })
+      .values({ loadId: load.id, weight: "10", number: 1 })
       .returning();
     const [second] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "5", status: "removed" })
+      .values({ loadId: load.id, weight: "5", status: "removed", number: 2 })
       .returning();
 
     const result = await getLoadItems(load.id);
@@ -47,6 +47,36 @@ describe("getLoadItems", () => {
     expect(result).toEqual([
       { id: first.id, identifier: `Item 1 - ${notaFiscal}`, weight: "10", status: "in_stock" },
       { id: second.id, identifier: `Item 2 - ${notaFiscal}`, weight: "5", status: "removed" },
+    ]);
+  });
+
+  it("numbers items by the persisted number, not by array position", async () => {
+    const notaFiscal = `NF-LOAD-ITEMS-NUMBER-${randomUUID()}`;
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "100",
+        materialId,
+        itemCount: 2,
+        remainingWeight: "15",
+      })
+      .returning();
+    createdLoadIds.push(load.id);
+
+    // Only item number 3 remains in stock — mimicking items 1 and 2 having
+    // been removed and their rows rewritten to the end of the heap.
+    const [remaining] = await db
+      .insert(items)
+      .values({ loadId: load.id, weight: "10", number: 3 })
+      .returning();
+
+    const result = await getLoadItems(load.id);
+
+    expect(result).toEqual([
+      { id: remaining.id, identifier: `Item 3 - ${notaFiscal}`, weight: "10", status: "in_stock" },
     ]);
   });
 

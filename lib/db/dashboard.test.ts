@@ -108,8 +108,8 @@ describe("getDashboardStats materialsInStock", () => {
 
       const { load } = await insertMaterialWithLoad("Aço Dashboard");
       await db.insert(items).values([
-        { loadId: load.id, weight: "5", status: "in_stock" },
-        { loadId: load.id, weight: "5", status: "in_stock" },
+        { loadId: load.id, weight: "5", status: "in_stock", number: 1 },
+        { loadId: load.id, weight: "5", status: "in_stock", number: 2 },
       ]);
 
       const after = await getDashboardStats();
@@ -126,7 +126,7 @@ describe("getDashboardStats materialsInStock", () => {
 
       const { load } = await insertMaterialWithLoad("Cobre Dashboard");
       await db.insert(items).values([
-        { loadId: load.id, weight: "5", status: "removed" },
+        { loadId: load.id, weight: "5", status: "removed", number: 1 },
       ]);
 
       const after = await getDashboardStats();
@@ -170,8 +170,8 @@ describe("getLastRemoval", () => {
     const insertedItems = await db
       .insert(items)
       .values([
-        { loadId: load.id, weight: "10" },
-        { loadId: load.id, weight: "10" },
+        { loadId: load.id, weight: "10", number: 1 },
+        { loadId: load.id, weight: "10", number: 2 },
       ])
       .returning();
 
@@ -211,7 +211,7 @@ describe("getLastRemoval", () => {
 
     const insertedItems = await db
       .insert(items)
-      .values([{ loadId: load.id, weight: "10" }])
+      .values([{ loadId: load.id, weight: "10", number: 1 }])
       .returning();
 
     const [removal] = await db

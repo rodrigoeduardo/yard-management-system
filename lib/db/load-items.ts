@@ -24,11 +24,11 @@ export async function getLoadItems(loadId: string): Promise<LoadItemDetail[]> {
     .select()
     .from(items)
     .where(eq(items.loadId, loadId))
-    .orderBy(asc(items.createdAt));
+    .orderBy(asc(items.number));
 
-  return loadItems.map((item, index) => ({
+  return loadItems.map((item) => ({
     id: item.id,
-    identifier: `Item ${index + 1} - ${load.notaFiscal}`,
+    identifier: `Item ${item.number} - ${load.notaFiscal}`,
     weight: item.weight,
     status: item.status,
   }));

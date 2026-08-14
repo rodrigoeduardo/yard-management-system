@@ -27,6 +27,7 @@ async function getRemovalItemsWithMaterial(
       id: items.id,
       weight: items.weight,
       loadId: items.loadId,
+      number: items.number,
     })
     .from(removalItems)
     .innerJoin(items, eq(removalItems.itemId, items.id))
@@ -39,38 +40,23 @@ async function getRemovalItemsWithMaterial(
 
   const loadIds = [...new Set(removedItems.map((item) => item.loadId))];
 
-  const [loadRows, allItemsInLoads] = await Promise.all([
-    db
-      .select({
-        id: loads.id,
-        notaFiscal: loads.notaFiscal,
-        material: materials.name,
-      })
-      .from(loads)
-      .innerJoin(materials, eq(loads.materialId, materials.id))
-      .where(inArray(loads.id, loadIds)),
-    db
-      .select({ id: items.id, loadId: items.loadId })
-      .from(items)
-      .where(inArray(items.loadId, loadIds))
-      .orderBy(asc(items.sequence)),
-  ]);
+  const loadRows = await db
+    .select({
+      id: loads.id,
+      notaFiscal: loads.notaFiscal,
+      material: materials.name,
+    })
+    .from(loads)
+    .innerJoin(materials, eq(loads.materialId, materials.id))
+    .where(inArray(loads.id, loadIds));
 
   const loadById = new Map(loadRows.map((load) => [load.id, load]));
-
-  const indexByItemId = new Map<string, number>();
-  const counters = new Map<string, number>();
-  for (const item of allItemsInLoads) {
-    const next = (counters.get(item.loadId) ?? 0) + 1;
-    counters.set(item.loadId, next);
-    indexByItemId.set(item.id, next);
-  }
 
   return removedItems.map((item) => {
     const load = loadById.get(item.loadId)!;
     return {
       id: item.id,
-      identifier: `Item ${indexByItemId.get(item.id)} - ${load.notaFiscal}`,
+      identifier: `Item ${item.number} - ${load.notaFiscal}`,
       weight: item.weight,
       notaFiscal: load.notaFiscal,
       material: load.material,

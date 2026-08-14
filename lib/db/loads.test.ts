@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
-import { insertLoadWithItems, listStockPage } from "./loads";
+import { getLoadWithItems, insertLoadWithItems, listStockPage } from "./loads";
 import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
@@ -159,6 +159,34 @@ describe("insertLoadWithItems", () => {
     expect(row.driver).toBe("Maria Souza");
   });
 
+  it("numbers each item 1..N in the order the weights were submitted", async () => {
+    const notaFiscal = `NF-NUMBER-${randomUUID()}`;
+
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-0006",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10", "20", "30"],
+      itemCorridas: ["C-1", "C-2", "C-3"],
+    });
+    createdLoadIds.push(load.id);
+
+    const itemRows = await db
+      .select()
+      .from(items)
+      .where(eq(items.loadId, load.id))
+      .orderBy(items.number);
+    expect(itemRows.map((i) => ({ number: i.number, weight: i.weight }))).toEqual([
+      { number: 1, weight: "10" },
+      { number: 2, weight: "20" },
+      { number: 3, weight: "30" },
+    ]);
+  });
+
   it("persists the submitted NF date, distinct from the entry date", async () => {
     const notaFiscal = `NF-NFDATE-${randomUUID()}`;
 
@@ -180,6 +208,57 @@ describe("insertLoadWithItems", () => {
       .from(loads)
       .where(eq(loads.id, load.id));
     expect(row.nfDate).toBe("2026-07-10");
+  });
+});
+
+describe("getLoadWithItems", () => {
+  const createdLoadIds: string[] = [];
+
+  afterEach(async () => {
+    while (createdLoadIds.length > 0) {
+      const id = createdLoadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it("orders items by number, not by created_at (a tied/unstable sort key)", async () => {
+    const notaFiscal = `NF-ORDER-BY-NUMBER-${randomUUID()}`;
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "30",
+        materialId,
+        itemCount: 2,
+        remainingWeight: "30",
+      })
+      .returning();
+    createdLoadIds.push(load.id);
+
+    // created_at deliberately reversed relative to number, simulating a row
+    // rewritten to the end of the heap by an UPDATE (#336's root cause).
+    await db.insert(items).values([
+      {
+        loadId: load.id,
+        weight: "20",
+        number: 2,
+        createdAt: new Date("2026-01-01T00:00:00Z"),
+      },
+      {
+        loadId: load.id,
+        weight: "10",
+        number: 1,
+        createdAt: new Date("2026-01-01T00:00:01Z"),
+      },
+    ]);
+
+    const { items: loadItems } = await getLoadWithItems(load.id);
+
+    expect(loadItems.map((i) => i.number)).toEqual([1, 2]);
+    expect(loadItems.map((i) => i.weight)).toEqual(["10", "20"]);
   });
 });
 
@@ -527,16 +606,16 @@ describe("listStockPage", () => {
       remainingWeight: "40",
     });
     await db.insert(items).values([
-      { loadId: load.id, weight: "10", status: "in_stock" },
-      { loadId: load.id, weight: "10", status: "in_stock" },
-      { loadId: load.id, weight: "10", status: "in_stock" },
-      { loadId: load.id, weight: "10", status: "in_stock" },
-      { loadId: load.id, weight: "10", status: "removed" },
-      { loadId: load.id, weight: "10", status: "removed" },
-      { loadId: load.id, weight: "10", status: "removed" },
-      { loadId: load.id, weight: "10", status: "removed" },
-      { loadId: load.id, weight: "10", status: "removed" },
-      { loadId: load.id, weight: "10", status: "removed" },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 1 },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 2 },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 3 },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 4 },
+      { loadId: load.id, weight: "10", status: "removed", number: 5 },
+      { loadId: load.id, weight: "10", status: "removed", number: 6 },
+      { loadId: load.id, weight: "10", status: "removed", number: 7 },
+      { loadId: load.id, weight: "10", status: "removed", number: 8 },
+      { loadId: load.id, weight: "10", status: "removed", number: 9 },
+      { loadId: load.id, weight: "10", status: "removed", number: 10 },
     ]);
 
     const result = await listStockPage({
@@ -561,8 +640,8 @@ describe("listStockPage", () => {
       remainingWeight: "20",
     });
     await db.insert(items).values([
-      { loadId: load.id, weight: "10", status: "in_stock" },
-      { loadId: load.id, weight: "10", status: "in_stock" },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 1 },
+      { loadId: load.id, weight: "10", status: "in_stock", number: 2 },
     ]);
 
     const result = await listStockPage({

@@ -30,6 +30,7 @@
 - The sum of individual item weights produces the load's **Remaining Weight**. It does **not** need to match the NF Weight.
 - On completion, generate one QR code per item containing: an identifier (e.g. "Item 1 - <NF>"), the material, the item's weight, and its Corrida (when present).
 - QR codes are printed one per label, sized for the Elgin L42 Pro Full label printer (100×50 mm labels) — not laid out in a batch on a single page. The label shows identifier, material, weight, then Corrida (when present), in that order.
+- Each item is assigned a **number** `1..N` at intake, in the same order as the form's weight/Corrida fields — item 1 is the first field, item N the last. This number is what "Item <n>" in the identifier and QR payload refers to. It is immutable for the life of the item: it is persisted at intake and never recomputed from a later read, so marking an item removed, cancelling that removal, or correcting an item's weight never changes any item's number — including the numbers of every other item still in the load. Reprinting a load's labels always reproduces the same identifiers as the labels already glued to the material (#336).
 
 ## Corrections (`inventory-view`)
 
