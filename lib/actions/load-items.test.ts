@@ -35,7 +35,7 @@ describe("fetchLoadItems", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10" })
+      .values({ loadId: load.id, weight: "10", number: 1 })
       .returning();
 
     const result = await fetchLoadItems(load.id);

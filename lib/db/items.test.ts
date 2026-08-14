@@ -34,7 +34,7 @@ describe("getItemStatusByQrToken", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10", status })
+      .values({ loadId: load.id, weight: "10", status, number: 1 })
       .returning();
 
     return item;
@@ -88,7 +88,13 @@ describe("updateItemWeight", () => {
 
     const insertedItems = await db
       .insert(items)
-      .values(itemWeights.map((weight) => ({ loadId: load.id, weight })))
+      .values(
+        itemWeights.map((weight, index) => ({
+          loadId: load.id,
+          weight,
+          number: index + 1,
+        })),
+      )
       .returning();
 
     return { load, items: insertedItems };

@@ -49,8 +49,8 @@ async function insertJunkData(): Promise<void> {
       .returning();
 
     await tx.insert(items).values([
-      { loadId: load.id, weight: "5.00" },
-      { loadId: load.id, weight: "5.00" },
+      { loadId: load.id, weight: "5.00", number: 1 },
+      { loadId: load.id, weight: "5.00", number: 2 },
     ]);
 
     return load;

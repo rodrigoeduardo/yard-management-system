@@ -86,6 +86,38 @@ describe("getLoadItemQrCodes", () => {
     ]);
   });
 
+  it("keeps every remaining item's payload identical after another item in the load is removed", async () => {
+    const notaFiscal = `NF-QR-STABLE-${Date.now()}`;
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-123458",
+      driver: "João da Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01"),
+      nfWeight: "500",
+      material: "Aço",
+      itemWeights: ["10", "20", "30"],
+      itemCorridas: ["C-1", "C-2", "C-3"],
+    });
+    createdLoadIds.push(load.id);
+
+    const before = await getLoadItemQrCodes(load.id);
+    const beforeByItemId = new Map(before.map((qr) => [qr.itemId, qr.payload]));
+
+    // Mark item 1 removed, mimicking a load-removal UPDATE. This rewrites its
+    // tuple at the end of the heap (the defect #336 fixes), so a stale
+    // implementation would renumber items 2 and 3.
+    const firstItem = before.find((qr) => beforeByItemId.get(qr.itemId)?.identifier === `Item 1 - ${notaFiscal}`)!;
+    await db.update(items).set({ status: "removed" }).where(eq(items.id, firstItem.itemId));
+
+    const after = await getLoadItemQrCodes(load.id);
+    const remainingBefore = before.filter((qr) => qr.itemId !== firstItem.itemId);
+    for (const qr of remainingBefore) {
+      const match = after.find((a) => a.itemId === qr.itemId);
+      expect(match?.payload).toEqual(qr.payload);
+    }
+  });
+
   it("omits corrida from the payload for an item whose corrida is NULL", async () => {
     const notaFiscal = `NF-QR-NOCORRIDA-${Date.now()}`;
     const load = await insertLoadWithItems({

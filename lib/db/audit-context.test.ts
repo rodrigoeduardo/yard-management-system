@@ -168,7 +168,7 @@ describe("withAuditUser", () => {
 
       await expectPermissionDenied(
         withAuditUser(viewerUserId, (tx) =>
-          tx.insert(items).values({ loadId: load.id, weight: "1" }),
+          tx.insert(items).values({ loadId: load.id, weight: "1", number: 1 }),
         ),
       );
     });

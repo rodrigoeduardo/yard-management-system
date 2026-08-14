@@ -34,7 +34,7 @@ describe("checkItemStatus", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10" })
+      .values({ loadId: load.id, weight: "10", number: 1 })
       .returning();
 
     const result = await checkItemStatus(item.qrToken);

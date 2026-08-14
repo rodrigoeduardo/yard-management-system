@@ -35,7 +35,13 @@ async function insertLoadWithItems(itemWeights: string[]) {
 
   const insertedItems = await db
     .insert(items)
-    .values(itemWeights.map((weight) => ({ loadId: load.id, weight })))
+    .values(
+      itemWeights.map((weight, index) => ({
+        loadId: load.id,
+        weight,
+        number: index + 1,
+      })),
+    )
     .returning();
 
   return { load, items: insertedItems };

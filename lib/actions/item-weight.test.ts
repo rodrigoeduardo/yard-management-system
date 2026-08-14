@@ -46,7 +46,7 @@ describe("updateItemWeightAction", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight })
+      .values({ loadId: load.id, weight, number: 1 })
       .returning();
 
     return { load, item };

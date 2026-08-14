@@ -61,6 +61,10 @@ export async function insertLoadWithItems(
         loadId: load.id,
         weight,
         corrida: data.itemCorridas[index] ?? null,
+        // The number printed on the item's label — 1..N in the order the
+        // intake form's weight/Corrida fields were submitted. Immutable
+        // from here on (#336).
+        number: index + 1,
       })),
     );
 
@@ -91,7 +95,7 @@ export async function getLoadWithItems(loadId: string) {
     .select()
     .from(items)
     .where(eq(items.loadId, loadId))
-    .orderBy(asc(items.createdAt));
+    .orderBy(asc(items.number));
 
   return { load, items: loadItems };
 }
