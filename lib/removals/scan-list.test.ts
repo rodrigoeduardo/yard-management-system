@@ -4,6 +4,7 @@ import {
   createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
+  itemNumberOf,
   notaFiscalOf,
 } from "./scan-list";
 import type { ItemQrPayload } from "../qrcode/payload";
@@ -86,6 +87,31 @@ describe("notaFiscalOf", () => {
     };
 
     expect(notaFiscalOf(legacyItem)).toBe("NF-100");
+  });
+});
+
+describe("itemNumberOf", () => {
+  it("parses the item's own number out of the identifier", () => {
+    const item = makeItem("a", { identifier: "Item 7 - NF-100" });
+
+    expect(itemNumberOf(item)).toBe(7);
+  });
+
+  it("parses the number even for legacy QR codes without a notaFiscal field", () => {
+    const legacyItem: ItemQrPayload = {
+      qrToken: "a",
+      identifier: "Item 7 - NF-100",
+      material: "Aço",
+      weight: "10",
+    };
+
+    expect(itemNumberOf(legacyItem)).toBe(7);
+  });
+
+  it("returns null when the identifier doesn't match the expected shape", () => {
+    const item = makeItem("a", { identifier: "not-a-valid-identifier" });
+
+    expect(itemNumberOf(item)).toBeNull();
   });
 });
 

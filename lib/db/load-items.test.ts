@@ -45,8 +45,8 @@ describe("getLoadItems", () => {
     const result = await getLoadItems(load.id);
 
     expect(result).toEqual([
-      { id: first.id, identifier: `Item 1 - ${notaFiscal}`, weight: "10", status: "in_stock" },
-      { id: second.id, identifier: `Item 2 - ${notaFiscal}`, weight: "5", status: "removed" },
+      { id: first.id, identifier: `Item 1 - ${notaFiscal}`, number: 1, weight: "10", status: "in_stock" },
+      { id: second.id, identifier: `Item 2 - ${notaFiscal}`, number: 2, weight: "5", status: "removed" },
     ]);
   });
 
@@ -76,7 +76,7 @@ describe("getLoadItems", () => {
     const result = await getLoadItems(load.id);
 
     expect(result).toEqual([
-      { id: remaining.id, identifier: `Item 3 - ${notaFiscal}`, weight: "10", status: "in_stock" },
+      { id: remaining.id, identifier: `Item 3 - ${notaFiscal}`, number: 3, weight: "10", status: "in_stock" },
     ]);
   });
 

@@ -46,6 +46,7 @@ describe("fetchLoadItems", () => {
         {
           id: item.id,
           identifier: `Item 1 - ${notaFiscal}`,
+          number: 1,
           weight: "10",
           status: "in_stock",
         },

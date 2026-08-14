@@ -83,6 +83,22 @@ export function notaFiscalOf(item: ItemQrPayload): string {
   return item.notaFiscal ?? notaFiscalFromIdentifier(item.identifier);
 }
 
+/** Recovers the item's own number embedded in its identifier (e.g. "Item 7 - NF-100" -> 7). */
+function itemNumberFromIdentifier(identifier: string): number | null {
+  const match = identifier.match(/^Item (\d+) - /);
+  return match ? Number(match[1]) : null;
+}
+
+/**
+ * Resolves an item's own number (the one printed on its physical label).
+ * The QR payload has no distinct numeric field, so this always parses the
+ * identifier; returns null when the identifier doesn't match the expected
+ * shape so callers can fall back to displaying the raw identifier.
+ */
+export function itemNumberOf(item: ItemQrPayload): number | null {
+  return itemNumberFromIdentifier(item.identifier);
+}
+
 /** Groups scanned items by their originating Nota Fiscal, preserving first-seen order. */
 export function groupScannedItemsByNotaFiscal(
   list: ItemQrPayload[],
