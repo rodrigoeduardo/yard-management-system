@@ -37,6 +37,7 @@ import {
   createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
+  itemNumberOf,
   notaFiscalOf,
 } from "@/lib/removals/scan-list";
 import { checkItemStatus } from "@/lib/actions/item-status";
@@ -486,13 +487,15 @@ export default function NewRemovalPage() {
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
-                {scannedItems.map((item, index) => (
+                {scannedItems.map((item) => {
+                  const itemNumber = itemNumberOf(item);
+                  return (
                   <li key={item.qrToken}>
                     <Card className="flex items-center gap-3 rounded-[14px] px-3.5 py-3 md:bg-[oklch(0.985_0.002_250)]">
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">
-                            Item {index + 1}
+                            {itemNumber !== null ? `Item ${itemNumber}` : item.identifier}
                           </span>
                           <span className="rounded-[6px] bg-accent px-[7px] py-0.5 font-mono text-[11px] font-semibold text-accent-foreground">
                             {notaFiscalOf(item)}
@@ -519,7 +522,8 @@ export default function NewRemovalPage() {
                       </div>
                     </Card>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
 

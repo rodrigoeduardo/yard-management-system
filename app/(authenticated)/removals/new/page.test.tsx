@@ -161,6 +161,66 @@ describe("NewRemovalPage scanned items list", () => {
     expect(screen.getAllByText("10 Ton").length).toBeGreaterThan(0);
   });
 
+  it("shows each scanned item's own number, in scan order, not its position in the list", async () => {
+    render(<NewRemovalPage />);
+
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
+    await waitFor(() => expect(scanCallback).toBeDefined());
+
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+          identifier: "Item 4 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        } as never),
+    });
+    await screen.findByText("Item 4");
+
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "6b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8b",
+          identifier: "Item 2 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        } as never),
+    });
+    await screen.findByText("Item 2");
+
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "7b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8c",
+          identifier: "Item 5 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        } as never),
+    });
+    await screen.findByText("Item 5");
+
+    expect(screen.queryByText("Item 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Item 3")).not.toBeInTheDocument();
+  });
+
+  it("renders the raw identifier, without crashing, for a payload whose identifier doesn't match the expected shape", async () => {
+    render(<NewRemovalPage />);
+
+    await scanItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      identifier: "not-a-valid-identifier",
+      notaFiscal: "NF-100",
+      material: "Aço",
+      weight: "10",
+    });
+
+    expect(await screen.findByText("not-a-valid-identifier")).toBeInTheDocument();
+  });
+
   it("falls back to the identifier-embedded Nota Fiscal for legacy QR payloads without the distinct field", async () => {
     render(<NewRemovalPage />);
 
