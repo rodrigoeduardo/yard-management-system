@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import {
   Command,
   CommandEmpty,
+  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,50 @@ import { cn } from "@/lib/utils";
 export type MaterialOption = { id: string; name: string };
 
 const MAX_VISIBLE_OPTIONS = 15;
+
+/**
+ * Below `md` (Tailwind's 768px breakpoint) the combobox opens as a full-screen
+ * bottom sheet instead of an anchored popover — see the module doc comment
+ * below `useIsMobileViewport` for why this is a guarded JS media query
+ * rather than a pure CSS breakpoint.
+ */
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
+
+function subscribeToMobileViewport(onChange: () => void): () => void {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const mql = window.matchMedia(MOBILE_MEDIA_QUERY);
+  mql.addEventListener("change", onChange);
+  return () => mql.removeEventListener("change", onChange);
+}
+
+function getIsMobileViewport(): boolean {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+}
+
+/**
+ * `useSyncExternalStore` with a server snapshot of `false` (desktop) keeps
+ * SSR/hydration output stable: the mobile sheet markup below is gated behind
+ * `open`, which can only ever become `true` from a client interaction, so
+ * the two presentations are never both in the tree during hydration. This
+ * mirrors the pattern already used for the desktop/mobile QR-scanner split in
+ * `app/(authenticated)/removals/new/page.tsx`. A pure `md:hidden`/`hidden
+ * md:block` CSS split was tried first, but Base UI's Popover positions its
+ * popup with inline `transform`/`top`/`left` styles computed by floating-ui;
+ * making that same popup act as a viewport-anchored bottom sheet on mobile
+ * would mean fighting those inline styles with `!important` overrides tied
+ * to Base UI's internal positioning implementation — fragile, and it still
+ * requires either two separate popup instances (duplicate listbox/option
+ * DOM, an accessibility and testing problem) or JS to pick one. Branching in
+ * JS on the media query, gated behind `open`, is the smaller cost.
+ */
+function useIsMobileViewport(): boolean {
+  return useSyncExternalStore(
+    subscribeToMobileViewport,
+    getIsMobileViewport,
+    () => false,
+  );
+}
 
 type MaterialComboboxProps = {
   id: string;
@@ -53,6 +99,13 @@ export function MaterialCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(displayValue);
   const inputRef = useRef<HTMLInputElement>(null);
+  /**
+   * Guards against a focus-restoration feedback loop: closing the mobile
+   * sheet moves focus back to the field, which would otherwise fire the
+   * field's own `onFocus` handler and immediately reopen it.
+   */
+  const restoringFocusRef = useRef(false);
+  const isMobile = useIsMobileViewport();
 
   const trimmedQuery = query.trim();
   const filtered = useMemo(
@@ -79,6 +132,22 @@ export function MaterialCombobox({
     setOpen(nextOpen);
   }
 
+  function handleSheetOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      restoringFocusRef.current = true;
+      inputRef.current?.focus();
+    }
+  }
+
+  function handleFieldFocus() {
+    if (restoringFocusRef.current) {
+      restoringFocusRef.current = false;
+      return;
+    }
+    setOpen(true);
+  }
+
   function handleInputChange(newValue: string) {
     setQuery(newValue);
     setOpen(true);
@@ -98,8 +167,33 @@ export function MaterialCombobox({
     onChange(trimmed, trimmed);
   }
 
+  const optionRows = (
+    <>
+      {!showCreateOption && filtered.length === 0 && (
+        <CommandEmpty>Nenhum material cadastrado.</CommandEmpty>
+      )}
+      {showCreateOption && (
+        <CommandItem
+          value={`__create__${trimmedQuery}`}
+          onSelect={handleSelectCreate}
+        >
+          Adicionar &quot;{trimmedQuery}&quot;
+        </CommandItem>
+      )}
+      {filtered.map((material) => (
+        <CommandItem
+          key={material.id}
+          value={material.id}
+          onSelect={() => handleSelectExisting(material)}
+        >
+          {material.name}
+        </CommandItem>
+      ))}
+    </>
+  );
+
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <>
       <Input
         id={id}
         ref={inputRef}
@@ -109,44 +203,52 @@ export function MaterialCombobox({
         autoComplete="off"
         placeholder={placeholder}
         required={required}
+        readOnly={isMobile}
         value={query}
-        onChange={(e) => handleInputChange(e.target.value)}
-        onFocus={() => setOpen(true)}
+        onChange={
+          isMobile ? undefined : (e) => handleInputChange(e.target.value)
+        }
+        onFocus={handleFieldFocus}
         className={cn("h-12 px-3.5 text-[15px] md:h-11 md:text-sm", className)}
       />
-      <PopoverContent
-        anchor={inputRef}
-        align="start"
-        sideOffset={4}
-        initialFocus={false}
-        finalFocus={false}
-        className="w-(--anchor-width) p-0"
-      >
-        <Command shouldFilter={false}>
-          <CommandList>
-            {!showCreateOption && filtered.length === 0 && (
-              <CommandEmpty>Nenhum material cadastrado.</CommandEmpty>
-            )}
-            {showCreateOption && (
-              <CommandItem
-                value={`__create__${trimmedQuery}`}
-                onSelect={handleSelectCreate}
-              >
-                Adicionar &quot;{trimmedQuery}&quot;
-              </CommandItem>
-            )}
-            {filtered.map((material) => (
-              <CommandItem
-                key={material.id}
-                value={material.id}
-                onSelect={() => handleSelectExisting(material)}
-              >
-                {material.name}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+      {isMobile ? (
+        <Dialog open={open} onOpenChange={handleSheetOpenChange}>
+          <DialogContent
+            className="top-auto bottom-0 left-0 h-[85dvh] max-h-[85svh] w-full max-w-full translate-x-0 translate-y-0 gap-0 rounded-b-none rounded-t-2xl p-0 sm:max-w-full"
+            showCloseButton
+          >
+            <DialogHeader className="sr-only">
+              <DialogTitle>{placeholder || "Selecionar material"}</DialogTitle>
+            </DialogHeader>
+            <Command shouldFilter={false} className="flex h-full min-h-0 flex-col">
+              <CommandInput
+                autoFocus
+                placeholder={placeholder}
+                value={query}
+                onValueChange={handleInputChange}
+              />
+              <CommandList className="max-h-none flex-1">
+                {optionRows}
+              </CommandList>
+            </Command>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Popover open={open} onOpenChange={handleOpenChange}>
+          <PopoverContent
+            anchor={inputRef}
+            align="start"
+            sideOffset={4}
+            initialFocus={false}
+            finalFocus={false}
+            className="w-(--anchor-width) p-0"
+          >
+            <Command shouldFilter={false}>
+              <CommandList>{optionRows}</CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
+    </>
   );
 }
