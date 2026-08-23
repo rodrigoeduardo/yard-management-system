@@ -49,6 +49,7 @@ describe("fetchLoadItems", () => {
           number: 1,
           weight: "10",
           status: "in_stock",
+          corrida: null,
         },
       ],
     });
