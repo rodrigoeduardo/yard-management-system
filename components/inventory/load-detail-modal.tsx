@@ -179,6 +179,11 @@ export function LoadDetailModal({
                       <div className="grid grid-cols-[1fr_110px_110px] items-center gap-2.5">
                       <span className="font-semibold">
                         Item {item.number} — {load.material}
+                        {item.corrida ? (
+                          <span className="block text-xs font-normal text-muted-foreground">
+                            {item.corrida}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="text-right font-mono">
                         {formatWeight(item.weight)}

@@ -8,6 +8,7 @@ export type LoadItemDetail = {
   number: number;
   weight: string;
   status: "in_stock" | "removed";
+  corrida: string | null;
 };
 
 /** Items belonging to a load, labeled for display (e.g. in the load-detail modal). */
@@ -33,5 +34,6 @@ export async function getLoadItems(loadId: string): Promise<LoadItemDetail[]> {
     number: item.number,
     weight: item.weight,
     status: item.status,
+    corrida: item.corrida,
   }));
 }
