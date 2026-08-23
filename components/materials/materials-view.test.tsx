@@ -124,6 +124,18 @@ describe("MaterialsView", () => {
     expect(screen.getByText("3 und. · 10.000 Ton em estoque")).toBeInTheDocument();
   });
 
+  it("stacks each row into a single column below md and makes the Editar button full width there", () => {
+    render(<MaterialsView materials={MATERIALS} />);
+
+    const row = screen.getByText("Alumínio").closest("li");
+    expect(row?.className).toContain("flex-col");
+    expect(row?.className).toContain("md:flex-row");
+
+    const editButton = screen.getAllByRole("button", { name: "Editar" })[0];
+    expect(editButton.className).toContain("w-full");
+    expect(editButton.className).toContain("md:w-auto");
+  });
+
   it("shows the add/edit controls for an operator session by default", () => {
     render(<MaterialsView materials={MATERIALS} />);
 

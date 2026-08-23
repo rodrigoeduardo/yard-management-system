@@ -282,6 +282,58 @@ describe("LoadDetailModal", () => {
     expect(screen.getByText("Informe um peso maior que zero.")).toBeInTheDocument();
   });
 
+  it("shows labeled Peso and Status fields for the mobile stacked layout", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    await screen.findByText("Item 1 — Sucata");
+    expect(screen.getByText("Peso")).toBeInTheDocument();
+    expect(screen.getByText("Status")).toBeInTheDocument();
+  });
+
+  it("labels the corrida value for an item that has one", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          number: 1,
+          weight: "50",
+          status: "in_stock",
+          corrida: "C-4471",
+        },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    const corrida = await screen.findByText("C-4471");
+    expect(corrida.parentElement?.textContent).toContain("Corrida");
+  });
+
+  it("stacks the item row as a single column below md and restores the fixed grid at md and above", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock" },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    const row = (await screen.findByText("Item 1 — Sucata")).closest("li");
+    const grid = row?.firstElementChild;
+    expect(grid?.className).toContain("grid-cols-1");
+    expect(grid?.className).toContain("md:grid-cols-[1fr_110px_110px]");
+  });
+
   it("refreshes the modal data and inventory after a successful weight edit", async () => {
     fetchLoadItems
       .mockResolvedValueOnce({

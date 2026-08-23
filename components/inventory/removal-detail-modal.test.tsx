@@ -159,6 +159,56 @@ describe("RemovalDetailModal", () => {
     expect(row?.children).toHaveLength(3);
   });
 
+  it("shows labeled Material and Peso fields for the mobile stacked layout", async () => {
+    fetchRemovalItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          weight: "50",
+          notaFiscal: "NF-001",
+          material: "Aço",
+        },
+      ],
+    });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Item 1 - NF-001")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Material")).toBeInTheDocument();
+    expect(screen.getByText("Peso")).toBeInTheDocument();
+  });
+
+  it("stacks the item row as a single column below md and restores the fixed grid at md and above", async () => {
+    fetchRemovalItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          weight: "50",
+          notaFiscal: "NF-001",
+          material: "Aço",
+        },
+      ],
+    });
+
+    render(
+      <RemovalDetailModal removal={REMOVAL} open onOpenChange={() => {}} />,
+    );
+
+    const row = await waitFor(() =>
+      screen.getByText("Item 1 - NF-001").closest("li"),
+    );
+    expect(row?.className).toContain("grid-cols-1");
+    expect(row?.className).toContain("md:grid-cols-[1fr_110px_110px]");
+  });
+
   it("renders the vehicle plate", () => {
     fetchRemovalItems.mockResolvedValue({ success: true, items: [] });
 
