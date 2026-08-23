@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StockQueryState } from "@/lib/inventory/stock-query";
 import { StockSection } from "./stock-section";
@@ -262,5 +262,61 @@ describe("StockSection", () => {
     expect(busyRegion).not.toBeNull();
 
     vi.doUnmock("./use-stock-query-nav");
+  });
+
+  it("reflects updated rows in the open load-detail modal without closing it (#341)", () => {
+    const { rerender } = render(
+      <StockSection
+        rows={[{ ...ROW, remainingWeight: "10000" }]}
+        total={1}
+        query={DEFAULT_QUERY}
+      />,
+    );
+
+    const card = screen
+      .getAllByText("NF-001", { exact: false })[0]
+      .closest('[data-slot="card"]');
+    fireEvent.click(card as HTMLElement);
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("10000 Ton")).toBeInTheDocument();
+
+    // Simulate the parent server component re-rendering with fresh data
+    // (what router.refresh() ultimately produces), without closing the modal.
+    rerender(
+      <StockSection
+        rows={[{ ...ROW, remainingWeight: "9500" }]}
+        total={1}
+        query={DEFAULT_QUERY}
+      />,
+    );
+
+    expect(within(dialog).getByText("9500 Ton")).toBeInTheDocument();
+    expect(within(dialog).queryByText("10000 Ton")).not.toBeInTheDocument();
+    // The modal is still open on the same load — title unaffected by the refresh.
+    expect(
+      within(dialog).getByRole("heading", { name: "Carga NF-001" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the modal from crashing if the selected row disappears from rows while open", () => {
+    const { rerender } = render(
+      <StockSection rows={[ROW]} total={1} query={DEFAULT_QUERY} />,
+    );
+
+    const card = screen
+      .getAllByText("NF-001", { exact: false })[0]
+      .closest('[data-slot="card"]');
+    fireEvent.click(card as HTMLElement);
+
+    expect(
+      screen.getByRole("heading", { name: "Carga NF-001" }),
+    ).toBeInTheDocument();
+
+    // Row no longer present (e.g. finished and filtered out) — the modal must
+    // not crash while it animates shut.
+    expect(() =>
+      rerender(<StockSection rows={[]} total={0} query={DEFAULT_QUERY} />),
+    ).not.toThrow();
   });
 });
