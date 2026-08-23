@@ -267,7 +267,7 @@ describe("QrPrintView", () => {
     render(<QrPrintView summary={summary} qrCodes={withCorrida} />);
 
     const weight = screen.getByText("10.5 Ton");
-    const corrida = screen.getByText("C-4471");
+    const corrida = screen.getByText("Corrida C-4471");
     const textColumn = weight.parentElement;
 
     expect(textColumn).not.toBeNull();
@@ -285,6 +285,7 @@ describe("QrPrintView", () => {
 
     expect(screen.getByText("10.5 Ton")).toBeInTheDocument();
     expect(screen.queryByText(/^C-/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Corrida/)).not.toBeInTheDocument();
   });
 
   it("keeps the print geometry classes unchanged on the card and QR image", () => {

@@ -117,6 +117,60 @@ describe("LoadDetailModal", () => {
     expect(screen.getByText("Item 2 — Sucata")).toBeInTheDocument();
   });
 
+  it("shows each item's own corrida when present", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          number: 1,
+          weight: "50",
+          status: "in_stock",
+          corrida: "C-4471",
+        },
+        {
+          id: "item-2",
+          identifier: "Item 2 - NF-001",
+          number: 2,
+          weight: "30",
+          status: "removed",
+          corrida: null,
+        },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("C-4471")).toBeInTheDocument();
+    });
+  });
+
+  it("renders no corrida text when the item's corrida is null", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        {
+          id: "item-1",
+          identifier: "Item 1 - NF-001",
+          number: 1,
+          weight: "50",
+          status: "in_stock",
+          corrida: null,
+        },
+      ],
+    });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Item 1 — Sucata")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("null")).not.toBeInTheDocument();
+    expect(screen.queryByText("undefined")).not.toBeInTheDocument();
+  });
+
   it("renders each item's persisted number, not its position in the array", async () => {
     fetchLoadItems.mockResolvedValue({
       success: true,

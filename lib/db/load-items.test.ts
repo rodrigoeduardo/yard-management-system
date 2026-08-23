@@ -45,8 +45,69 @@ describe("getLoadItems", () => {
     const result = await getLoadItems(load.id);
 
     expect(result).toEqual([
-      { id: first.id, identifier: `Item 1 - ${notaFiscal}`, number: 1, weight: "10", status: "in_stock" },
-      { id: second.id, identifier: `Item 2 - ${notaFiscal}`, number: 2, weight: "5", status: "removed" },
+      {
+        id: first.id,
+        identifier: `Item 1 - ${notaFiscal}`,
+        number: 1,
+        weight: "10",
+        status: "in_stock",
+        corrida: null,
+      },
+      {
+        id: second.id,
+        identifier: `Item 2 - ${notaFiscal}`,
+        number: 2,
+        weight: "5",
+        status: "removed",
+        corrida: null,
+      },
+    ]);
+  });
+
+  it("carries each item's own corrida", async () => {
+    const notaFiscal = `NF-LOAD-ITEMS-CORRIDA-${randomUUID()}`;
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "100",
+        materialId,
+        itemCount: 2,
+        remainingWeight: "15",
+      })
+      .returning();
+    createdLoadIds.push(load.id);
+
+    const [withCorrida] = await db
+      .insert(items)
+      .values({ loadId: load.id, weight: "10", number: 1, corrida: "C-4471" })
+      .returning();
+    const [withoutCorrida] = await db
+      .insert(items)
+      .values({ loadId: load.id, weight: "5", number: 2 })
+      .returning();
+
+    const result = await getLoadItems(load.id);
+
+    expect(result).toEqual([
+      {
+        id: withCorrida.id,
+        identifier: `Item 1 - ${notaFiscal}`,
+        number: 1,
+        weight: "10",
+        status: "in_stock",
+        corrida: "C-4471",
+      },
+      {
+        id: withoutCorrida.id,
+        identifier: `Item 2 - ${notaFiscal}`,
+        number: 2,
+        weight: "5",
+        status: "in_stock",
+        corrida: null,
+      },
     ]);
   });
 
@@ -76,7 +137,14 @@ describe("getLoadItems", () => {
     const result = await getLoadItems(load.id);
 
     expect(result).toEqual([
-      { id: remaining.id, identifier: `Item 3 - ${notaFiscal}`, number: 3, weight: "10", status: "in_stock" },
+      {
+        id: remaining.id,
+        identifier: `Item 3 - ${notaFiscal}`,
+        number: 3,
+        weight: "10",
+        status: "in_stock",
+        corrida: null,
+      },
     ]);
   });
 
