@@ -98,10 +98,10 @@ export function MaterialsView({
         {rows.map((material) => (
           <li
             key={material.id}
-            className="flex items-center justify-between gap-3 p-3.5"
+            className="flex flex-col gap-2 p-3.5 md:flex-row md:items-center md:justify-between md:gap-3"
           >
             <span className="font-medium text-foreground">{material.name}</span>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
               <span className="text-sm text-muted-foreground">
                 {material.inStockCount} und. ·{" "}
                 {formatWeight(material.inStockWeight)} em estoque
@@ -110,6 +110,7 @@ export function MaterialsView({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="w-full md:w-auto"
                   onClick={() => setEditing(material)}
                 >
                   Editar

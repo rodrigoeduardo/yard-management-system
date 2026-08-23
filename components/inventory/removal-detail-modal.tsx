@@ -138,15 +138,25 @@ export function RemovalDetailModal({
                   {items.map((item) => (
                     <li
                       key={item.id}
-                      className="grid grid-cols-[1fr_110px_110px] items-center gap-2.5 px-[18px] py-3.5 text-[13.5px]"
+                      className="grid grid-cols-1 gap-2.5 px-[18px] py-3.5 text-[13.5px] md:grid-cols-[1fr_110px_110px] md:items-center"
                     >
                       <span className="font-semibold">{item.identifier}</span>
-                      <span className="text-right text-muted-foreground">
-                        {item.material}
-                      </span>
-                      <span className="text-right font-mono font-semibold">
-                        {formatWeight(item.weight)}
-                      </span>
+                      <div className="flex items-center justify-between md:block md:text-right">
+                        <span className="text-xs text-muted-foreground md:hidden">
+                          Material
+                        </span>
+                        <span className="text-muted-foreground">
+                          {item.material}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between md:block md:text-right">
+                        <span className="text-xs text-muted-foreground md:hidden">
+                          Peso
+                        </span>
+                        <span className="font-mono font-semibold">
+                          {formatWeight(item.weight)}
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
