@@ -29,15 +29,21 @@ export function StockSection({
   query: StockQueryState;
   itemWeightEditEnabled?: boolean;
 }) {
-  const [selected, setSelected] = useState<StockRow | null>(null);
+  // Only the id is kept in state; the row itself is derived from the current
+  // `rows` prop below so a router.refresh() that brings fresh server data
+  // flows into an already-open modal (#341) instead of showing a stale
+  // snapshot captured at click time.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const { navigateStock, isPending } = useStockQueryNav();
+
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
 
   const totalPages = Math.max(1, Math.ceil(total / STOCK_PAGE_SIZE));
   const isSearching = query.q.trim().length > 0;
 
   const handleRowClick = (row: StockRow) => {
-    setSelected(row);
+    setSelectedId(row.id);
     setOpen(true);
   };
 
