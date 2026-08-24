@@ -213,8 +213,29 @@ export function MaterialCombobox({
       />
       {isMobile ? (
         <Dialog open={open} onOpenChange={handleSheetOpenChange}>
+          {/*
+           * `DialogContent`'s default enter/exit animation (inherited from
+           * `components/ui/dialog.tsx`) fades opacity in from 0 and scales up
+           * from 95% over the transition. For a bottom sheet that reads as a
+           * momentary "double exposure" — the semi-transparent, slightly
+           * undersized panel lets the page behind it show through, and its
+           * option rows visually overlap the form fields at the same screen
+           * position until the transition settles a beat later. `fade-in-100`
+           * / `zoom-in-100` (and the `-out` equivalents) pin opacity/scale at
+           * their settled values for the whole transition, so the panel is
+           * fully opaque and full-size for every frame.
+           *
+           * A translate-based `slide-in-from-bottom` / `slide-out-to-bottom`
+           * replacement was tried too, but it made Base UI's dialog dismiss
+           * itself ~100ms after opening in a real browser (verified via
+           * Playwright, not reproducible in the jsdom test suite) — most
+           * likely an interaction between that keyframe and the dialog's
+           * open-animation-completion detection. Sticking to the fade/zoom
+           * pins alone avoids that regression while still fixing the
+           * reported overlap.
+           */}
           <DialogContent
-            className="top-auto bottom-0 left-0 h-[85dvh] max-h-[85svh] w-full max-w-full translate-x-0 translate-y-0 gap-0 rounded-b-none rounded-t-2xl p-0 sm:max-w-full"
+            className="top-auto bottom-0 left-0 h-[85dvh] max-h-[85svh] w-full max-w-full translate-x-0 translate-y-0 gap-0 rounded-b-none rounded-t-2xl p-0 sm:max-w-full fade-in-100 zoom-in-100 fade-out-100 zoom-out-100"
             showCloseButton
           >
             <DialogHeader className="sr-only">
