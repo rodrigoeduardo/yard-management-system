@@ -176,28 +176,38 @@ export function LoadDetailModal({
                 <ul className="divide-y divide-border">
                   {items.map((item) => (
                     <li key={item.id} className="px-[18px] py-3.5 text-[13.5px]">
-                      <div className="grid grid-cols-[1fr_110px_110px] items-center gap-2.5">
-                      <span className="font-semibold">
-                        Item {item.number} — {load.material}
-                        {item.corrida ? (
-                          <span className="block text-xs font-normal text-muted-foreground">
-                            {item.corrida}
+                      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-[1fr_110px_110px] md:items-center">
+                        <span className="font-semibold">
+                          Item {item.number} — {load.material}
+                          {item.corrida ? (
+                            <span className="block text-xs font-normal text-muted-foreground">
+                              Corrida: <span>{item.corrida}</span>
+                            </span>
+                          ) : null}
+                        </span>
+                        <div className="flex items-center justify-between md:block md:text-right">
+                          <span className="text-xs text-muted-foreground md:hidden">
+                            Peso
                           </span>
-                        ) : null}
-                      </span>
-                      <span className="text-right font-mono">
-                        {formatWeight(item.weight)}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-right text-xs font-semibold",
-                          item.status === "in_stock"
-                            ? "text-success-foreground"
-                            : "text-destructive",
-                        )}
-                      >
-                        {formatItemStatus(item.status)}
-                      </span>
+                          <span className="font-mono">
+                            {formatWeight(item.weight)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between md:block md:text-right">
+                          <span className="text-xs text-muted-foreground md:hidden">
+                            Status
+                          </span>
+                          <span
+                            className={cn(
+                              "text-xs font-semibold",
+                              item.status === "in_stock"
+                                ? "text-success-foreground"
+                                : "text-destructive",
+                            )}
+                          >
+                            {formatItemStatus(item.status)}
+                          </span>
+                        </div>
                       </div>
                       {itemWeightEditEnabled && item.status === "in_stock" ? (
                         editingItemId === item.id ? (
