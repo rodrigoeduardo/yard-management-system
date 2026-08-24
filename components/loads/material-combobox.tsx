@@ -99,12 +99,6 @@ export function MaterialCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(displayValue);
   const inputRef = useRef<HTMLInputElement>(null);
-  /**
-   * Guards against a focus-restoration feedback loop: closing the mobile
-   * sheet moves focus back to the field, which would otherwise fire the
-   * field's own `onFocus` handler and immediately reopen it.
-   */
-  const restoringFocusRef = useRef(false);
   const isMobile = useIsMobileViewport();
 
   const trimmedQuery = query.trim();
@@ -135,17 +129,10 @@ export function MaterialCombobox({
   function handleSheetOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
-      restoringFocusRef.current = true;
+      // Return focus to the field the sheet was opened from, so keyboard and
+      // screen-reader users are not dropped back onto <body>.
       inputRef.current?.focus();
     }
-  }
-
-  function handleFieldFocus() {
-    if (restoringFocusRef.current) {
-      restoringFocusRef.current = false;
-      return;
-    }
-    setOpen(true);
   }
 
   function handleInputChange(newValue: string) {
@@ -208,7 +195,20 @@ export function MaterialCombobox({
         onChange={
           isMobile ? undefined : (e) => handleInputChange(e.target.value)
         }
-        onFocus={handleFieldFocus}
+        /**
+         * The two presentations open on different events, and deliberately so.
+         *
+         * Mobile: the field is `readOnly` and acts as a button, so the sheet
+         * opens on tap. It must NOT open on focus — closing the sheet restores
+         * focus to this field, and a second tap on an already-focused element
+         * fires no `focus` event, which left the sheet unreopenable until the
+         * user focused something else and came back.
+         *
+         * Desktop: the field is a real text input, so focusing it (including
+         * via Tab) should reveal the options list.
+         */
+        onClick={isMobile ? () => setOpen(true) : undefined}
+        onFocus={isMobile ? undefined : () => setOpen(true)}
         className={cn("h-12 px-3.5 text-[15px] md:h-11 md:text-sm", className)}
       />
       {isMobile ? (
