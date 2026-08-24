@@ -195,7 +195,6 @@ describe("MaterialCombobox mobile sheet", () => {
     const field = screen.getByRole("combobox");
 
     fireEvent.click(field);
-    fireEvent.focus(field);
 
     const sheet = querySheet();
     expect(sheet).toBeInTheDocument();
@@ -215,7 +214,7 @@ describe("MaterialCombobox mobile sheet", () => {
   it("filters the sheet's option list by the sheet's own search input, case-insensitively, capped at 15", () => {
     mockViewport(true);
     setup();
-    fireEvent.focus(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("combobox"));
 
     const sheet = querySheet()!;
     const sheetSearch = within(sheet).getByRole("combobox");
@@ -231,7 +230,7 @@ describe("MaterialCombobox mobile sheet", () => {
   it("selecting an option in the sheet closes it and stages the id/name exactly as the desktop popover does", () => {
     mockViewport(true);
     const { onChange } = setup();
-    fireEvent.focus(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("combobox"));
 
     const sheet = querySheet()!;
     const sheetSearch = within(sheet).getByRole("combobox");
@@ -246,7 +245,7 @@ describe("MaterialCombobox mobile sheet", () => {
   it("keeps find-or-create: dismissing the sheet on an unmatched name retains the typed name as the submission value", () => {
     mockViewport(true);
     const { onChange } = setup();
-    fireEvent.focus(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("combobox"));
 
     const sheet = querySheet()!;
     const sheetSearch = within(sheet).getByRole("combobox");
@@ -260,7 +259,7 @@ describe("MaterialCombobox mobile sheet", () => {
     mockViewport(true);
     setup();
     const field = screen.getByRole("combobox");
-    fireEvent.focus(field);
+    fireEvent.click(field);
 
     fireEvent.keyDown(querySheet()!, { key: "Escape" });
 
@@ -273,13 +272,55 @@ describe("MaterialCombobox mobile sheet", () => {
   it("closes on a visible dismiss button", async () => {
     mockViewport(true);
     setup();
-    fireEvent.focus(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("combobox"));
 
     fireEvent.click(screen.getByRole("button", { name: /fechar|close/i }));
 
     await waitFor(() => {
       expect(querySheet()).not.toBeInTheDocument();
     });
+  });
+
+  /**
+   * Regression: the sheet used to open only from the field's `onFocus`, and
+   * closing it restored focus to that same field. A second tap on an
+   * already-focused element fires no `focus` event, so the sheet became
+   * unreopenable until the user focused something else and came back.
+   */
+  it("reopens on a second tap after being dismissed, without focus leaving the field", async () => {
+    mockViewport(true);
+    setup();
+    const field = screen.getByRole("combobox");
+
+    fireEvent.click(field);
+    expect(querySheet()).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /fechar|close/i }));
+    await waitFor(() => {
+      expect(querySheet()).not.toBeInTheDocument();
+    });
+    expect(field).toHaveFocus();
+
+    // The field never lost focus, so a real second tap fires click only.
+    fireEvent.click(field);
+
+    expect(querySheet()).toBeInTheDocument();
+  });
+
+  it("reopens on a second tap after an option was selected", async () => {
+    mockViewport(true);
+    setup();
+    const field = screen.getByRole("combobox");
+
+    fireEvent.click(field);
+    fireEvent.click(within(screen.getByRole("listbox")).getByText("Cobre"));
+    await waitFor(() => {
+      expect(querySheet()).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(field);
+
+    expect(querySheet()).toBeInTheDocument();
   });
 
   it("does not leak open state between independent field instances", () => {
@@ -306,7 +347,7 @@ describe("MaterialCombobox mobile sheet", () => {
     );
     const [fieldA, fieldB] = screen.getAllByRole("combobox");
 
-    fireEvent.focus(fieldA);
+    fireEvent.click(fieldA);
 
     expect(document.querySelectorAll('[data-slot="dialog-content"]')).toHaveLength(1);
     expect(fieldB).not.toHaveAttribute("aria-expanded", "true");
@@ -315,7 +356,7 @@ describe("MaterialCombobox mobile sheet", () => {
   it("releases the document scroll lock when the sheet unmounts while open", async () => {
     mockViewport(true);
     const { unmount } = setup();
-    fireEvent.focus(screen.getByRole("combobox"));
+    fireEvent.click(screen.getByRole("combobox"));
     expect(querySheet()).toBeInTheDocument();
 
     unmount();
