@@ -9,6 +9,7 @@ import {
   type StockQueryState,
 } from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
+import type { MaterialOption } from "@/components/loads/material-combobox";
 import { LoadDetailModal } from "./load-detail-modal";
 import { StockCard } from "./stock-card";
 import { StockFilterControl } from "./stock-filter-control";
@@ -23,11 +24,15 @@ export function StockSection({
   total,
   query,
   itemWeightEditEnabled = false,
+  loadEditEnabled = false,
+  materials = [],
 }: {
   rows: StockRow[];
   total: number;
   query: StockQueryState;
   itemWeightEditEnabled?: boolean;
+  loadEditEnabled?: boolean;
+  materials?: MaterialOption[];
 }) {
   // Only the id is kept in state; the row itself is derived from the current
   // `rows` prop below so a router.refresh() that brings fresh server data
@@ -131,6 +136,8 @@ export function StockSection({
         open={open}
         onOpenChange={setOpen}
         itemWeightEditEnabled={itemWeightEditEnabled}
+        loadEditEnabled={loadEditEnabled}
+        materials={materials}
       />
     </>
   );

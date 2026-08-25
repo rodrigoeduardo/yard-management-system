@@ -124,3 +124,22 @@ export function combineEntryDateTimeValue(value: string): Date | null {
 
   return combineEntryDateTime(match[1], match[2]);
 }
+
+/**
+ * Inverse of {@link combineEntryDateTimeValue}: formats an absolute instant
+ * `Date` as the `YYYY-MM-DDTHH:mm` wall-clock value `<input
+ * type="datetime-local">` expects, in the yard's fixed timezone
+ * (`YARD_UTC_OFFSET_MINUTES`). Used to prefill the load-edit form with a
+ * load's existing `entryDate` (#352) — deliberately not routed through
+ * `Intl`/`formatEntryDateTime`, which produce a display string, not an
+ * editable input value.
+ */
+export function entryDateTimeInputValue(date: Date): string {
+  const shifted = new Date(date.getTime() - YARD_UTC_OFFSET_MINUTES * 60_000);
+  const year = shifted.getUTCFullYear();
+  const month = pad(shifted.getUTCMonth() + 1);
+  const day = pad(shifted.getUTCDate());
+  const hours = pad(shifted.getUTCHours());
+  const minutes = pad(shifted.getUTCMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}

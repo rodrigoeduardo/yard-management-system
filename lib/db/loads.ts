@@ -100,6 +100,155 @@ export async function getLoadWithItems(loadId: string) {
   return { load, items: loadItems };
 }
 
+export type LoadForEdit = {
+  id: string;
+  notaFiscal: string;
+  transportOrder: string | null;
+  driver: string | null;
+  nfDate: string | null;
+  entryDate: Date;
+  nfWeight: string;
+  materialId: string;
+  material: string;
+  /** Count of this load's items with `status = 'removed'` — NF/Material are read-only once > 0 (#352). */
+  removedItemCount: number;
+};
+
+/**
+ * Raw (unformatted) load fields for the "Editar carga" form (#352) —
+ * distinct from `StockRow`, whose `nfDate`/`entryDate` are pre-formatted
+ * display strings and whose `material` is a name with no id. Returns `null`
+ * when the load doesn't exist.
+ */
+export async function getLoadForEdit(
+  loadId: string,
+): Promise<LoadForEdit | null> {
+  const [load] = await db
+    .select({
+      id: loads.id,
+      notaFiscal: loads.notaFiscal,
+      transportOrder: loads.transportOrder,
+      driver: loads.driver,
+      nfDate: loads.nfDate,
+      entryDate: loads.entryDate,
+      nfWeight: loads.nfWeight,
+      materialId: loads.materialId,
+      material: materials.name,
+    })
+    .from(loads)
+    .innerJoin(materials, eq(loads.materialId, materials.id))
+    .where(eq(loads.id, loadId));
+
+  if (!load) {
+    return null;
+  }
+
+  const [removedCount] = await db
+    .select({
+      removedItemCount:
+        sql<number>`count(*) filter (where ${items.status} = 'removed')::int`,
+    })
+    .from(items)
+    .where(eq(items.loadId, loadId));
+
+  return { ...load, removedItemCount: removedCount?.removedItemCount ?? 0 };
+}
+
+export type UpdateLoadData = {
+  notaFiscal: string;
+  transportOrder: string;
+  driver: string;
+  nfDate: string;
+  entryDate: Date;
+  nfWeight: string;
+  /** An existing material's id, or a name to find-or-create — see `resolveMaterialId`. */
+  material: string;
+};
+
+/**
+ * Corrects any of `loads`' editable fields (#352) — the pattern from
+ * `updateItemWeight` (`lib/db/items.ts`): `withAuditUser` + `SELECT ... FOR
+ * UPDATE` on the load, checks evaluated inside the transaction against
+ * committed state, no delta arithmetic on derived columns (`itemCount`,
+ * `remainingWeight` are never touched here).
+ *
+ * Nota Fiscal and Material are rejected when the load already has a removed
+ * item — checked here, against the DB, regardless of what the client sent
+ * (the UI also disables those fields, but that's advisory only). An
+ * unchanged Material input (its current id, or its current name in any
+ * case) is never treated as a change, so it never triggers the restriction
+ * and never resolves/creates a material.
+ */
+export async function updateLoad(
+  loadId: string,
+  data: UpdateLoadData,
+  userId: string | null = null,
+) {
+  return withAuditUser(userId, async (tx) => {
+    const [load] = await tx
+      .select()
+      .from(loads)
+      .where(eq(loads.id, loadId))
+      .for("update");
+
+    if (!load) {
+      throw new Error("Load not found");
+    }
+
+    const [currentMaterial] = await tx
+      .select({ id: materials.id, name: materials.name })
+      .from(materials)
+      .where(eq(materials.id, load.materialId));
+
+    const [removedCount] = await tx
+      .select({
+        removedItemCount:
+          sql<number>`count(*) filter (where ${items.status} = 'removed')::int`,
+      })
+      .from(items)
+      .where(eq(items.loadId, loadId));
+    const removedItemCount = removedCount?.removedItemCount ?? 0;
+
+    const notaFiscalChanged = data.notaFiscal !== load.notaFiscal;
+    const materialInput = data.material.trim();
+    const materialUnchanged =
+      materialInput.toLowerCase() === currentMaterial.id.toLowerCase() ||
+      materialInput.toLowerCase() === currentMaterial.name.toLowerCase();
+    const materialChanged = !materialUnchanged;
+
+    if (removedItemCount > 0 && (notaFiscalChanged || materialChanged)) {
+      throw new Error(
+        "Não é possível alterar Nota Fiscal ou Material de uma carga com itens removidos.",
+      );
+    }
+
+    const material = materialUnchanged
+      ? currentMaterial
+      : await resolveMaterialId(tx, data.material);
+
+    const [updated] = await tx
+      .update(loads)
+      .set({
+        notaFiscal: data.notaFiscal,
+        transportOrder: data.transportOrder,
+        driver: data.driver,
+        nfDate: data.nfDate,
+        entryDate: data.entryDate,
+        nfWeight: data.nfWeight,
+        materialId: material.id,
+        updatedAt: new Date(),
+      })
+      .where(eq(loads.id, loadId))
+      .returning();
+
+    return {
+      ...updated,
+      material: material.name,
+      labelStale: notaFiscalChanged || materialChanged,
+    };
+  });
+}
+
 const STOCK_ORDER_COLUMNS = {
   entryDate: loads.entryDate,
   nfWeight: loads.nfWeight,

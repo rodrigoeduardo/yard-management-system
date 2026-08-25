@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
+import { resolveMaterialId } from "@/lib/db/materials";
 import { items, loads } from "@/lib/db/schema";
 
 // `createLoad` now reads the acting user id via `next/headers` cookies
@@ -17,8 +18,9 @@ vi.mock("next/headers", () => ({
 }));
 
 let createLoad: typeof import("./loads").createLoad;
+let updateLoadAction: typeof import("./loads").updateLoadAction;
 beforeAll(async () => {
-  ({ createLoad } = await import("./loads"));
+  ({ createLoad, updateLoadAction } = await import("./loads"));
 });
 
 describe("createLoad", () => {
@@ -403,5 +405,139 @@ describe("createLoad", () => {
       .where(eq(loads.id, result.load.id));
     expect(row.nfDate).toBe("2026-07-10");
     expect(row.entryDate.getUTCDate()).not.toBe(10);
+  });
+});
+
+describe("updateLoadAction", () => {
+  const createdLoadIds: string[] = [];
+  const originalFlag = process.env.FEATURE_LOAD_EDIT;
+
+  afterEach(async () => {
+    if (originalFlag === undefined) {
+      delete process.env.FEATURE_LOAD_EDIT;
+    } else {
+      process.env.FEATURE_LOAD_EDIT = originalFlag;
+    }
+
+    while (createdLoadIds.length > 0) {
+      const id = createdLoadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  async function insertLoad(overrides: {
+    notaFiscal: string;
+    material?: string;
+    removed?: boolean;
+  }) {
+    const { id: materialId } = await resolveMaterialId(
+      db,
+      overrides.material ?? "Aço",
+    );
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal: overrides.notaFiscal,
+        transportOrder: "OT-0001",
+        driver: "João Silva",
+        nfDate: "2026-01-01",
+        entryDate: new Date("2026-01-01T12:00:00Z"),
+        nfWeight: "500",
+        materialId,
+        itemCount: 1,
+        remainingWeight: "10",
+      })
+      .returning();
+    createdLoadIds.push(load.id);
+
+    const [item] = await db
+      .insert(items)
+      .values({
+        loadId: load.id,
+        weight: "10",
+        number: 1,
+        status: overrides.removed ? "removed" : "in_stock",
+      })
+      .returning();
+
+    return { load, item };
+  }
+
+  const validInput = (loadId: string, notaFiscal: string, material: string) => ({
+    loadId,
+    notaFiscal,
+    transportOrder: "OT-9999",
+    driver: "Maria",
+    nfDate: "2026-03-15",
+    entryDateTime: "2026-03-16T10:00",
+    nfWeight: 999,
+    material,
+  });
+
+  it("is inert while FEATURE_LOAD_EDIT is unset", async () => {
+    delete process.env.FEATURE_LOAD_EDIT;
+    const notaFiscal = `NF-EDIT-ACTION-DISABLED-${randomUUID()}`;
+    const { load } = await insertLoad({ notaFiscal });
+
+    const result = await updateLoadAction(
+      validInput(load.id, `${notaFiscal}-X`, "Aço"),
+    );
+
+    expect(result.success).toBe(false);
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row.notaFiscal).toBe(notaFiscal);
+  });
+
+  it("persists every field when the flag is enabled and the load has no removed items", async () => {
+    process.env.FEATURE_LOAD_EDIT = "true";
+    const notaFiscal = `NF-EDIT-ACTION-OK-${randomUUID()}`;
+    const { load } = await insertLoad({ notaFiscal });
+
+    const result = await updateLoadAction(
+      validInput(load.id, `${notaFiscal}-EDITED`, "Cobre"),
+    );
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error("expected success");
+    expect(result.load.notaFiscal).toBe(`${notaFiscal}-EDITED`);
+    expect(result.load.material).toBe("Cobre");
+    expect(result.load.labelStale).toBe(true);
+  });
+
+  it("rejects invalid input with PT-BR field errors and no write", async () => {
+    process.env.FEATURE_LOAD_EDIT = "true";
+    const notaFiscal = `NF-EDIT-ACTION-INVALID-${randomUUID()}`;
+    const { load } = await insertLoad({ notaFiscal });
+
+    const result = await updateLoadAction({
+      ...validInput(load.id, "", "Aço"),
+      nfWeight: -5,
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected validation error");
+    expect(result.error).toHaveProperty("fieldErrors");
+    if (typeof result.error === "string") throw new Error("expected object");
+    expect(result.error.fieldErrors.notaFiscal).toBeDefined();
+    expect(result.error.fieldErrors.nfWeight).toBeDefined();
+
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row.notaFiscal).toBe(notaFiscal);
+  });
+
+  it("rejects changing Nota Fiscal on a load with a removed item, as a plain string error", async () => {
+    process.env.FEATURE_LOAD_EDIT = "true";
+    const notaFiscal = `NF-EDIT-ACTION-REMOVED-${randomUUID()}`;
+    const { load } = await insertLoad({ notaFiscal, removed: true });
+
+    const result = await updateLoadAction(
+      validInput(load.id, `${notaFiscal}-CHANGED`, "Aço"),
+    );
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected failure");
+    expect(typeof result.error).toBe("string");
+    expect(result.error).toMatch(/Nota Fiscal ou Material/);
   });
 });

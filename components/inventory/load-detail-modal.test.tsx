@@ -4,16 +4,23 @@ import { LoadDetailModal } from "./load-detail-modal";
 import type { StockRow } from "./stock-table";
 
 const fetchLoadItems = vi.fn();
+const fetchLoadForEdit = vi.fn();
 const updateItemWeightAction = vi.fn();
+const updateLoadAction = vi.fn();
 const refresh = vi.fn();
 
 vi.mock("@/lib/actions/load-items", () => ({
   fetchLoadItems: (loadId: string) => fetchLoadItems(loadId),
+  fetchLoadForEdit: (loadId: string) => fetchLoadForEdit(loadId),
 }));
 
 vi.mock("@/lib/actions/item-weight", () => ({
   updateItemWeightAction: (input: { itemId: string; weight: number }) =>
     updateItemWeightAction(input),
+}));
+
+vi.mock("@/lib/actions/loads", () => ({
+  updateLoadAction: (input: unknown) => updateLoadAction(input),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -373,5 +380,133 @@ describe("LoadDetailModal", () => {
     });
     await waitFor(() => expect(screen.getByText("2.35 Ton")).toBeInTheDocument());
     expect(refresh).toHaveBeenCalled();
+  });
+});
+
+describe("LoadDetailModal — Editar carga (#352)", () => {
+  const EDIT_LOAD = {
+    id: "1",
+    notaFiscal: "NF-001",
+    transportOrder: "OT-0001",
+    driver: "João Silva",
+    nfDate: "2026-01-01",
+    entryDate: new Date("2026-01-01T12:00:00Z"),
+    nfWeight: "1000",
+    materialId: "material-1",
+    material: "Sucata",
+    removedItemCount: 0,
+  };
+
+  it("hides the Editar carga button when the flag is disabled", () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+
+    render(<LoadDetailModal load={LOAD} open onOpenChange={() => {}} />);
+
+    expect(
+      screen.queryByRole("button", { name: "Editar carga" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the Editar carga button and loads raw fields into the form when clicked", async () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+    fetchLoadForEdit.mockResolvedValue({ success: true, load: EDIT_LOAD });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Editar carga" }),
+    );
+
+    await waitFor(() => {
+      expect(fetchLoadForEdit).toHaveBeenCalledWith("1");
+    });
+    expect(
+      await screen.findByDisplayValue("OT-0001"),
+    ).toBeInTheDocument();
+    expect(screen.getByDisplayValue("João Silva")).toBeInTheDocument();
+  });
+
+  it("disables NF and Material with an explanation when the load has a removed item", async () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+    fetchLoadForEdit.mockResolvedValue({
+      success: true,
+      load: { ...EDIT_LOAD, removedItemCount: 1 },
+    });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Editar carga" }),
+    );
+
+    const nfInput = await screen.findByLabelText("Nota Fiscal");
+    expect(nfInput).toBeDisabled();
+    expect(
+      screen.getByText(/Nota Fiscal e Material não podem ser alterados/),
+    ).toBeInTheDocument();
+  });
+
+  it("saves the edited fields and shows the stale-label warning when NF or Material changed", async () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+    fetchLoadForEdit.mockResolvedValue({ success: true, load: EDIT_LOAD });
+    updateLoadAction.mockResolvedValue({
+      success: true,
+      load: { ...EDIT_LOAD, notaFiscal: "NF-002", labelStale: true },
+    });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Editar carga" }),
+    );
+    await screen.findByDisplayValue("OT-0001");
+
+    fireEvent.change(screen.getByLabelText("Nota Fiscal"), {
+      target: { value: "NF-002" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => {
+      expect(updateLoadAction).toHaveBeenCalledWith(
+        expect.objectContaining({ loadId: "1", notaFiscal: "NF-002" }),
+      );
+    });
+    expect(
+      await screen.findByText(/etiquetas impressas desta carga/),
+    ).toBeInTheDocument();
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("shows a PT-BR field error and does not exit edit mode on a validation failure", async () => {
+    fetchLoadItems.mockResolvedValue({ success: true, items: [] });
+    fetchLoadForEdit.mockResolvedValue({ success: true, load: EDIT_LOAD });
+    updateLoadAction.mockResolvedValue({
+      success: false,
+      error: {
+        formErrors: [],
+        fieldErrors: { notaFiscal: ["Informe a nota fiscal."] },
+      },
+    });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Editar carga" }),
+    );
+    await screen.findByDisplayValue("OT-0001");
+    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(
+      await screen.findByText("Informe a nota fiscal."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvar" })).toBeInTheDocument();
   });
 });
