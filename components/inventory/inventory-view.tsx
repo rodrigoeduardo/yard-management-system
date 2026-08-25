@@ -11,6 +11,7 @@ import {
   type StockQueryState,
 } from "@/lib/inventory/stock-query";
 import { cn } from "@/lib/utils";
+import type { MaterialOption } from "@/components/loads/material-combobox";
 import { RemovalSection } from "./removal-section";
 import type { RemovalLogRow } from "./removal-log-table";
 import { StockSection } from "./stock-section";
@@ -38,6 +39,8 @@ export function InventoryView({
   removalQuery,
   removalCancelEnabled = false,
   itemWeightEditEnabled = false,
+  loadEditEnabled = false,
+  materials = [],
 }: {
   stockRows: StockRow[];
   stockTotal: number;
@@ -47,6 +50,8 @@ export function InventoryView({
   removalQuery: RemovalQueryState;
   removalCancelEnabled?: boolean;
   itemWeightEditEnabled?: boolean;
+  loadEditEnabled?: boolean;
+  materials?: MaterialOption[];
 }) {
   const [segment, setSegment] = useState<Segment>("current");
 
@@ -77,6 +82,8 @@ export function InventoryView({
           total={stockTotal}
           query={stockQuery}
           itemWeightEditEnabled={itemWeightEditEnabled}
+          loadEditEnabled={loadEditEnabled}
+          materials={materials}
         />
       </div>
 

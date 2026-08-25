@@ -170,7 +170,11 @@ export async function updateLoadAction(input: UpdateLoadInput) {
   const parsed = updateLoadSchema.safeParse(input);
   if (!parsed.success) {
     const { formErrors, fieldErrors } = parsed.error.flatten();
-    const { loadId: _loadId, ...restFieldErrors } = fieldErrors;
+    const restFieldErrors: UpdateLoadError["fieldErrors"] = {};
+    for (const field of Object.keys(fieldErrors) as (keyof typeof fieldErrors)[]) {
+      if (field === "loadId") continue;
+      restFieldErrors[field] = fieldErrors[field];
+    }
     return {
       success: false as const,
       error: { formErrors, fieldErrors: restFieldErrors },

@@ -5,13 +5,17 @@ import type { StockRow } from "@/components/inventory/stock-table";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUserRole } from "@/lib/auth/current-role";
 import { listStockPage } from "@/lib/db/loads";
+import { listMaterials } from "@/lib/db/materials";
 import { listRemovalNfs, listRemovalsPage } from "@/lib/db/removal-log";
 import { formatCalendarDate, formatEntryDateTime } from "@/lib/format/datetime";
 import { inventoryQueryString } from "@/lib/inventory/print";
 import { groupNfsByRemoval } from "@/lib/inventory/removal-log";
 import { parseRemovalSearchParams } from "@/lib/inventory/removal-query";
 import { isLoadFinished } from "@/lib/inventory/stock";
-import { isItemWeightEditEnabled } from "@/lib/inventory/feature-flags";
+import {
+  isItemWeightEditEnabled,
+  isLoadEditEnabled,
+} from "@/lib/inventory/feature-flags";
 import { parseStockSearchParams } from "@/lib/inventory/stock-query";
 import { isRemovalCancelEnabled } from "@/lib/removals/feature-flags";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
@@ -28,9 +32,13 @@ export default async function InventoryPage({
   const showViewerRestrictedNotice =
     resolvedSearchParams.notice === "viewer-restricted";
   const stockQuery = parseStockSearchParams(resolvedSearchParams);
-  const [stockPage, role] = await Promise.all([
+  const loadEditEnabled = isLoadEditEnabled();
+  const [stockPage, role, materials] = await Promise.all([
     listStockPage(stockQuery),
     getCurrentUserRole(),
+    // Only needed for the "Editar carga" Material combobox — skip the query
+    // entirely while the flag is off.
+    loadEditEnabled ? listMaterials() : Promise.resolve([]),
   ]);
   const isViewer = role === "viewer";
 
@@ -104,6 +112,8 @@ export default async function InventoryPage({
         removalQuery={removalQuery}
         removalCancelEnabled={isRemovalCancelEnabled() && !isViewer}
         itemWeightEditEnabled={isItemWeightEditEnabled() && !isViewer}
+        loadEditEnabled={loadEditEnabled && !isViewer}
+        materials={materials}
       />
     </main>
   );
