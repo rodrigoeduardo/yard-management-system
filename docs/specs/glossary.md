@@ -19,7 +19,9 @@
 | Placa do veículo | Vehicle Plate | License plate of the vehicle transporting removed items; recorded per removal action, required at the form level. |
 | Material | Material | A persisted entity (`name`) that categorizes a load's contents; selected or created inline on the load form. |
 | Peso da Nota Fiscal | NF Weight | Total weight stated on the invoice. Reference only — need not equal the sum of item weights. |
-| Peso Restante | Remaining Weight | Sum of the weights of a load's items still in stock. |
+| Peso Restante | Remaining Weight | Sum of the weights of a load's items still in stock. Derived — always recomputed from item state, never accepted as direct input (not even from `FEATURE_LOAD_EDIT`'s "Editar carga" flow, #352). |
+| Quantidade de Itens | Item Count | A load's item count. Derived from its item rows, same as Remaining Weight above — never accepted as direct input. |
+| Editar carga | Edit Load | Behind `FEATURE_LOAD_EDIT` (default off — #352): a flow on the Estoque load-detail modal that corrects a load's own fields. Nota Fiscal and Material are editable only while the load has no removed items; every other editable field (Ordem de Transporte, Motorista, both dates, NF Weight) is always editable. See [Corrections](business-rules.md#corrections-inventory-view). |
 | Peso Total Removido | Total Removed Weight | Sum of the weights of all items removed in one removal action. |
 | Estoque | Inventory / Stock | Everything currently in the yard, viewed per load. |
 | Pátio | Yard | The physical storage area. |

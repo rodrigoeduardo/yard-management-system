@@ -36,6 +36,14 @@
 
 - With `FEATURE_ITEM_WEIGHT_EDIT` enabled, an operator may correct only an in-stock item's weight. The load's Remaining Weight is recomputed as the exact sum of its in-stock item weights; Item Count does not change.
 - Removed items and every removal's recorded total remain immutable. A correction does not issue a new QR token, identifier, or label; existing printed labels remain stale, and a later reprint uses the corrected weight.
+- With `FEATURE_LOAD_EDIT` enabled (default off — #352), an operator may correct a load's own fields from an "Editar carga" flow on the Estoque load-detail modal:
+  - **Ordem de Transporte**, **Motorista**, **Data da Nota Fiscal**, **Data de Entrada**, and **Peso da Nota Fiscal** are always editable, for any load.
+  - **Nota Fiscal** and **Material** are editable only while the load has **no removed items** (`removedItemCount === 0`). Once any item of the load has been removed, both fields render read-only in the edit form with a PT-BR explanation, and the server action rejects an attempt to change either — checked against committed database state inside the same locked transaction, not trusted from the client. Every other field stays editable regardless of removals.
+  - **Item Count** and **Peso Restante** are never accepted as input by this action; they stay derived exactly as before. Editing a load never changes any item's `number`, `qrToken`, `weight`, `corrida`, or `status`, nor any removal's recorded `totalRemovedWeight`.
+  - Validation mirrors Add Load: NF / Ordem de Transporte / Motorista non-empty, NF Weight positive, NF Date a valid calendar date, Entry Date a valid date-time — same PT-BR messages. Material accepts an existing material or a new name, resolved the same way as intake.
+  - Changing Material moves the load's in-stock items between the counts/weights shown on the Materials page — intended, not a bug. `updatedAt` moves on every successful edit, so the load rises to the top of the stock table (ordered by last modification).
+  - After a successful save, the UI warns that this load's printed labels are now stale and must be reprinted whenever **NF or Material** changed — those two are what appears on the label/QR payload. Reprinting itself stays the operator's existing manual flow; this action never triggers it automatically.
+  - Out of scope: adding/deleting items (Item Count stays fixed), editing an item's weight or corrida (separate flags/issues), and editing a removal's own fields.
 
 ## Load Removal (`load-removal`)
 
