@@ -3,6 +3,7 @@ import { formatEntryDateTime } from "@/lib/format/datetime";
 import {
   combineEntryDateTime,
   combineEntryDateTimeValue,
+  entryDateTimeInputValue,
   getCurrentEntryDateTimeValue,
   getCurrentEntryDateValue,
   getCurrentEntryTimeValue,
@@ -138,5 +139,21 @@ describe("isValidCalendarDateValue", () => {
 
   it("rejects a calendar date that does not exist", () => {
     expect(isValidCalendarDateValue("2026-02-30")).toBe(false);
+  });
+});
+
+describe("entryDateTimeInputValue", () => {
+  it("round-trips with combineEntryDateTimeValue", () => {
+    const original = "2026-07-17T14:35";
+    const instant = combineEntryDateTimeValue(original)!;
+
+    expect(entryDateTimeInputValue(instant)).toBe(original);
+  });
+
+  it("round-trips across a midnight rollover", () => {
+    const original = "2026-01-01T00:05";
+    const instant = combineEntryDateTimeValue(original)!;
+
+    expect(entryDateTimeInputValue(instant)).toBe(original);
   });
 });
