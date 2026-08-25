@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { fetchLoadForEdit, fetchLoadItems } from "@/lib/actions/load-items";
+import { updateItemCorridaAction } from "@/lib/actions/item-corrida";
 import { updateItemWeightAction } from "@/lib/actions/item-weight";
 import { updateLoadAction } from "@/lib/actions/loads";
 import type { LoadItemDetail } from "@/lib/db/load-items";
@@ -66,7 +67,11 @@ export function LoadDetailModal({
   const [items, setItems] = useState<LoadItemDetail[]>([]);
   const [isPending, startTransition] = useTransition();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<"weight" | "corrida" | null>(
+    null,
+  );
   const [editedWeight, setEditedWeight] = useState("");
+  const [editedCorrida, setEditedCorrida] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
 
   const [editingLoad, setEditingLoad] = useState(false);
@@ -201,7 +206,21 @@ export function LoadDetailModal({
 
   const startEditing = (item: LoadItemDetail) => {
     setEditingItemId(item.id);
+    setEditingField("weight");
     setEditedWeight(item.weight);
+    setEditError(null);
+  };
+
+  const startEditingCorrida = (item: LoadItemDetail) => {
+    setEditingItemId(item.id);
+    setEditingField("corrida");
+    setEditedCorrida(item.corrida ?? "");
+    setEditError(null);
+  };
+
+  const cancelItemEdit = () => {
+    setEditingItemId(null);
+    setEditingField(null);
     setEditError(null);
   };
 
@@ -227,7 +246,37 @@ export function LoadDetailModal({
       const itemsResult = await fetchLoadItems(load.id);
       setItems(itemsResult.success ? itemsResult.items : []);
       setEditingItemId(null);
+      setEditingField(null);
       setEditError(null);
+      router.refresh();
+    });
+  };
+
+  const saveCorrida = (item: LoadItemDetail) => {
+    const corrida = editedCorrida.trim();
+    if (!corrida) {
+      setEditError("Informe a corrida.");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await updateItemCorridaAction({ itemId: item.id, corrida });
+      if (!result.success) {
+        setEditError(
+          typeof result.error === "string"
+            ? result.error
+            : "Não foi possível salvar a corrida.",
+        );
+        return;
+      }
+
+      if (!load) return;
+      const itemsResult = await fetchLoadItems(load.id);
+      setItems(itemsResult.success ? itemsResult.items : []);
+      setEditingItemId(null);
+      setEditingField(null);
+      setEditError(null);
+      setLabelStaleNotice(true);
       router.refresh();
     });
   };
@@ -580,7 +629,7 @@ export function LoadDetailModal({
                         </div>
                       </div>
                       {itemWeightEditEnabled && item.status === "in_stock" ? (
-                        editingItemId === item.id ? (
+                        editingItemId === item.id && editingField === "weight" ? (
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             <label className="sr-only" htmlFor={`item-weight-${item.id}`}>
                               Peso do item {item.number}
@@ -601,10 +650,7 @@ export function LoadDetailModal({
                               type="button"
                               size="sm"
                               variant="outline"
-                              onClick={() => {
-                                setEditingItemId(null);
-                                setEditError(null);
-                              }}
+                              onClick={cancelItemEdit}
                               disabled={isPending}
                             >
                               Cancelar
@@ -614,6 +660,45 @@ export function LoadDetailModal({
                         ) : (
                           <Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => startEditing(item)}>
                             Editar peso
+                          </Button>
+                        )
+                      ) : null}
+                      {loadEditEnabled && item.status === "in_stock" ? (
+                        editingItemId === item.id && editingField === "corrida" ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <label className="sr-only" htmlFor={`item-corrida-${item.id}`}>
+                              Corrida do item {item.number}
+                            </label>
+                            <input
+                              id={`item-corrida-${item.id}`}
+                              type="text"
+                              value={editedCorrida}
+                              onChange={(event) => setEditedCorrida(event.target.value)}
+                              className="h-8 w-28 rounded-md border border-input bg-background px-2 text-sm"
+                            />
+                            <Button type="button" size="sm" onClick={() => saveCorrida(item)} disabled={isPending}>
+                              Salvar corrida
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelItemEdit}
+                              disabled={isPending}
+                            >
+                              Cancelar
+                            </Button>
+                            {editError ? <p className="w-full text-sm text-destructive">{editError}</p> : null}
+                          </div>
+                        ) : (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="mt-3"
+                            onClick={() => startEditingCorrida(item)}
+                          >
+                            Editar corrida
                           </Button>
                         )
                       ) : null}

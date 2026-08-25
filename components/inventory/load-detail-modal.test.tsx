@@ -6,6 +6,7 @@ import type { StockRow } from "./stock-table";
 const fetchLoadItems = vi.fn();
 const fetchLoadForEdit = vi.fn();
 const updateItemWeightAction = vi.fn();
+const updateItemCorridaAction = vi.fn();
 const updateLoadAction = vi.fn();
 const refresh = vi.fn();
 
@@ -17,6 +18,11 @@ vi.mock("@/lib/actions/load-items", () => ({
 vi.mock("@/lib/actions/item-weight", () => ({
   updateItemWeightAction: (input: { itemId: string; weight: number }) =>
     updateItemWeightAction(input),
+}));
+
+vi.mock("@/lib/actions/item-corrida", () => ({
+  updateItemCorridaAction: (input: { itemId: string; corrida: string }) =>
+    updateItemCorridaAction(input),
 }));
 
 vi.mock("@/lib/actions/loads", () => ({
@@ -379,6 +385,122 @@ describe("LoadDetailModal", () => {
       });
     });
     await waitFor(() => expect(screen.getByText("2.35 Ton")).toBeInTheDocument());
+    expect(refresh).toHaveBeenCalled();
+  });
+});
+
+describe("LoadDetailModal — Editar corrida (#353)", () => {
+  it("hides corrida edits while disabled and for removed items", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock", corrida: "C-1" },
+        { id: "item-2", identifier: "Item 2 - NF-001", number: 2, weight: "30", status: "removed", corrida: "C-2" },
+      ],
+    });
+
+    const { rerender } = render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} />,
+    );
+
+    await screen.findByText("Item 1 — Sucata");
+    expect(screen.queryByRole("button", { name: "Editar corrida" })).not.toBeInTheDocument();
+
+    rerender(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    expect(screen.getAllByRole("button", { name: "Editar corrida" })).toHaveLength(1);
+  });
+
+  it("shows both edit affordances when both flags are on, and only corrida when just FEATURE_LOAD_EDIT is on", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock", corrida: "C-1" },
+      ],
+    });
+
+    const { rerender } = render(
+      <LoadDetailModal
+        load={LOAD}
+        open
+        onOpenChange={() => {}}
+        loadEditEnabled
+        itemWeightEditEnabled
+      />,
+    );
+
+    await screen.findByText("Item 1 — Sucata");
+    expect(screen.getByRole("button", { name: "Editar peso" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar corrida" })).toBeInTheDocument();
+
+    rerender(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Editar peso" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar corrida" })).toBeInTheDocument();
+  });
+
+  it("shows a PT-BR error and avoids the action for blank corrida input", async () => {
+    fetchLoadItems.mockResolvedValue({
+      success: true,
+      items: [
+        { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock", corrida: "C-1" },
+      ],
+    });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Editar corrida" }));
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "   " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar corrida" }));
+
+    expect(updateItemCorridaAction).not.toHaveBeenCalled();
+    expect(screen.getByText("Informe a corrida.")).toBeInTheDocument();
+  });
+
+  it("refreshes the modal data, shows the stale-label warning, and calls the action trimmed after a successful corrida edit", async () => {
+    fetchLoadItems
+      .mockResolvedValueOnce({
+        success: true,
+        items: [
+          { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock", corrida: "C-1" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        items: [
+          { id: "item-1", identifier: "Item 1 - NF-001", number: 1, weight: "50", status: "in_stock", corrida: "C-2" },
+        ],
+      });
+    updateItemCorridaAction.mockResolvedValue({ success: true, item: {} });
+
+    render(
+      <LoadDetailModal load={LOAD} open onOpenChange={() => {}} loadEditEnabled />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "Editar corrida" }));
+    fireEvent.change(screen.getByLabelText("Corrida do item 1"), {
+      target: { value: "  C-2  " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar corrida" }));
+
+    await waitFor(() => {
+      expect(updateItemCorridaAction).toHaveBeenCalledWith({
+        itemId: "item-1",
+        corrida: "C-2",
+      });
+    });
+    await waitFor(() => expect(screen.getByText("C-2")).toBeInTheDocument());
+    expect(
+      screen.getByText(/etiquetas impressas desta carga ficaram desatualizadas/),
+    ).toBeInTheDocument();
     expect(refresh).toHaveBeenCalled();
   });
 });
