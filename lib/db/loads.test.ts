@@ -2,7 +2,13 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
-import { getLoadWithItems, insertLoadWithItems, listStockPage } from "./loads";
+import {
+  getLoadForEdit,
+  getLoadWithItems,
+  insertLoadWithItems,
+  listStockPage,
+  updateLoad,
+} from "./loads";
 import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
@@ -653,5 +659,298 @@ describe("listStockPage", () => {
 
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0]?.removedItemCount).toBe(0);
+  });
+});
+
+describe("getLoadForEdit", () => {
+  const createdLoadIds: string[] = [];
+
+  afterEach(async () => {
+    while (createdLoadIds.length > 0) {
+      const id = createdLoadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  it("returns raw (unformatted) fields plus the removed item count", async () => {
+    const notaFiscal = `NF-EDIT-READ-${randomUUID()}`;
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-9001",
+      driver: "Carlos",
+      nfDate: "2026-02-01",
+      entryDate: new Date("2026-02-02T12:00:00Z"),
+      nfWeight: "500",
+      material: "Cobre",
+      itemWeights: ["10", "20"],
+      itemCorridas: ["C-1", "C-2"],
+    });
+    createdLoadIds.push(load.id);
+
+    const result = await getLoadForEdit(load.id);
+
+    expect(result).toMatchObject({
+      id: load.id,
+      notaFiscal,
+      transportOrder: "OT-9001",
+      driver: "Carlos",
+      nfDate: "2026-02-01",
+      nfWeight: "500",
+      material: "Cobre",
+      removedItemCount: 0,
+    });
+    expect(result?.entryDate).toBeInstanceOf(Date);
+  });
+
+  it("counts only removed items", async () => {
+    const notaFiscal = `NF-EDIT-READ-REMOVED-${randomUUID()}`;
+    const load = await insertLoadWithItems({
+      notaFiscal,
+      transportOrder: "OT-9002",
+      driver: "Carlos",
+      nfDate: "2026-02-01",
+      entryDate: new Date("2026-02-02T12:00:00Z"),
+      nfWeight: "500",
+      material: "Cobre",
+      itemWeights: ["10", "20"],
+      itemCorridas: ["C-1", "C-2"],
+    });
+    createdLoadIds.push(load.id);
+
+    const [firstItem] = await db
+      .select()
+      .from(items)
+      .where(eq(items.loadId, load.id));
+    await db
+      .update(items)
+      .set({ status: "removed" })
+      .where(eq(items.id, firstItem!.id));
+
+    const result = await getLoadForEdit(load.id);
+
+    expect(result?.removedItemCount).toBe(1);
+  });
+
+  it("returns null for a nonexistent load", async () => {
+    expect(await getLoadForEdit(randomUUID())).toBeNull();
+  });
+});
+
+describe("updateLoad", () => {
+  const createdLoadIds: string[] = [];
+
+  afterEach(async () => {
+    while (createdLoadIds.length > 0) {
+      const id = createdLoadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  async function createLoad(overrides: {
+    notaFiscal: string;
+    material?: string;
+    itemStatuses?: ("in_stock" | "removed")[];
+  }) {
+    const load = await insertLoadWithItems({
+      notaFiscal: overrides.notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01T12:00:00Z"),
+      nfWeight: "500",
+      material: overrides.material ?? "Aço",
+      itemWeights: (overrides.itemStatuses ?? ["in_stock"]).map(() => "10"),
+      itemCorridas: (overrides.itemStatuses ?? ["in_stock"]).map(() => null),
+    });
+    createdLoadIds.push(load.id);
+
+    if (overrides.itemStatuses) {
+      const rows = await db
+        .select()
+        .from(items)
+        .where(eq(items.loadId, load.id))
+        .orderBy(items.number);
+      for (const [index, status] of overrides.itemStatuses.entries()) {
+        if (status === "removed") {
+          await db
+            .update(items)
+            .set({ status: "removed" })
+            .where(eq(items.id, rows[index]!.id));
+        }
+      }
+    }
+
+    return load;
+  }
+
+  it("persists every editable field when the load has no removed items", async () => {
+    const notaFiscal = `NF-EDIT-ALL-${randomUUID()}`;
+    const load = await createLoad({ notaFiscal });
+
+    const updated = await updateLoad(load.id, {
+      notaFiscal: `${notaFiscal}-EDITED`,
+      transportOrder: "OT-9999",
+      driver: "Maria",
+      nfDate: "2026-03-15",
+      entryDate: new Date("2026-03-16T10:00:00Z"),
+      nfWeight: "999",
+      material: "Ferro Novo",
+    });
+
+    expect(updated.notaFiscal).toBe(`${notaFiscal}-EDITED`);
+    expect(updated.transportOrder).toBe("OT-9999");
+    expect(updated.driver).toBe("Maria");
+    expect(updated.nfDate).toBe("2026-03-15");
+    expect(updated.nfWeight).toBe("999");
+    expect(updated.material).toBe("Ferro Novo");
+    expect(updated.labelStale).toBe(true);
+
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row?.itemCount).toBe(1);
+    expect(row?.remainingWeight).toBe("10");
+  });
+
+  it("leaves item_count and remaining_weight untouched", async () => {
+    const notaFiscal = `NF-EDIT-DERIVED-${randomUUID()}`;
+    const load = await createLoad({ notaFiscal });
+
+    await updateLoad(load.id, {
+      notaFiscal,
+      transportOrder: "OT-0002",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01T12:00:00Z"),
+      nfWeight: "500",
+      material: "Aço",
+    });
+
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row?.itemCount).toBe(load.itemCount);
+    expect(row?.remainingWeight).toBe(load.remainingWeight);
+  });
+
+  it("does not mark the label stale when neither NF nor Material changed", async () => {
+    const notaFiscal = `NF-EDIT-NOT-STALE-${randomUUID()}`;
+    const load = await createLoad({ notaFiscal, material: "Aço" });
+
+    const updated = await updateLoad(load.id, {
+      notaFiscal,
+      transportOrder: "OT-CHANGED",
+      driver: "Outro Motorista",
+      nfDate: "2026-05-01",
+      entryDate: new Date("2026-05-02T12:00:00Z"),
+      nfWeight: "111",
+      // Same material, different case — must not be treated as a change.
+      material: "aço",
+    });
+
+    expect(updated.labelStale).toBe(false);
+    expect(updated.material).toBe("Aço");
+  });
+
+  it("resolves a brand-new material name, creating it", async () => {
+    const notaFiscal = `NF-EDIT-NEW-MATERIAL-${randomUUID()}`;
+    const load = await createLoad({ notaFiscal });
+    const newMaterialName = `Material Novo ${randomUUID()}`;
+
+    const updated = await updateLoad(load.id, {
+      notaFiscal,
+      transportOrder: "OT-0001",
+      driver: "João Silva",
+      nfDate: "2026-01-01",
+      entryDate: new Date("2026-01-01T12:00:00Z"),
+      nfWeight: "500",
+      material: newMaterialName,
+    });
+
+    expect(updated.material).toBe(newMaterialName);
+    expect(updated.labelStale).toBe(true);
+  });
+
+  it("allows changing every field except NF/Material when the load has a removed item", async () => {
+    const notaFiscal = `NF-EDIT-PARTIAL-${randomUUID()}`;
+    const load = await createLoad({
+      notaFiscal,
+      itemStatuses: ["removed"],
+    });
+
+    const updated = await updateLoad(load.id, {
+      notaFiscal,
+      transportOrder: "OT-CHANGED",
+      driver: "Novo Motorista",
+      nfDate: "2026-06-01",
+      entryDate: new Date("2026-06-02T12:00:00Z"),
+      nfWeight: "777",
+      material: "Aço",
+    });
+
+    expect(updated.transportOrder).toBe("OT-CHANGED");
+    expect(updated.driver).toBe("Novo Motorista");
+    expect(updated.nfWeight).toBe("777");
+  });
+
+  it("rejects changing Nota Fiscal when the load has a removed item, writing nothing", async () => {
+    const notaFiscal = `NF-EDIT-REJECT-NF-${randomUUID()}`;
+    const load = await createLoad({
+      notaFiscal,
+      itemStatuses: ["removed"],
+    });
+
+    await expect(
+      updateLoad(load.id, {
+        notaFiscal: `${notaFiscal}-CHANGED`,
+        transportOrder: "OT-0001",
+        driver: "João Silva",
+        nfDate: "2026-01-01",
+        entryDate: new Date("2026-01-01T12:00:00Z"),
+        nfWeight: "500",
+        material: "Aço",
+      }),
+    ).rejects.toThrow(/Nota Fiscal ou Material/);
+
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row?.notaFiscal).toBe(notaFiscal);
+    expect(row?.transportOrder).toBe("OT-0001");
+  });
+
+  it("rejects changing Material when the load has a removed item, writing nothing", async () => {
+    const notaFiscal = `NF-EDIT-REJECT-MATERIAL-${randomUUID()}`;
+    const load = await createLoad({
+      notaFiscal,
+      material: "Aço",
+      itemStatuses: ["removed"],
+    });
+
+    await expect(
+      updateLoad(load.id, {
+        notaFiscal,
+        transportOrder: "OT-CHANGED",
+        driver: "João Silva",
+        nfDate: "2026-01-01",
+        entryDate: new Date("2026-01-01T12:00:00Z"),
+        nfWeight: "500",
+        material: "Cobre",
+      }),
+    ).rejects.toThrow(/Nota Fiscal ou Material/);
+
+    const [row] = await db.select().from(loads).where(eq(loads.id, load.id));
+    expect(row?.transportOrder).toBe("OT-0001");
+    expect(row?.driver).toBe("João Silva");
+  });
+
+  it("throws for a nonexistent load", async () => {
+    await expect(
+      updateLoad(randomUUID(), {
+        notaFiscal: "NF-MISSING",
+        transportOrder: "OT-0001",
+        driver: "João Silva",
+        nfDate: "2026-01-01",
+        entryDate: new Date("2026-01-01T12:00:00Z"),
+        nfWeight: "500",
+        material: "Aço",
+      }),
+    ).rejects.toThrow("Load not found");
   });
 });

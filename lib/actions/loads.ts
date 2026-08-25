@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/current-user";
-import { insertLoadWithItems } from "@/lib/db/loads";
+import { insertLoadWithItems, updateLoad } from "@/lib/db/loads";
+import { isLoadEditEnabled } from "@/lib/inventory/feature-flags";
 import {
   combineEntryDateTimeValue,
   isValidCalendarDateValue,
@@ -111,4 +112,93 @@ export async function createLoad(input: CreateLoadInput) {
   );
 
   return { success: true as const, load };
+}
+
+const updateLoadSchema = z
+  .object({
+    loadId: z.uuid(),
+    notaFiscal: z.string().min(1),
+    transportOrder: z.string().min(1),
+    driver: z.string().min(1),
+    nfDate: z.string().min(1),
+    entryDateTime: z.string().min(1),
+    nfWeight: z.number().positive(),
+    material: z.string().min(1),
+  })
+  .refine((data) => combineEntryDateTimeValue(data.entryDateTime) !== null, {
+    message: "Informe uma data e hora de entrada válidas.",
+    path: ["entryDateTime"],
+  })
+  .refine((data) => isValidCalendarDateValue(data.nfDate), {
+    message: "Informe uma data da nota fiscal válida.",
+    path: ["nfDate"],
+  });
+
+export type UpdateLoadInput = z.input<typeof updateLoadSchema>;
+
+export type UpdateLoadError = {
+  formErrors: string[];
+  fieldErrors: Partial<
+    Record<Exclude<keyof UpdateLoadInput, "loadId">, string[]>
+  >;
+};
+
+/**
+ * Corrects any of a load's editable fields behind `FEATURE_LOAD_EDIT`
+ * (#352). Validation mirrors `createLoad` above — same fields, same PT-BR
+ * messages via `parsed.error.flatten()` — but there is no items payload, so
+ * the error shape has no `itemWeightErrors`/`itemCorridaErrors`.
+ *
+ * `itemCount`/`remainingWeight` are never accepted as input here — they
+ * stay derived, exactly as `lib/db/loads.ts`'s `updateLoad` never writes
+ * them. A restriction/not-found failure from the db layer (e.g. attempting
+ * to change NF/Material on a load with removed items) surfaces as a plain
+ * string `error`, distinguishing it from the flattened zod validation shape.
+ */
+export async function updateLoadAction(input: UpdateLoadInput) {
+  if (await isViewerWriteRefused()) {
+    return { success: false as const, error: VIEWER_WRITE_ERROR_MESSAGE };
+  }
+
+  if (!isLoadEditEnabled()) {
+    return {
+      success: false as const,
+      error: "Edição de carga está desabilitada.",
+    };
+  }
+
+  const parsed = updateLoadSchema.safeParse(input);
+  if (!parsed.success) {
+    const { formErrors, fieldErrors } = parsed.error.flatten();
+    const { loadId: _loadId, ...restFieldErrors } = fieldErrors;
+    return {
+      success: false as const,
+      error: { formErrors, fieldErrors: restFieldErrors },
+    };
+  }
+
+  // Validated above by the schema's refine — never null here.
+  const entryDate = combineEntryDateTimeValue(parsed.data.entryDateTime)!;
+
+  try {
+    const load = await updateLoad(
+      parsed.data.loadId,
+      {
+        notaFiscal: parsed.data.notaFiscal,
+        transportOrder: parsed.data.transportOrder,
+        driver: parsed.data.driver,
+        nfDate: parsed.data.nfDate,
+        entryDate,
+        nfWeight: parsed.data.nfWeight.toString(),
+        material: parsed.data.material,
+      },
+      await getCurrentUserId(),
+    );
+    return { success: true as const, load };
+  } catch (error) {
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : "Erro desconhecido.",
+    };
+  }
 }

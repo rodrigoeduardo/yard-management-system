@@ -16,8 +16,10 @@ vi.mock("next/headers", () => ({
 }));
 
 const insertLoadWithItemsMock = vi.hoisted(() => vi.fn());
+const updateLoadMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/db/loads", () => ({
   insertLoadWithItems: insertLoadWithItemsMock,
+  updateLoad: updateLoadMock,
 }));
 
 const createMaterialMock = vi.hoisted(() => vi.fn());
@@ -52,9 +54,12 @@ vi.mock("@/lib/supabase/ssr-server", () => ({
 const MODULES: Record<string, { guarded: string[]; exempt: string[] }> = {
   "./item-status": { guarded: [], exempt: ["checkItemStatus"] },
   "./item-weight": { guarded: ["updateItemWeightAction"], exempt: [] },
-  "./load-items": { guarded: [], exempt: ["fetchLoadItems"] },
+  "./load-items": {
+    guarded: [],
+    exempt: ["fetchLoadItems", "fetchLoadForEdit"],
+  },
   "./removal-items": { guarded: [], exempt: ["fetchRemovalItems"] },
-  "./loads": { guarded: ["createLoad"], exempt: [] },
+  "./loads": { guarded: ["createLoad", "updateLoadAction"], exempt: [] },
   "./materials": {
     guarded: ["createMaterialAction", "renameMaterialAction"],
     exempt: [],
@@ -109,6 +114,22 @@ describe("lib/actions guard coverage", () => {
           material: "Aço",
           itemWeights: [10],
           itemCorridas: ["C-1"],
+        });
+      },
+    ],
+    [
+      "updateLoadAction",
+      async () => {
+        const { updateLoadAction } = await import("./loads");
+        return updateLoadAction({
+          loadId: "00000000-0000-0000-0000-000000000000",
+          notaFiscal: "NF-1",
+          transportOrder: "OT-000001",
+          driver: "João da Silva",
+          nfDate: "2026-01-01",
+          entryDateTime: "2026-01-01T09:00",
+          nfWeight: 100,
+          material: "Aço",
         });
       },
     ],
@@ -173,6 +194,7 @@ describe("lib/actions guard coverage", () => {
       expect(message).toContain(VIEWER_WRITE_ERROR_MESSAGE);
 
       expect(insertLoadWithItemsMock).not.toHaveBeenCalled();
+      expect(updateLoadMock).not.toHaveBeenCalled();
       expect(createMaterialMock).not.toHaveBeenCalled();
       expect(renameMaterialMock).not.toHaveBeenCalled();
       expect(removeScannedItemsMock).not.toHaveBeenCalled();
