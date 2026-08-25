@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
-import { getItemStatusByQrToken, updateItemWeight } from "./items";
+import {
+  getItemStatusByQrToken,
+  updateItemCorrida,
+  updateItemWeight,
+} from "./items";
 import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
@@ -154,5 +158,99 @@ describe("updateItemWeight", () => {
       .from(items)
       .where(eq(items.id, insertedItems[0].id));
     expect(unchangedItem.weight).toBe("1");
+  });
+});
+
+describe("updateItemCorrida", () => {
+  const createdLoadIds: string[] = [];
+
+  afterEach(async () => {
+    while (createdLoadIds.length > 0) {
+      const id = createdLoadIds.pop()!;
+      await db.delete(items).where(eq(items.loadId, id));
+      await db.delete(loads).where(eq(loads.id, id));
+    }
+  });
+
+  async function insertLoadWithItem(
+    status: "in_stock" | "removed",
+    corrida: string | null = "C-1",
+  ) {
+    const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const [load] = await db
+      .insert(loads)
+      .values({
+        notaFiscal: `NF-ITEM-CORRIDA-${randomUUID()}`,
+        entryDate: new Date("2026-01-01"),
+        nfWeight: "100",
+        materialId,
+        itemCount: 1,
+        remainingWeight: "10",
+      })
+      .returning();
+    createdLoadIds.push(load.id);
+
+    const [item] = await db
+      .insert(items)
+      .values({ loadId: load.id, weight: "10", status, number: 1, corrida })
+      .returning();
+
+    return { load, item };
+  }
+
+  it("updates an in-stock item's corrida without touching weight, status, itemCount or remainingWeight", async () => {
+    const { load, item } = await insertLoadWithItem("in_stock", "C-1");
+
+    const updated = await updateItemCorrida(item.id, "C-2");
+    expect(updated.corrida).toBe("C-2");
+
+    const [updatedItem] = await db
+      .select()
+      .from(items)
+      .where(eq(items.id, item.id));
+    expect(updatedItem.corrida).toBe("C-2");
+    expect(updatedItem.weight).toBe("10");
+    expect(updatedItem.status).toBe("in_stock");
+    expect(updatedItem.number).toBe(1);
+    expect(updatedItem.qrToken).toBe(item.qrToken);
+
+    const [unchangedLoad] = await db
+      .select()
+      .from(loads)
+      .where(eq(loads.id, load.id));
+    expect(unchangedLoad.itemCount).toBe(1);
+    expect(unchangedLoad.remainingWeight).toBe("10");
+  });
+
+  it("accepts a first value for an item whose corrida is NULL", async () => {
+    const { item } = await insertLoadWithItem("in_stock", null);
+
+    await updateItemCorrida(item.id, "C-NEW");
+
+    const [updatedItem] = await db
+      .select()
+      .from(items)
+      .where(eq(items.id, item.id));
+    expect(updatedItem.corrida).toBe("C-NEW");
+  });
+
+  it("refuses to edit a removed item without changing its corrida", async () => {
+    const { item } = await insertLoadWithItem("removed", "C-1");
+
+    await expect(updateItemCorrida(item.id, "C-2")).rejects.toThrow(
+      "Item is not in stock",
+    );
+
+    const [unchangedItem] = await db
+      .select()
+      .from(items)
+      .where(eq(items.id, item.id));
+    expect(unchangedItem.corrida).toBe("C-1");
+  });
+
+  it("throws when the item does not exist", async () => {
+    await expect(updateItemCorrida(randomUUID(), "C-2")).rejects.toThrow(
+      "Item not found",
+    );
   });
 });

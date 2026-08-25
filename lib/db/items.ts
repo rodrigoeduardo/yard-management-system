@@ -74,3 +74,38 @@ export async function updateItemWeight(
     return updatedItem;
   });
 }
+
+/**
+ * Corrects an in-stock item's recorded corrida. Unlike `updateItemWeight`,
+ * corrida is descriptive only (`docs/specs/glossary.md`) and never
+ * participates in scan/removal matching, so the transaction only locks and
+ * updates the item row — no downstream load arithmetic to recompute.
+ */
+export async function updateItemCorrida(
+  itemId: string,
+  corrida: string,
+  userId: string | null = null,
+) {
+  return withAuditUser(userId, async (tx) => {
+    const [item] = await tx
+      .select()
+      .from(items)
+      .where(eq(items.id, itemId))
+      .for("update");
+
+    if (!item) {
+      throw new Error("Item not found");
+    }
+    if (item.status !== "in_stock") {
+      throw new Error("Item is not in stock");
+    }
+
+    const [updatedItem] = await tx
+      .update(items)
+      .set({ corrida })
+      .where(eq(items.id, item.id))
+      .returning();
+
+    return updatedItem;
+  });
+}
