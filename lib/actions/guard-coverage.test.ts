@@ -54,6 +54,7 @@ vi.mock("@/lib/supabase/ssr-server", () => ({
 const MODULES: Record<string, { guarded: string[]; exempt: string[] }> = {
   "./item-status": { guarded: [], exempt: ["checkItemStatus"] },
   "./item-weight": { guarded: ["updateItemWeightAction"], exempt: [] },
+  "./item-corrida": { guarded: ["updateItemCorridaAction"], exempt: [] },
   "./load-items": {
     guarded: [],
     exempt: ["fetchLoadItems", "fetchLoadForEdit"],
@@ -140,6 +141,16 @@ describe("lib/actions guard coverage", () => {
         return updateItemWeightAction({
           itemId: "00000000-0000-0000-0000-000000000000",
           weight: 2.5,
+        });
+      },
+    ],
+    [
+      "updateItemCorridaAction",
+      async () => {
+        const { updateItemCorridaAction } = await import("./item-corrida");
+        return updateItemCorridaAction({
+          itemId: "00000000-0000-0000-0000-000000000000",
+          corrida: "C-1",
         });
       },
     ],
