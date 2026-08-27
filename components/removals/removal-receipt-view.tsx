@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatWeight } from "@/lib/format/weight";
 import type { RemovalReceipt } from "@/lib/removals/receipt";
+import { scannedItemIdentifier } from "@/lib/removals/scanned-item";
 
 function itemsLabel(count: number): string {
   return count === 1 ? "item" : "itens";
@@ -123,7 +124,7 @@ export function RemovalReceiptView({
                   key={item.qrToken}
                   className="flex items-center justify-between gap-2 text-[13.5px] text-foreground"
                 >
-                  <span className="truncate">{item.identifier}</span>
+                  <span className="truncate">{scannedItemIdentifier(item)}</span>
                   <span className="shrink-0 font-mono font-medium text-muted-foreground">
                     {formatWeight(item.weight)}
                   </span>

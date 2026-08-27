@@ -17,12 +17,13 @@ describe("checkItemStatus", () => {
     }
   });
 
-  it("returns the item's status for a known qr_token", async () => {
+  async function insertItem(weight: string) {
     const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const notaFiscal = `NF-CHECK-STATUS-${randomUUID()}`;
     const [load] = await db
       .insert(loads)
       .values({
-        notaFiscal: `NF-CHECK-STATUS-${randomUUID()}`,
+        notaFiscal,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
         materialId,
@@ -34,11 +35,38 @@ describe("checkItemStatus", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10", number: 1 })
+      .values({ loadId: load.id, weight, number: 1, corrida: "C-4471" })
       .returning();
 
+    return { item, notaFiscal };
+  }
+
+  it("returns the item's status and current data for a known qr_token", async () => {
+    const { item, notaFiscal } = await insertItem("10");
+
     const result = await checkItemStatus(item.qrToken);
-    expect(result).toEqual({ success: true, status: "in_stock" });
+
+    expect(result).toEqual({
+      success: true,
+      status: "in_stock",
+      item: {
+        qrToken: item.qrToken,
+        number: 1,
+        notaFiscal,
+        material: "Aço",
+        weight: "10",
+        corrida: "C-4471",
+      },
+    });
+  });
+
+  it("returns the weight recorded now, not the one printed on the scanned label", async () => {
+    const { item } = await insertItem("10");
+    await db.update(items).set({ weight: "12" }).where(eq(items.id, item.id));
+
+    const result = await checkItemStatus(item.qrToken);
+
+    expect(result.success && result.status !== "not_found" && result.item.weight).toBe("12");
   });
 
   it("returns not_found for an unknown qr_token", async () => {

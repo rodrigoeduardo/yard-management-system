@@ -1,4 +1,4 @@
-import type { ItemQrPayload } from "../qrcode/payload";
+import type { ScannedItem } from "./scanned-item";
 import {
   groupScannedItemsByNotaFiscal,
   type ScannedItemsByNotaFiscal,
@@ -13,7 +13,7 @@ export type RemovalReceipt = {
 
 /** Summarizes a completed removal for the post-submit receipt screen. */
 export function buildRemovalReceipt(
-  items: ItemQrPayload[],
+  items: ScannedItem[],
   totalRemovedWeight: string,
   vehiclePlate: string,
 ): RemovalReceipt {

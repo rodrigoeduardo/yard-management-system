@@ -27,10 +27,35 @@ vi.mock("@zxing/browser", () => ({
 }));
 
 vi.mock("@/lib/actions/item-status", () => ({
-  checkItemStatus: vi
-    .fn()
-    .mockResolvedValue({ success: true, status: "in_stock" }),
+  checkItemStatus: vi.fn(),
 }));
+
+/**
+ * An item as the database holds it. The QR code carries only `qrToken`, so
+ * tests register the item here and the mocked `checkItemStatus` resolves it —
+ * exactly how the real flow reads an item's current data at scan time.
+ */
+type StockedItem = {
+  qrToken: string;
+  number: number;
+  notaFiscal: string;
+  material: string;
+  weight: string;
+  corrida?: string | null;
+  status?: "in_stock" | "removed";
+};
+
+const stockedItems = new Map<string, StockedItem>();
+
+function stockItem(item: StockedItem): StockedItem {
+  stockedItems.set(item.qrToken, item);
+  return item;
+}
+
+/** What the scanner reads off this item's printed label. */
+function scanTextFor(item: StockedItem): string {
+  return encodeItemQrPayload({ qrToken: item.qrToken });
+}
 
 vi.mock("@/lib/actions/removals", () => ({
   removeItems: vi.fn(),
@@ -41,6 +66,15 @@ vi.mock("@/lib/actions/pedido-image", () => ({
 }));
 
 beforeEach(() => {
+  stockedItems.clear();
+  vi.mocked(checkItemStatus).mockImplementation(async (qrToken: string) => {
+    const stocked = stockedItems.get(qrToken);
+    if (!stocked) {
+      return { success: true as const, status: "not_found" as const };
+    }
+    const { status = "in_stock", corrida = null, ...item } = stocked;
+    return { success: true as const, status, item: { ...item, corrida } };
+  });
   // jsdom has no real object URL implementation, used by the pedido image
   // preview (components/removals/pedido-image-attach.tsx).
   URL.createObjectURL = vi.fn(() => "blob:mock-pedido-image");
@@ -51,16 +85,11 @@ beforeEach(() => {
   });
 });
 
-async function scanItem(payload: {
-  qrToken: string;
-  identifier: string;
-  notaFiscal?: string;
-  material: string;
-  weight: string;
-}) {
+async function scanItem(item: StockedItem) {
+  stockItem(item);
   fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
   await waitFor(() => expect(scanCallback).toBeDefined());
-  scanCallback!({ getText: () => encodeItemQrPayload(payload as never) });
+  scanCallback!({ getText: () => scanTextFor(item) });
 }
 
 function attachPedidoImage() {
@@ -77,7 +106,7 @@ describe("NewRemovalPage scan feedback", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -89,19 +118,15 @@ describe("NewRemovalPage scan feedback", () => {
   });
 
   it("shows a red error toast when the scanned item is not found", async () => {
-    vi.mocked(checkItemStatus).mockResolvedValueOnce({
-      success: true,
-      status: "not_found",
-    } as never);
-
     render(<NewRemovalPage />);
 
-    await scanItem({
-      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
-      notaFiscal: "NF-100",
-      material: "Aço",
-      weight: "10",
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
+    await waitFor(() => expect(scanCallback).toBeDefined());
+    scanCallback!({
+      getText: () =>
+        encodeItemQrPayload({
+          qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+        }),
     });
 
     const toast = await screen.findByRole("status");
@@ -110,19 +135,15 @@ describe("NewRemovalPage scan feedback", () => {
   });
 
   it("shows a red error toast when the scanned item was already removed", async () => {
-    vi.mocked(checkItemStatus).mockResolvedValueOnce({
-      success: true,
-      status: "removed",
-    } as never);
-
     render(<NewRemovalPage />);
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
+      status: "removed",
     });
 
     const toast = await screen.findByRole("status");
@@ -149,7 +170,7 @@ describe("NewRemovalPage scanned items list", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -169,37 +190,37 @@ describe("NewRemovalPage scanned items list", () => {
 
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-          identifier: "Item 4 - NF-100",
+          number: 4,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
     await screen.findByText("Item 4");
 
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "6b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8b",
-          identifier: "Item 2 - NF-100",
+          number: 2,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
     await screen.findByText("Item 2");
 
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "7b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8c",
-          identifier: "Item 5 - NF-100",
+          number: 5,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
     await screen.findByText("Item 5");
 
@@ -207,35 +228,62 @@ describe("NewRemovalPage scanned items list", () => {
     expect(screen.queryByText("Item 3")).not.toBeInTheDocument();
   });
 
-  it("renders the raw identifier, without crashing, for a payload whose identifier doesn't match the expected shape", async () => {
+  it("shows the item's current weight, not the weight printed on its label", async () => {
     render(<NewRemovalPage />);
 
-    await scanItem({
+    // The label was printed at 10 Ton; the item weighs 12 Ton now.
+    const item = stockItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "not-a-valid-identifier",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
-      weight: "10",
+      weight: "12",
     });
-
-    expect(await screen.findByText("not-a-valid-identifier")).toBeInTheDocument();
-  });
-
-  it("falls back to the identifier-embedded Nota Fiscal for legacy QR payloads without the distinct field", async () => {
-    render(<NewRemovalPage />);
-
-    const legacyPayload = {
-      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-200",
-      material: "Aço",
-      weight: "10",
-    };
 
     fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
     await waitFor(() => expect(scanCallback).toBeDefined());
-    scanCallback!({ getText: () => JSON.stringify(legacyPayload) });
+    scanCallback!({
+      getText: () =>
+        JSON.stringify({
+          qrToken: item.qrToken,
+          identifier: "Item 1 - NF-100",
+          notaFiscal: "NF-100",
+          material: "Aço",
+          weight: "10",
+        }),
+    });
+
+    expect((await screen.findAllByText("12 Ton")).length).toBeGreaterThan(0);
+    expect(screen.queryByText("10 Ton")).not.toBeInTheDocument();
+    const toast = screen.getByRole("status");
+    expect(toast).toHaveTextContent("Item adicionado: Aço — 12 Ton");
+  });
+
+  it("scans a label printed in the legacy format, resolving its data from the database", async () => {
+    render(<NewRemovalPage />);
+
+    const item = stockItem({
+      qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
+      number: 3,
+      notaFiscal: "NF-200",
+      material: "Cobre",
+      weight: "5",
+    });
+
+    fireEvent.click(screen.getAllByText("Iniciar Escaneamento")[0]);
+    await waitFor(() => expect(scanCallback).toBeDefined());
+    scanCallback!({
+      getText: () =>
+        JSON.stringify({
+          qrToken: item.qrToken,
+          identifier: "Item 3 - NF-200",
+          material: "Cobre",
+          weight: "5",
+        }),
+    });
 
     expect(await screen.findByText("NF-200")).toBeInTheDocument();
+    expect(screen.getByText("Item 3")).toBeInTheDocument();
   });
 
   it("removes a scanned item when its remove button is clicked", async () => {
@@ -243,7 +291,7 @@ describe("NewRemovalPage scanned items list", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -277,7 +325,7 @@ describe("NewRemovalPage sticky total bar", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -299,7 +347,7 @@ describe("NewRemovalPage sticky total bar", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -317,7 +365,7 @@ describe("NewRemovalPage sticky total bar", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -348,7 +396,7 @@ describe("NewRemovalPage Pedido image upload failure", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -398,25 +446,25 @@ describe("NewRemovalPage review dialog", () => {
     await waitFor(() => expect(scanCallback).toBeDefined());
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-          identifier: "Item 1 - NF-100",
+          number: 1,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
     await screen.findByText("NF-100");
 
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "6c2f7f3e-7c1b-5c9b-ac1b-3f3f7c1b5c9b",
-          identifier: "Item 1 - NF-200",
+          number: 1,
           notaFiscal: "NF-200",
           material: "Cobre",
           weight: "5",
-        } as never),
+        })),
     });
     await screen.findByText("NF-200");
     attachPedidoImage();
@@ -511,13 +559,13 @@ describe("NewRemovalPage review dialog", () => {
     await waitFor(() => expect(scanCallback).toBeDefined());
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-          identifier: "Item 1 - NF-100",
+          number: 1,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
     await screen.findByText("NF-100");
     attachPedidoImage();
@@ -615,7 +663,7 @@ describe("NewRemovalPage vehicle plate field", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -646,7 +694,7 @@ describe("NewRemovalPage scanned items header", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -663,7 +711,7 @@ describe("NewRemovalPage clear list", () => {
 
     await scanItem({
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
@@ -688,19 +736,19 @@ describe("NewRemovalPage scan cooldown", () => {
   it("ignores an immediate re-read of the same code right after a successful scan, instead of flashing 'already scanned'", async () => {
     render(<NewRemovalPage />);
 
-    const payload = {
+    const item = {
       qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-      identifier: "Item 1 - NF-100",
+      number: 1,
       notaFiscal: "NF-100",
       material: "Aço",
       weight: "10",
     };
 
-    await scanItem(payload);
+    await scanItem(item);
     expect(await screen.findByText("ITENS LIDOS (1)")).toBeInTheDocument();
 
     // The continuous decoder re-reads the same code on the very next frame.
-    scanCallback!({ getText: () => encodeItemQrPayload(payload as never) });
+    scanCallback!({ getText: () => scanTextFor(item) });
 
     expect(screen.getByText("ITENS LIDOS (1)")).toBeInTheDocument();
     expect(
@@ -721,13 +769,13 @@ describe("NewRemovalPage scan cooldown", () => {
 
     scanCallback!({
       getText: () =>
-        encodeItemQrPayload({
+        scanTextFor(stockItem({
           qrToken: "5b1f6f2e-6b0a-4b8a-9b0a-2f2e6b0a4b8a",
-          identifier: "Item 1 - NF-100",
+          number: 1,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
-        } as never),
+        })),
     });
 
     expect(await screen.findByText("ITENS LIDOS (1)")).toBeInTheDocument();

@@ -15,8 +15,7 @@ const qrCodes: LoadItemQrCode[] = [
   {
     itemId: "item-1",
     qrToken: "token-1",
-    payload: {
-      qrToken: "token-1",
+    label: {
       identifier: "Item 1 - NF-123456",
       notaFiscal: "NF-123456",
       material: "Aço",
@@ -27,8 +26,7 @@ const qrCodes: LoadItemQrCode[] = [
   {
     itemId: "item-2",
     qrToken: "token-2",
-    payload: {
-      qrToken: "token-2",
+    label: {
       identifier: "Item 2 - NF-123456",
       notaFiscal: "NF-123456",
       material: "Aço",
@@ -181,8 +179,7 @@ describe("QrPrintView", () => {
       {
         itemId: "item-long",
         qrToken: "token-long",
-        payload: {
-          qrToken: "token-long",
+        label: {
           identifier: longIdentifier,
           notaFiscal: "NF-123456789",
           material: "Aço",
@@ -220,8 +217,7 @@ describe("QrPrintView", () => {
       {
         itemId: "item-wide",
         qrToken: "token-wide",
-        payload: {
-          qrToken: "token-wide",
+        label: {
           identifier: "Item 1 - NF-123456",
           notaFiscal: "NF-123456",
           material: "Aço",
@@ -252,8 +248,7 @@ describe("QrPrintView", () => {
       {
         itemId: "item-corrida",
         qrToken: "token-corrida",
-        payload: {
-          qrToken: "token-corrida",
+        label: {
           identifier: "Item 1 - NF-123456",
           notaFiscal: "NF-123456",
           material: "Aço",

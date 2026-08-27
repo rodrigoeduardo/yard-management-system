@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { getLoadWithItems } from "../db/loads";
-import { buildItemQrPayload, encodeItemQrPayload, type ItemQrPayload } from "./payload";
+import { buildItemQrLabel, type ItemQrLabel } from "./label";
+import { encodeItemQrPayload, type ItemQrPayload } from "./payload";
 
 export async function generateItemQrCode(payload: ItemQrPayload): Promise<string> {
   return QRCode.toDataURL(encodeItemQrPayload(payload));
@@ -9,7 +10,8 @@ export async function generateItemQrCode(payload: ItemQrPayload): Promise<string
 export type LoadItemQrCode = {
   itemId: string;
   qrToken: string;
-  payload: ItemQrPayload;
+  /** Printed text beside the code — read from the item's row, not encoded in it. */
+  label: ItemQrLabel;
   dataUrl: string;
 };
 
@@ -19,22 +21,17 @@ export async function getLoadItemQrCodes(
   const { load, items } = await getLoadWithItems(loadId);
 
   return Promise.all(
-    items.map(async (item) => {
-      const payload = buildItemQrPayload({
-        qrToken: item.qrToken,
-        itemIndex: item.number,
+    items.map(async (item) => ({
+      itemId: item.id,
+      qrToken: item.qrToken,
+      label: buildItemQrLabel({
+        itemNumber: item.number,
         notaFiscal: load.notaFiscal,
         material: load.material,
         weight: item.weight,
         corrida: item.corrida,
-      });
-
-      return {
-        itemId: item.id,
-        qrToken: item.qrToken,
-        payload,
-        dataUrl: await generateItemQrCode(payload),
-      };
-    }),
+      }),
+      dataUrl: await generateItemQrCode({ qrToken: item.qrToken }),
+    })),
   );
 }

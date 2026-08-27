@@ -1,16 +1,27 @@
-import type { ItemQrPayload } from "../qrcode/payload";
+import type { ScannedItem } from "./scanned-item";
+
+export const SCANNED_ITEM_ALREADY_ADDED_ERROR =
+  "Este item já foi escaneado nesta remoção.";
 
 export type AddScannedItemResult = {
-  list: ItemQrPayload[];
+  list: ScannedItem[];
   error?: string;
 };
 
+/** True when `qrToken` is already on the running list. */
+export function hasScannedItem(
+  list: ScannedItem[],
+  qrToken: string,
+): boolean {
+  return list.some((scanned) => scanned.qrToken === qrToken);
+}
+
 export function addScannedItem(
-  list: ItemQrPayload[],
-  item: ItemQrPayload,
+  list: ScannedItem[],
+  item: ScannedItem,
 ): AddScannedItemResult {
-  if (list.some((scanned) => scanned.qrToken === item.qrToken)) {
-    return { list, error: "Este item já foi escaneado nesta remoção." };
+  if (hasScannedItem(list, item.qrToken)) {
+    return { list, error: SCANNED_ITEM_ALREADY_ADDED_ERROR };
   }
 
   return { list: [...list, item] };
@@ -58,60 +69,29 @@ export function createScanCooldown(durationMs: number): ScanCooldown {
 
 /** Removes the scanned item matching `qrToken`, if present. */
 export function dropScannedItem(
-  list: ItemQrPayload[],
+  list: ScannedItem[],
   qrToken: string,
-): ItemQrPayload[] {
+): ScannedItem[] {
   return list.filter((item) => item.qrToken !== qrToken);
 }
 
 export type ScannedItemsByNotaFiscal = {
   notaFiscal: string;
-  items: ItemQrPayload[];
+  items: ScannedItem[];
 };
-
-/** Recovers the Nota Fiscal embedded in an item's identifier (e.g. "Item 1 - NF-100" -> "NF-100"). */
-function notaFiscalFromIdentifier(identifier: string): string {
-  return identifier.replace(/^Item \d+ - /, "");
-}
-
-/**
- * Resolves an item's Nota Fiscal: prefers the distinct `notaFiscal` field,
- * falling back to parsing the identifier for QR codes printed before that
- * field existed.
- */
-export function notaFiscalOf(item: ItemQrPayload): string {
-  return item.notaFiscal ?? notaFiscalFromIdentifier(item.identifier);
-}
-
-/** Recovers the item's own number embedded in its identifier (e.g. "Item 7 - NF-100" -> 7). */
-function itemNumberFromIdentifier(identifier: string): number | null {
-  const match = identifier.match(/^Item (\d+) - /);
-  return match ? Number(match[1]) : null;
-}
-
-/**
- * Resolves an item's own number (the one printed on its physical label).
- * The QR payload has no distinct numeric field, so this always parses the
- * identifier; returns null when the identifier doesn't match the expected
- * shape so callers can fall back to displaying the raw identifier.
- */
-export function itemNumberOf(item: ItemQrPayload): number | null {
-  return itemNumberFromIdentifier(item.identifier);
-}
 
 /** Groups scanned items by their originating Nota Fiscal, preserving first-seen order. */
 export function groupScannedItemsByNotaFiscal(
-  list: ItemQrPayload[],
+  list: ScannedItem[],
 ): ScannedItemsByNotaFiscal[] {
   const groups: ScannedItemsByNotaFiscal[] = [];
 
   for (const item of list) {
-    const notaFiscal = notaFiscalOf(item);
-    const group = groups.find((g) => g.notaFiscal === notaFiscal);
+    const group = groups.find((g) => g.notaFiscal === item.notaFiscal);
     if (group) {
       group.items.push(item);
     } else {
-      groups.push({ notaFiscal, items: [item] });
+      groups.push({ notaFiscal: item.notaFiscal, items: [item] });
     }
   }
 

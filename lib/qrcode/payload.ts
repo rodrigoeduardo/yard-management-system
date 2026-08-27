@@ -1,38 +1,20 @@
 import { z } from "zod";
 
+/**
+ * A QR code is write-once: whatever it carries is frozen at print time, while
+ * the item's own data (weight, corrida, …) keeps changing in the database.
+ * So the code carries *identity only* — the item's `qr_token` — and every
+ * scan-time reader resolves the current values from the database.
+ *
+ * Unknown keys are stripped rather than rejected, which is what keeps labels
+ * printed in the old format (material/weight/corrida embedded) scannable:
+ * they still parse, and their stale fields are dropped on the way in.
+ */
 const itemQrPayloadSchema = z.object({
   qrToken: z.uuid(),
-  identifier: z.string(),
-  // Optional so decoding already-printed QR codes (issued before this field
-  // existed) keeps working. New codes always carry it via buildItemQrPayload.
-  notaFiscal: z.string().optional(),
-  material: z.string(),
-  weight: z.string(),
-  // Optional for the same reason as notaFiscal: already-printed codes (or
-  // items created before this field existed) never carried it. New codes
-  // carry it only when the item has a non-null corrida.
-  corrida: z.string().optional(),
 });
 
 export type ItemQrPayload = z.infer<typeof itemQrPayloadSchema>;
-
-export function buildItemQrPayload(params: {
-  qrToken: string;
-  itemIndex: number;
-  notaFiscal: string;
-  material: string;
-  weight: string;
-  corrida?: string | null;
-}): ItemQrPayload {
-  return {
-    qrToken: params.qrToken,
-    identifier: `Item ${params.itemIndex} - ${params.notaFiscal}`,
-    notaFiscal: params.notaFiscal,
-    material: params.material,
-    weight: params.weight,
-    ...(params.corrida ? { corrida: params.corrida } : {}),
-  };
-}
 
 export function encodeItemQrPayload(payload: ItemQrPayload): string {
   return JSON.stringify(payload);
