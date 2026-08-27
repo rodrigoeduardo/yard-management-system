@@ -112,6 +112,49 @@ change. This gives conflict resolutions (and any semantic issues in an automatic
 pass before they land, and keeps `main` deployable if a sync turns out to need more work than
 expected.
 
+#### Land the sync PR as a merge commit — never squash
+
+Merge the sync PR with a **merge commit**. Not squash, not rebase — even though squash is the
+usual default for feature PRs, and is what GitHub will remember per repo once anyone picks it.
+
+A squash keeps the resulting tree but throws away the merge's second parent. Git then has no
+record that this client repo ever merged yms, so the merge base stays wherever it was before the
+sync:
+
+```bash
+git merge-base main upstream/main   # should name a recent upstream commit
+```
+
+If that prints something old while `main` demonstrably contains recent upstream work, the last
+sync was squashed. Every subsequent `git merge upstream/main` replays the whole already-reconciled
+range against that stale base, and re-raises the conflicts that were resolved last time — a set
+that grows with each upstream release. Each re-resolution is another opportunity to silently drop
+a client customization.
+
+This is not hypothetical. `patio` squash-merged its 2026-08-26 sync; its merge base stayed at a
+July commit despite `main` holding everything through `7edac5f`. The next sync — a single upstream
+commit — came up as 14 conflicted files, every one of them false: 13 blobs were byte-identical to
+upstream's, and the 14th differed only by that fork's 3-line client-specific print label.
+
+#### Recovering a fork that already squashed a sync
+
+The tree is fine; only the ancestry is missing. Restore it by landing one real merge:
+
+1. On the sync branch, merge the client's `main` in (`git merge origin/main`) and expect the false
+   conflicts described above.
+2. Resolve by taking the sync branch's side (`git checkout --ours -- <file>`) — but verify that
+   claim rather than assuming it. For each conflicted file, compare the branch's blob against the
+   upstream commit's, and confirm any difference is a known client customization:
+
+   ```bash
+   git diff :2:<file> <upstream-commit>:<file>
+   ```
+
+3. After staging every resolution, `git diff --cached HEAD` should be empty. An empty diff proves
+   the resolution dropped nothing: the branch already contained all of `main`'s content.
+4. Merge the PR with a merge commit. `git merge-base main upstream/main` now names the upstream
+   commit, and the next sync is clean.
+
 ### On conflicts
 
 - **Favor the config-first structure.** If a conflict is between a shared core file (yms side)
