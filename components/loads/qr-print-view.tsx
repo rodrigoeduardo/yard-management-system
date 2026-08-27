@@ -115,22 +115,22 @@ export function QrPrintView({ summary, qrCodes }: QrPrintViewProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qr.dataUrl}
-              alt={qr.payload.identifier}
+              alt={qr.label.identifier}
               className="w-full max-w-48 print:w-[42mm] print:max-w-none print:shrink-0"
             />
             <div className="flex flex-col items-center gap-2 md:gap-[9px] print:w-[46mm] print:items-start print:gap-1.5">
               <span className="text-center text-[13px] font-bold text-foreground md:text-[13.5px] print:text-left print:text-[5mm] print:leading-[5.5mm]">
-                {qr.payload.identifier}
+                {qr.label.identifier}
               </span>
               <span className="text-center text-[11.5px] text-muted-foreground print:text-left print:text-[4mm] print:leading-[4.5mm]">
-                {qr.payload.material}
+                {qr.label.material}
               </span>
               <span className="text-center font-mono text-xs font-semibold text-accent-foreground md:text-[12.5px] print:text-left print:text-[4.5mm] print:leading-[5mm]">
-                {qr.payload.weight} Ton
+                {qr.label.weight} Ton
               </span>
-              {qr.payload.corrida && (
+              {qr.label.corrida && (
                 <span className="text-center font-mono text-xs text-muted-foreground md:text-[12.5px] print:text-left print:text-[4mm] print:leading-[4.5mm]">
-                  Corrida {qr.payload.corrida}
+                  Corrida {qr.label.corrida}
                 </span>
               )}
             </div>

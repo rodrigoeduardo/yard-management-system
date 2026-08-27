@@ -1,24 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { buildRemovalReceipt } from "./receipt";
-import type { ItemQrPayload } from "../qrcode/payload";
+import type { ScannedItem } from "./scanned-item";
 
 function makeItem(
   qrToken: string,
-  overrides: Partial<Pick<ItemQrPayload, "identifier" | "weight">> = {},
-): ItemQrPayload {
+  overrides: Partial<Pick<ScannedItem, "number" | "notaFiscal" | "weight">> = {},
+): ScannedItem {
   return {
     qrToken,
-    identifier: overrides.identifier ?? `Item 1 - NF-${qrToken}`,
+    number: overrides.number ?? 1,
+    notaFiscal: overrides.notaFiscal ?? `NF-${qrToken}`,
     material: "Aço",
     weight: overrides.weight ?? "10",
+    corrida: null,
   };
 }
 
 describe("buildRemovalReceipt", () => {
   it("counts the removed items, groups them by Nota Fiscal, and carries the total weight", () => {
-    const a = makeItem("a", { identifier: "Item 1 - NF-100" });
-    const b = makeItem("b", { identifier: "Item 2 - NF-100" });
-    const c = makeItem("c", { identifier: "Item 1 - NF-200" });
+    const a = makeItem("a", { number: 1, notaFiscal: "NF-100" });
+    const b = makeItem("b", { number: 2, notaFiscal: "NF-100" });
+    const c = makeItem("c", { number: 1, notaFiscal: "NF-200" });
 
     const receipt = buildRemovalReceipt([a, b, c], "150.5", "ABC1234");
 

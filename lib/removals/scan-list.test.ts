@@ -4,29 +4,23 @@ import {
   createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
-  itemNumberOf,
-  notaFiscalOf,
+  hasScannedItem,
+  SCANNED_ITEM_ALREADY_ADDED_ERROR,
 } from "./scan-list";
-import type { ItemQrPayload } from "../qrcode/payload";
+import type { ScannedItem } from "./scanned-item";
 
 function makeItem(
   qrToken: string,
-  overrides: Partial<
-    Pick<ItemQrPayload, "identifier" | "notaFiscal" | "weight">
-  > = {},
-): ItemQrPayload {
-  const identifier = overrides.identifier ?? `Item 1 - NF-${qrToken}`;
+  overrides: Partial<Pick<ScannedItem, "number" | "notaFiscal" | "weight">> = {},
+): ScannedItem {
   return {
     qrToken,
-    identifier,
-    notaFiscal: overrides.notaFiscal ?? notaFiscalFromTestIdentifier(identifier),
+    number: overrides.number ?? 1,
+    notaFiscal: overrides.notaFiscal ?? `NF-${qrToken}`,
     material: "Aço",
     weight: overrides.weight ?? "10",
+    corrida: null,
   };
-}
-
-function notaFiscalFromTestIdentifier(identifier: string): string {
-  return identifier.replace(/^Item \d+ - /, "");
 }
 
 describe("addScannedItem", () => {
@@ -42,7 +36,7 @@ describe("addScannedItem", () => {
     const item = makeItem("a");
     const result = addScannedItem([item], item);
 
-    expect(result.error).toBe("Este item já foi escaneado nesta remoção.");
+    expect(result.error).toBe(SCANNED_ITEM_ALREADY_ADDED_ERROR);
     expect(result.list).toEqual([item]);
   });
 });
@@ -65,53 +59,6 @@ describe("dropScannedItem", () => {
     const a = makeItem("a");
 
     expect(dropScannedItem([a], "a")).toEqual([]);
-  });
-});
-
-describe("notaFiscalOf", () => {
-  it("returns the distinct notaFiscal field when present", () => {
-    const item = makeItem("a", {
-      identifier: "Item 1 - NF-100",
-      notaFiscal: "NF-100",
-    });
-
-    expect(notaFiscalOf(item)).toBe("NF-100");
-  });
-
-  it("falls back to parsing the identifier for legacy QR codes without a notaFiscal field", () => {
-    const legacyItem: ItemQrPayload = {
-      qrToken: "a",
-      identifier: "Item 1 - NF-100",
-      material: "Aço",
-      weight: "10",
-    };
-
-    expect(notaFiscalOf(legacyItem)).toBe("NF-100");
-  });
-});
-
-describe("itemNumberOf", () => {
-  it("parses the item's own number out of the identifier", () => {
-    const item = makeItem("a", { identifier: "Item 7 - NF-100" });
-
-    expect(itemNumberOf(item)).toBe(7);
-  });
-
-  it("parses the number even for legacy QR codes without a notaFiscal field", () => {
-    const legacyItem: ItemQrPayload = {
-      qrToken: "a",
-      identifier: "Item 7 - NF-100",
-      material: "Aço",
-      weight: "10",
-    };
-
-    expect(itemNumberOf(legacyItem)).toBe(7);
-  });
-
-  it("returns null when the identifier doesn't match the expected shape", () => {
-    const item = makeItem("a", { identifier: "not-a-valid-identifier" });
-
-    expect(itemNumberOf(item)).toBeNull();
   });
 });
 
@@ -170,10 +117,10 @@ describe("createScanCooldown", () => {
 });
 
 describe("groupScannedItemsByNotaFiscal", () => {
-  it("groups items by the Nota Fiscal embedded in their identifier", () => {
-    const a = makeItem("a", { identifier: "Item 1 - NF-100" });
-    const b = makeItem("b", { identifier: "Item 2 - NF-100" });
-    const c = makeItem("c", { identifier: "Item 1 - NF-200" });
+  it("groups items by their originating Nota Fiscal", () => {
+    const a = makeItem("a", { number: 1, notaFiscal: "NF-100" });
+    const b = makeItem("b", { number: 2, notaFiscal: "NF-100" });
+    const c = makeItem("c", { number: 1, notaFiscal: "NF-200" });
 
     expect(groupScannedItemsByNotaFiscal([a, b, c])).toEqual([
       { notaFiscal: "NF-100", items: [a, b] },
@@ -183,5 +130,15 @@ describe("groupScannedItemsByNotaFiscal", () => {
 
   it("preserves first-seen NF order and returns an empty array for an empty list", () => {
     expect(groupScannedItemsByNotaFiscal([])).toEqual([]);
+  });
+});
+
+describe("hasScannedItem", () => {
+  it("reports an item already on the running list", () => {
+    expect(hasScannedItem([makeItem("a")], "a")).toBe(true);
+  });
+
+  it("reports an item absent from the running list", () => {
+    expect(hasScannedItem([makeItem("a")], "b")).toBe(false);
   });
 });

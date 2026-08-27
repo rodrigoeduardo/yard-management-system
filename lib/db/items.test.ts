@@ -3,14 +3,14 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { db } from "./index";
 import {
-  getItemStatusByQrToken,
+  getItemScanSnapshotByQrToken,
   updateItemCorrida,
   updateItemWeight,
 } from "./items";
 import { resolveMaterialId } from "./materials";
 import { items, loads } from "./schema";
 
-describe("getItemStatusByQrToken", () => {
+describe("getItemScanSnapshotByQrToken", () => {
   const createdLoadIds: string[] = [];
 
   afterEach(async () => {
@@ -21,12 +21,16 @@ describe("getItemStatusByQrToken", () => {
     }
   });
 
-  async function insertItem(status: "in_stock" | "removed") {
+  async function insertItem(
+    status: "in_stock" | "removed",
+    overrides: { weight?: string; corrida?: string | null } = {},
+  ) {
     const { id: materialId } = await resolveMaterialId(db, "Aço");
+    const notaFiscal = `NF-ITEM-STATUS-${randomUUID()}`;
     const [load] = await db
       .insert(loads)
       .values({
-        notaFiscal: `NF-ITEM-STATUS-${randomUUID()}`,
+        notaFiscal,
         entryDate: new Date("2026-01-01"),
         nfWeight: "100",
         materialId,
@@ -38,26 +42,60 @@ describe("getItemStatusByQrToken", () => {
 
     const [item] = await db
       .insert(items)
-      .values({ loadId: load.id, weight: "10", status, number: 1 })
+      .values({
+        loadId: load.id,
+        weight: overrides.weight ?? "10",
+        corrida: overrides.corrida ?? null,
+        status,
+        number: 1,
+      })
       .returning();
 
-    return item;
+    return { item, notaFiscal };
   }
 
-  it("returns the status of an existing item", async () => {
-    const item = await insertItem("in_stock");
+  it("returns an in-stock item's current data, labeled with its number and originating NF", async () => {
+    const { item, notaFiscal } = await insertItem("in_stock", {
+      weight: "10.5",
+      corrida: "C-4471",
+    });
 
-    expect(await getItemStatusByQrToken(item.qrToken)).toBe("in_stock");
+    expect(await getItemScanSnapshotByQrToken(item.qrToken)).toEqual({
+      qrToken: item.qrToken,
+      status: "in_stock",
+      number: 1,
+      notaFiscal,
+      material: "Aço",
+      weight: "10.5",
+      corrida: "C-4471",
+    });
   });
 
   it("returns a removed item's status", async () => {
-    const item = await insertItem("removed");
+    const { item } = await insertItem("removed");
 
-    expect(await getItemStatusByQrToken(item.qrToken)).toBe("removed");
+    expect((await getItemScanSnapshotByQrToken(item.qrToken))?.status).toBe(
+      "removed",
+    );
+  });
+
+  it("returns the weight recorded now, not the one printed on the item's label", async () => {
+    const { item } = await insertItem("in_stock", { weight: "10" });
+    await db.update(items).set({ weight: "12" }).where(eq(items.id, item.id));
+
+    expect((await getItemScanSnapshotByQrToken(item.qrToken))?.weight).toBe(
+      "12",
+    );
+  });
+
+  it("returns a null corrida for an item that has none", async () => {
+    const { item } = await insertItem("in_stock", { corrida: null });
+
+    expect((await getItemScanSnapshotByQrToken(item.qrToken))?.corrida).toBeNull();
   });
 
   it("returns null when no item has that qr_token", async () => {
-    expect(await getItemStatusByQrToken(randomUUID())).toBeNull();
+    expect(await getItemScanSnapshotByQrToken(randomUUID())).toBeNull();
   });
 });
 

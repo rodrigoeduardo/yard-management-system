@@ -2,17 +2,44 @@ import { and, eq } from "drizzle-orm";
 import { withAuditUser } from "./audit-context";
 import { sumDecimalStrings } from "./decimal";
 import { db } from "./index";
-import { items, loads } from "./schema";
+import { items, loads, materials } from "./schema";
 
-export async function getItemStatusByQrToken(
+/**
+ * Everything the removal scan flow shows about an item, read at scan time.
+ * The QR code carries only the item's `qr_token` (see lib/qrcode/payload.ts),
+ * precisely so weight/corrida corrections made after a label was printed are
+ * reflected the next time that label is scanned.
+ */
+export type ItemScanSnapshot = {
+  qrToken: string;
+  status: "in_stock" | "removed";
+  /** The number printed on the item's physical label ("Item <number> - <NF>"). */
+  number: number;
+  notaFiscal: string;
+  material: string;
+  weight: string;
+  corrida: string | null;
+};
+
+export async function getItemScanSnapshotByQrToken(
   qrToken: string,
-): Promise<"in_stock" | "removed" | null> {
+): Promise<ItemScanSnapshot | null> {
   const [item] = await db
-    .select({ status: items.status })
+    .select({
+      qrToken: items.qrToken,
+      status: items.status,
+      number: items.number,
+      weight: items.weight,
+      corrida: items.corrida,
+      notaFiscal: loads.notaFiscal,
+      material: materials.name,
+    })
     .from(items)
+    .innerJoin(loads, eq(items.loadId, loads.id))
+    .innerJoin(materials, eq(loads.materialId, materials.id))
     .where(eq(items.qrToken, qrToken));
 
-  return item?.status ?? null;
+  return item ?? null;
 }
 
 /**

@@ -37,11 +37,15 @@ import {
   createScanCooldown,
   dropScannedItem,
   groupScannedItemsByNotaFiscal,
-  itemNumberOf,
-  notaFiscalOf,
+  hasScannedItem,
+  SCANNED_ITEM_ALREADY_ADDED_ERROR,
 } from "@/lib/removals/scan-list";
+import {
+  scannedItemIdentifier,
+  type ScannedItem,
+} from "@/lib/removals/scanned-item";
 import { checkItemStatus } from "@/lib/actions/item-status";
-import { safeDecodeItemQrPayload, type ItemQrPayload } from "@/lib/qrcode/payload";
+import { safeDecodeItemQrPayload } from "@/lib/qrcode/payload";
 import { PAGE_CONTAINER_DESKTOP_CLASS } from "@/lib/ui/page-container";
 import { cn } from "@/lib/utils";
 
@@ -100,7 +104,7 @@ export default function NewRemovalPage() {
   const [pedidoImageError, setPedidoImageError] = useState<
     string | undefined
   >();
-  const [scannedItems, setScannedItems] = useState<ItemQrPayload[]>([]);
+  const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [scanToast, setScanToast] = useState<
     { type: "success" | "error"; text: string } | undefined
   >();
@@ -113,7 +117,7 @@ export default function NewRemovalPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const scannedItemsRef = useRef<ItemQrPayload[]>([]);
+  const scannedItemsRef = useRef<ScannedItem[]>([]);
   const pendingTokensRef = useRef<Set<string>>(new Set());
   const scanCooldownRef = useRef(createScanCooldown(SCAN_COOLDOWN_MS));
   const scanFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -140,6 +144,9 @@ export default function NewRemovalPage() {
   }
 
   async function handleScannedText(text: string) {
+    // The code carries the item's token only: everything shown about the item
+    // is read from the database below, so a label printed before a weight or
+    // corrida correction still lists the item's current data.
     const payload = safeDecodeItemQrPayload(text);
     if (!payload) {
       showScanToast("error", "Código QR inválido.");
@@ -150,9 +157,8 @@ export default function NewRemovalPage() {
       return;
     }
 
-    const { list, error } = addScannedItem(scannedItemsRef.current, payload);
-    if (error) {
-      showScanToast("error", error);
+    if (hasScannedItem(scannedItemsRef.current, payload.qrToken)) {
+      showScanToast("error", SCANNED_ITEM_ALREADY_ADDED_ERROR);
       return;
     }
 
@@ -173,12 +179,21 @@ export default function NewRemovalPage() {
       return;
     }
 
+    const { list, error } = addScannedItem(
+      scannedItemsRef.current,
+      status.item,
+    );
+    if (error) {
+      showScanToast("error", error);
+      return;
+    }
+
     scannedItemsRef.current = list;
     setScannedItems(list);
     scanCooldownRef.current.start(payload.qrToken);
     showScanToast(
       "success",
-      `Item adicionado: ${payload.material} — ${payload.weight} Ton`,
+      `Item adicionado: ${status.item.material} — ${status.item.weight} Ton`,
     );
   }
 
@@ -487,18 +502,16 @@ export default function NewRemovalPage() {
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
-                {scannedItems.map((item) => {
-                  const itemNumber = itemNumberOf(item);
-                  return (
+                {scannedItems.map((item) => (
                   <li key={item.qrToken}>
                     <Card className="flex items-center gap-3 rounded-[14px] px-3.5 py-3 md:bg-[oklch(0.985_0.002_250)]">
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">
-                            {itemNumber !== null ? `Item ${itemNumber}` : item.identifier}
+                            {`Item ${item.number}`}
                           </span>
                           <span className="rounded-[6px] bg-accent px-[7px] py-0.5 font-mono text-[11px] font-semibold text-accent-foreground">
-                            {notaFiscalOf(item)}
+                            {item.notaFiscal}
                           </span>
                         </div>
                         <p className="truncate text-sm text-muted-foreground">
@@ -514,7 +527,7 @@ export default function NewRemovalPage() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          aria-label={`Remover ${item.identifier}`}
+                          aria-label={`Remover ${scannedItemIdentifier(item)}`}
                           onClick={() => handleDropItem(item.qrToken)}
                         >
                           <X className="size-4" />
@@ -522,8 +535,7 @@ export default function NewRemovalPage() {
                       </div>
                     </Card>
                   </li>
-                  );
-                })}
+                ))}
               </ul>
             )}
 
@@ -694,7 +706,7 @@ export default function NewRemovalPage() {
                           className="flex items-center justify-between gap-2 px-0.5 text-[13.5px] text-foreground"
                         >
                           <span className="truncate">
-                            {item.identifier} — {item.material}
+                            {scannedItemIdentifier(item)} — {item.material}
                           </span>
                           <span className="shrink-0 font-mono font-medium text-muted-foreground">
                             {item.weight} Ton

@@ -11,10 +11,11 @@ const receipt: RemovalReceipt = {
       items: [
         {
           qrToken: "token-1",
-          identifier: "Item 1 - NF-100",
+          number: 1,
           notaFiscal: "NF-100",
           material: "Aço",
           weight: "10",
+          corrida: null,
         },
       ],
     },
@@ -23,10 +24,11 @@ const receipt: RemovalReceipt = {
       items: [
         {
           qrToken: "token-2",
-          identifier: "Item 1 - NF-200",
+          number: 1,
           notaFiscal: "NF-200",
           material: "Cobre",
           weight: "5",
+          corrida: null,
         },
       ],
     },
