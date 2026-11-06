@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPedidoImageUploadTarget } from "@/lib/actions/pedido-image";
+import { compressPedidoImage } from "./pedido-image-compression";
 import { uploadPedidoImage } from "./pedido-image-upload";
 
 const uploadToSignedUrl = vi.fn();
@@ -13,6 +14,10 @@ vi.mock("@/lib/actions/pedido-image", () => ({
   createPedidoImageUploadTarget: vi.fn(),
 }));
 
+vi.mock("./pedido-image-compression", () => ({
+  compressPedidoImage: vi.fn(),
+}));
+
 const UPLOAD_FAILED = "Falha ao enviar a imagem do Pedido. Tente novamente.";
 
 function jpegFile(): File {
@@ -23,6 +28,9 @@ function jpegFile(): File {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Compression is a no-op by default; its own behavior is covered in
+  // pedido-image-compression.test.ts.
+  vi.mocked(compressPedidoImage).mockImplementation(async (file) => file);
   vi.mocked(createPedidoImageUploadTarget).mockResolvedValue({
     success: true,
     path: "3f1c.jpg",
@@ -56,6 +64,31 @@ describe("uploadPedidoImage", () => {
       { contentType: "image/jpeg" },
     );
     expect(result).toEqual({ success: true, path: "3f1c.jpg" });
+  });
+
+  it("compresses the file first and uploads the compressed one", async () => {
+    const original = new File([new Uint8Array(4096)], "pedido.png", {
+      type: "image/png",
+    });
+    const compressed = new File([new Uint8Array(512)], "pedido.jpg", {
+      type: "image/jpeg",
+    });
+    vi.mocked(compressPedidoImage).mockResolvedValue(compressed);
+
+    await uploadPedidoImage(original);
+
+    expect(compressPedidoImage).toHaveBeenCalledWith(original);
+    // The metadata the server validates describes the bytes actually sent.
+    expect(createPedidoImageUploadTarget).toHaveBeenCalledWith({
+      type: "image/jpeg",
+      size: 512,
+    });
+    expect(uploadToSignedUrl).toHaveBeenCalledWith(
+      "3f1c.jpg",
+      "signed-token",
+      compressed,
+      { contentType: "image/jpeg" },
+    );
   });
 
   it("returns the server's validation error without uploading", async () => {
