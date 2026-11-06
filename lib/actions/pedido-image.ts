@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
+import { z } from "zod";
 import { createSupabaseSsrServerClient } from "@/lib/supabase/ssr-server";
 import { isViewerWriteRefused, VIEWER_WRITE_ERROR_MESSAGE } from "./guard";
 
@@ -19,7 +20,12 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MiB — matches the bucket's file_size_limit.
 
-export type PedidoImageMetadata = { type: string; size: number };
+const pedidoImageMetadataSchema = z.object({
+  type: z.string(),
+  size: z.number().int().positive(),
+});
+
+export type PedidoImageMetadata = z.input<typeof pedidoImageMetadataSchema>;
 
 export type PedidoImageUploadTargetResult =
   | { success: true; path: string; token: string }
@@ -45,11 +51,13 @@ export async function createPedidoImageUploadTarget(
     return { success: false, error: VIEWER_WRITE_ERROR_MESSAGE };
   }
 
-  if (file.size <= 0) {
+  const parsed = pedidoImageMetadataSchema.safeParse(file);
+  if (!parsed.success) {
     return { success: false, error: "Anexe a imagem do Pedido." };
   }
+  const { type, size } = parsed.data;
 
-  const extension = EXTENSION_BY_MIME_TYPE[file.type];
+  const extension = EXTENSION_BY_MIME_TYPE[type];
   if (!extension) {
     return {
       success: false,
@@ -57,7 +65,7 @@ export async function createPedidoImageUploadTarget(
     };
   }
 
-  if (file.size > MAX_FILE_SIZE_BYTES) {
+  if (size > MAX_FILE_SIZE_BYTES) {
     return {
       success: false,
       error: "Imagem muito grande. O limite é 20MB.",

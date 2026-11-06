@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseSsrServerClient } from "@/lib/supabase/ssr-server";
 
 function requireEnv(name: string): string {
@@ -59,6 +60,18 @@ describe("createPedidoImageUploadTarget", () => {
     });
   });
 
+  it("rejects metadata that is not a positive integer size", async () => {
+    const result = await createPedidoImageUploadTarget({
+      type: "image/png",
+      size: Number.NaN,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Anexe a imagem do Pedido.",
+    });
+  });
+
   it("rejects an unsupported file type", async () => {
     const result = await createPedidoImageUploadTarget({
       type: "text/plain",
@@ -105,7 +118,12 @@ describe("createPedidoImageUploadTarget", () => {
       await authedClient.auth.signOut();
     });
 
-    /** Uploads through the signed target the way the browser does. */
+    /**
+     * Uploads through the signed target the way the browser does: with a
+     * session-less publishable-key client (the app's auth cookies are
+     * httpOnly, so the browser client never sees a session) — the signed
+     * token alone must satisfy the bucket's RLS.
+     */
     async function uploadThroughTarget(file: File): Promise<string> {
       const target = await createPedidoImageUploadTarget({
         type: file.type,
@@ -114,8 +132,8 @@ describe("createPedidoImageUploadTarget", () => {
       if (!target.success) throw new Error(`expected success: ${target.error}`);
       uploadedPaths.push(target.path);
 
-      const { error } = await authedClient.storage
-        .from("removal-pedidos")
+      const { error } = await createSupabaseServerClient()
+        .storage.from("removal-pedidos")
         .uploadToSignedUrl(target.path, target.token, file, {
           contentType: file.type,
         });
