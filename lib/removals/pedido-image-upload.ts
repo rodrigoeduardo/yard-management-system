@@ -1,5 +1,6 @@
 import { createPedidoImageUploadTarget } from "@/lib/actions/pedido-image";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { compressPedidoImage } from "./pedido-image-compression";
 
 const PEDIDO_IMAGES_BUCKET = "removal-pedidos";
 
@@ -14,13 +15,16 @@ export type UploadPedidoImageResult =
  * Uploads the Pedido image from the browser straight to Supabase Storage:
  * the server validates the file's metadata and hands back a signed upload
  * target, then the bytes go directly to the bucket — never through a
- * Server Action body (#360). Any failure, thrown or returned, resolves to
- * an inline error so the removal form keeps its input for a retry.
+ * Server Action body (#360). The image is compressed first (#362), so the
+ * metadata the server validates describes the bytes actually sent. Any
+ * failure, thrown or returned, resolves to an inline error so the removal
+ * form keeps its input for a retry.
  */
 export async function uploadPedidoImage(
-  file: File,
+  original: File,
 ): Promise<UploadPedidoImageResult> {
   try {
+    const file = await compressPedidoImage(original);
     const target = await createPedidoImageUploadTarget({
       type: file.type,
       size: file.size,
