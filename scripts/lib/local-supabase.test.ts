@@ -72,6 +72,7 @@ describe("buildTestEnvFileContents", () => {
     const contents = buildTestEnvFileContents({
       ...baseStatus,
       PUBLISHABLE_KEY: "sb_publishable_abc",
+      SECRET_KEY: "sb_secret_abc",
     });
 
     expect(contents).toContain(`NEXT_PUBLIC_SUPABASE_URL=${baseStatus.API_URL}`);
@@ -79,6 +80,7 @@ describe("buildTestEnvFileContents", () => {
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_abc",
     );
     expect(contents).toContain(`SUPABASE_DB_URL=${baseStatus.DB_URL}`);
+    expect(contents).toContain("SUPABASE_SERVICE_ROLE_KEY=sb_secret_abc");
     expect(contents).toContain(`TEST_USER_EMAIL=${LOCAL_TEST_USER_EMAIL}`);
     expect(contents).toContain(`TEST_USER_PASSWORD=${LOCAL_TEST_USER_PASSWORD}`);
     expect(contents).toContain(
