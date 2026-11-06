@@ -134,6 +134,13 @@
       "when": 1786726251630,
       "tag": "0018_items_number",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793983363577,
+      "tag": "0019_demo_pedido_cleanup",
+      "breakpoints": true
     }
   ]
 }

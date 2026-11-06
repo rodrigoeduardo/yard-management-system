@@ -69,6 +69,9 @@ export function buildTestEnvFileContents(status: LocalSupabaseStatus): string {
     `NEXT_PUBLIC_SUPABASE_URL=${status.API_URL}`,
     `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${pickPublishableKey(status)}`,
     `SUPABASE_DB_URL=${status.DB_URL}`,
+    // The nightly demo cleanup test (lib/db/demo-reset.test.ts) stores this
+    // in Vault so pg_net can delete Pedido objects via the Storage API.
+    `SUPABASE_SERVICE_ROLE_KEY=${pickServiceKey(status)}`,
     `TEST_USER_EMAIL=${LOCAL_TEST_USER_EMAIL}`,
     `TEST_USER_PASSWORD=${LOCAL_TEST_USER_PASSWORD}`,
     `REGISTER_INVITE_CODE=${LOCAL_REGISTER_INVITE_CODE}`,
