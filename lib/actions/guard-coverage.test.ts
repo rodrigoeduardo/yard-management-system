@@ -68,7 +68,7 @@ const MODULES: Record<string, { guarded: string[]; exempt: string[] }> = {
   "./removals": { guarded: ["removeItems"], exempt: [] },
   "./removal-cancel": { guarded: ["cancelRemovalAction"], exempt: [] },
   "./pedido-image": {
-    guarded: ["uploadPedidoImage"],
+    guarded: ["createPedidoImageUploadTarget"],
     exempt: ["getPedidoImageSignedUrl"],
   },
 };
@@ -185,10 +185,12 @@ describe("lib/actions guard coverage", () => {
       },
     ],
     [
-      "uploadPedidoImage",
+      "createPedidoImageUploadTarget",
       async () => {
-        const { uploadPedidoImage } = await import("./pedido-image");
-        return uploadPedidoImage(new FormData());
+        const { createPedidoImageUploadTarget } = await import(
+          "./pedido-image"
+        );
+        return createPedidoImageUploadTarget({ type: "image/png", size: 8 });
       },
     ],
   ];

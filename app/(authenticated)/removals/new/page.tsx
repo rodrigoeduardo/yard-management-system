@@ -19,7 +19,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionLabel } from "@/components/ui/section-label";
 import { useTopLoaderTask } from "@/components/ui/top-loader";
-import { uploadPedidoImage } from "@/lib/actions/pedido-image";
 import { removeItems } from "@/lib/actions/removals";
 import { sumDecimalStrings } from "@/lib/db/decimal";
 import { formatEntryDateTime } from "@/lib/format/datetime";
@@ -31,6 +30,7 @@ import {
   combineEntryDateTimeValue,
   getCurrentEntryDateTimeValue,
 } from "@/lib/loads/entry-datetime";
+import { uploadPedidoImage } from "@/lib/removals/pedido-image-upload";
 import { buildRemovalReceipt, type RemovalReceipt } from "@/lib/removals/receipt";
 import {
   addScannedItem,
@@ -245,9 +245,7 @@ export default function NewRemovalPage() {
     }
 
     startTransition(async () => {
-      const pedidoImageFormData = new FormData();
-      pedidoImageFormData.set("file", pedidoImage);
-      const uploadResult = await uploadPedidoImage(pedidoImageFormData);
+      const uploadResult = await uploadPedidoImage(pedidoImage);
 
       if (!uploadResult.success) {
         setPedidoImageError(uploadResult.error);

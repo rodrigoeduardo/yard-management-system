@@ -22,10 +22,10 @@ function fakeCookieStore() {
 
 const cookieStore = fakeCookieStore();
 
-// `uploadPedidoImage` reads the acting user's session via `next/headers`
-// cookies (same pattern as lib/auth/current-user.ts) so the upload runs
-// through Supabase Storage's RLS as the authenticated operator, not an
-// anonymous request. Sign in against the same mocked cookie store before
+// `createPedidoImageUploadTarget` reads the acting user's session via
+// `next/headers` cookies (same pattern as lib/auth/current-user.ts) so the
+// signed upload URL is created through Supabase Storage's RLS as the
+// authenticated operator, not an anonymous request. Sign in against the same mocked cookie store before
 // each authenticated test so the action inherits a real session.
 vi.mock("next/headers", () => ({
   cookies: vi.fn(async () => cookieStore),
@@ -38,46 +38,49 @@ function pngFile(name = "pedido.png"): File {
   return new File([bytes], name, { type: "image/png" });
 }
 
-let uploadPedidoImage: typeof import("./pedido-image").uploadPedidoImage;
+let createPedidoImageUploadTarget: typeof import("./pedido-image").createPedidoImageUploadTarget;
 let getPedidoImageSignedUrl: typeof import("./pedido-image").getPedidoImageSignedUrl;
 beforeAll(async () => {
-  ({ uploadPedidoImage, getPedidoImageSignedUrl } = await import(
+  ({ createPedidoImageUploadTarget, getPedidoImageSignedUrl } = await import(
     "./pedido-image"
   ));
 });
 
-describe("uploadPedidoImage", () => {
-  it("rejects when no file is attached", async () => {
-    const formData = new FormData();
+describe("createPedidoImageUploadTarget", () => {
+  it("rejects an empty file", async () => {
+    const result = await createPedidoImageUploadTarget({
+      type: "image/png",
+      size: 0,
+    });
 
-    const result = await uploadPedidoImage(formData);
-
-    expect(result.success).toBe(false);
+    expect(result).toEqual({
+      success: false,
+      error: "Anexe a imagem do Pedido.",
+    });
   });
 
   it("rejects an unsupported file type", async () => {
-    const formData = new FormData();
-    formData.set(
-      "file",
-      new File(["not an image"], "pedido.txt", { type: "text/plain" }),
-    );
+    const result = await createPedidoImageUploadTarget({
+      type: "text/plain",
+      size: 12,
+    });
 
-    const result = await uploadPedidoImage(formData);
-
-    expect(result.success).toBe(false);
+    expect(result).toEqual({
+      success: false,
+      error: "Formato de imagem não suportado. Use JPEG, PNG, WEBP ou HEIC.",
+    });
   });
 
   it("rejects a file over the size limit", async () => {
-    const formData = new FormData();
-    const oversized = new Uint8Array(21 * 1024 * 1024);
-    formData.set(
-      "file",
-      new File([oversized], "pedido-large.png", { type: "image/png" }),
-    );
+    const result = await createPedidoImageUploadTarget({
+      type: "image/png",
+      size: 21 * 1024 * 1024,
+    });
 
-    const result = await uploadPedidoImage(formData);
-
-    expect(result.success).toBe(false);
+    expect(result).toEqual({
+      success: false,
+      error: "Imagem muito grande. O limite é 20MB.",
+    });
   });
 
   describe("as an authenticated user", () => {
@@ -102,34 +105,65 @@ describe("uploadPedidoImage", () => {
       await authedClient.auth.signOut();
     });
 
-    it("uploads the image to the removal-pedidos bucket and returns its object path", async () => {
-      const formData = new FormData();
-      formData.set("file", pngFile());
+    /** Uploads through the signed target the way the browser does. */
+    async function uploadThroughTarget(file: File): Promise<string> {
+      const target = await createPedidoImageUploadTarget({
+        type: file.type,
+        size: file.size,
+      });
+      if (!target.success) throw new Error(`expected success: ${target.error}`);
+      uploadedPaths.push(target.path);
 
-      const result = await uploadPedidoImage(formData);
+      const { error } = await authedClient.storage
+        .from("removal-pedidos")
+        .uploadToSignedUrl(target.path, target.token, file, {
+          contentType: file.type,
+        });
+      if (error) throw new Error(`signed upload failed: ${error.message}`);
 
-      expect(result.success).toBe(true);
-      if (!result.success) throw new Error("expected success");
-      uploadedPaths.push(result.path);
+      return target.path;
+    }
 
+    it("returns a signed upload target in the removal-pedidos bucket that accepts the image", async () => {
+      const file = pngFile();
+      const target = await createPedidoImageUploadTarget({
+        type: file.type,
+        size: file.size,
+      });
+
+      expect(target.success).toBe(true);
+      if (!target.success) throw new Error("expected success");
+      expect(target.path).toMatch(/^[0-9a-f-]{36}\.png$/);
+      expect(target.token).not.toBe("");
+
+      const path = await uploadThroughTarget(pngFile("pedido-upload.png"));
       const { data, error } = await authedClient.storage
         .from("removal-pedidos")
-        .download(result.path);
+        .download(path);
 
       expect(error).toBeNull();
       expect(data).not.toBeNull();
     });
 
+    it("accepts an image larger than the 1 MB Server Action body limit (#360)", async () => {
+      const largeBytes = new Uint8Array(3 * 1024 * 1024);
+      largeBytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+      const path = await uploadThroughTarget(
+        new File([largeBytes], "pedido-large.png", { type: "image/png" }),
+      );
+
+      const { data, error } = await authedClient.storage
+        .from("removal-pedidos")
+        .download(path);
+
+      expect(error).toBeNull();
+      expect(data?.size).toBe(largeBytes.byteLength);
+    });
+
     it("returns a fetchable signed URL for the uploaded image, for the printable receipt (#270)", async () => {
-      const formData = new FormData();
-      formData.set("file", pngFile("pedido-signed-url.png"));
+      const path = await uploadThroughTarget(pngFile("pedido-signed-url.png"));
 
-      const uploadResult = await uploadPedidoImage(formData);
-      expect(uploadResult.success).toBe(true);
-      if (!uploadResult.success) throw new Error("expected success");
-      uploadedPaths.push(uploadResult.path);
-
-      const signedUrl = await getPedidoImageSignedUrl(uploadResult.path);
+      const signedUrl = await getPedidoImageSignedUrl(path);
 
       expect(signedUrl).not.toBeNull();
       const response = await fetch(signedUrl!);
