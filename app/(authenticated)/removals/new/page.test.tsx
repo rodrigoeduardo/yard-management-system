@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TopLoader } from "@/components/ui/top-loader";
 import { encodeItemQrPayload } from "@/lib/qrcode/payload";
 import { checkItemStatus } from "@/lib/actions/item-status";
-import { uploadPedidoImage } from "@/lib/actions/pedido-image";
+import { uploadPedidoImage } from "@/lib/removals/pedido-image-upload";
 import { removeItems } from "@/lib/actions/removals";
 import NewRemovalPage from "./page";
 
@@ -61,7 +61,7 @@ vi.mock("@/lib/actions/removals", () => ({
   removeItems: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/pedido-image", () => ({
+vi.mock("@/lib/removals/pedido-image-upload", () => ({
   uploadPedidoImage: vi.fn(),
 }));
 
@@ -531,6 +531,11 @@ describe("NewRemovalPage review dialog", () => {
         "6c2f7f3e-7c1b-5c9b-ac1b-3f3f7c1b5c9b",
       ],
     }));
+    // The attached File itself goes to the browser-side upload — no
+    // FormData through a Server Action body (#360).
+    expect(uploadPedidoImage).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "pedido.png", type: "image/png" }),
+    );
 
     expect(
       await screen.findByText("Remoção Concluída"),
