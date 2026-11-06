@@ -23,3 +23,12 @@ import { db } from "./index";
 export async function resetDemoData(): Promise<void> {
   await db.execute(sql`select reset_demo_data()`);
 }
+
+/**
+ * What the nightly pg_cron job runs: `run_nightly_demo_reset()`
+ * (drizzle/0019_demo_pedido_cleanup.sql) deletes the Pedido images uploaded
+ * since the previous run, then calls `reset_demo_data()` (#364).
+ */
+export async function runNightlyDemoReset(): Promise<void> {
+  await db.execute(sql`select run_nightly_demo_reset()`);
+}

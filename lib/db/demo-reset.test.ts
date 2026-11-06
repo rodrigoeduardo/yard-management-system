@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import { asc, eq, sql } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   DEMO_LOADS,
   DEMO_REMOVALS,
@@ -8,7 +9,7 @@ import {
   MULTI_LOAD_REMOVAL_DRIVER,
 } from "@/scripts/lib/demo-dataset";
 import { withAuditUser } from "./audit-context";
-import { resetDemoData } from "./demo-reset";
+import { resetDemoData, runNightlyDemoReset } from "./demo-reset";
 import { db } from "./index";
 import {
   auditLog,
@@ -209,3 +210,144 @@ async function countAuditLogRows(): Promise<number> {
   );
   return row?.count ?? 0;
 }
+
+const PEDIDO_BUCKET = "removal-pedidos";
+
+// From inside the local stack's db container, the Storage API is reached
+// through Kong's internal alias, not the host-mapped 127.0.0.1:54321.
+const LOCAL_STORAGE_API_URL = "http://api.supabase.internal:8000";
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`);
+  }
+  return value;
+}
+
+function storageAdmin() {
+  return createClient(
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    { auth: { persistSession: false } },
+  ).storage.from(PEDIDO_BUCKET);
+}
+
+async function uploadPedidoObject(): Promise<string> {
+  const name = `${randomUUID()}.png`;
+  const { error } = await storageAdmin().upload(
+    name,
+    new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+    { contentType: "image/png" },
+  );
+  if (error) throw error;
+  return name;
+}
+
+async function pedidoObjectExists(name: string): Promise<boolean> {
+  const rows = await db.execute(
+    sql`select 1 from storage.objects where bucket_id = ${PEDIDO_BUCKET} and name = ${name}`,
+  );
+  return rows.length > 0;
+}
+
+/** pg_net sends its queued requests asynchronously, after commit. */
+async function waitUntilPedidoObjectGone(name: string): Promise<void> {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    if (!(await pedidoObjectExists(name))) return;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Pedido object ${name} was not deleted`);
+}
+
+async function setVaultSecret(name: string, value: string): Promise<void> {
+  await db.execute(sql`delete from vault.secrets where name = ${name}`);
+  await db.execute(sql`select vault.create_secret(${value}, ${name})`);
+}
+
+async function clearCleanupSecrets(): Promise<void> {
+  await db.execute(
+    sql`delete from vault.secrets where name in ('demo_storage_api_url', 'demo_storage_service_key')`,
+  );
+}
+
+async function readLastResetAt(): Promise<Date | null> {
+  const [row] = await db.execute<{ reset_at: string }>(
+    sql`select reset_at::text from demo_reset_marker`,
+  );
+  return row ? new Date(row.reset_at) : null;
+}
+
+describe("runNightlyDemoReset", () => {
+  beforeEach(async () => {
+    await db.execute(sql`delete from demo_reset_marker`);
+    await setVaultSecret("demo_storage_api_url", LOCAL_STORAGE_API_URL);
+    await setVaultSecret(
+      "demo_storage_service_key",
+      requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    );
+  });
+
+  afterEach(async () => {
+    await clearCleanupSecrets();
+  });
+
+  it(
+    "deletes only the Pedido objects created after the previous reset",
+    async () => {
+      const beforeSeed = await uploadPedidoObject();
+
+      // No previous reset recorded: nothing is deleted, the reset is recorded.
+      await runNightlyDemoReset();
+      expect(await pedidoObjectExists(beforeSeed)).toBe(true);
+      expect(await readLastResetAt()).not.toBeNull();
+
+      const afterSeed = await uploadPedidoObject();
+      await runNightlyDemoReset();
+
+      await waitUntilPedidoObjectGone(afterSeed);
+      expect(await pedidoObjectExists(beforeSeed)).toBe(true);
+    },
+    30000,
+  );
+
+  it(
+    "keeps a Pedido object created exactly at the previous reset",
+    async () => {
+      const atSeed = await uploadPedidoObject();
+      await db.execute(sql`
+        insert into demo_reset_marker (reset_at)
+        select created_at from storage.objects
+        where bucket_id = ${PEDIDO_BUCKET} and name = ${atSeed}
+      `);
+      const afterSeed = await uploadPedidoObject();
+
+      await runNightlyDemoReset();
+
+      await waitUntilPedidoObjectGone(afterSeed);
+      expect(await pedidoObjectExists(atSeed)).toBe(true);
+    },
+    30000,
+  );
+
+  it(
+    "still reseeds but skips the cleanup and keeps the previous reset time when its Vault secrets are missing",
+    async () => {
+      await runNightlyDemoReset();
+      const previousResetAt = await readLastResetAt();
+      const afterSeed = await uploadPedidoObject();
+      await clearCleanupSecrets();
+      await insertJunkData();
+
+      await runNightlyDemoReset();
+
+      expect(
+        await db.select().from(loads).where(sql`nota_fiscal like 'JUNK-%'`),
+      ).toEqual([]);
+      expect(await readLastResetAt()).toEqual(previousResetAt);
+      expect(await pedidoObjectExists(afterSeed)).toBe(true);
+    },
+    30000,
+  );
+});
